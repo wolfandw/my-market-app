@@ -62,7 +62,7 @@
                             <span class="badge text-bg-success justify-content-end" th:text="${item.price()}+' руб.'"></span>
                         </h5>
                         <p class="card-text" th:text="${item.description()}"></p>
-                        <form method="post" th:action="@{/items}">
+                        <form method="post" th:action="@{/images}">
                             <div class="hstack gap-3">
                                 <input type="hidden" name="id" th:value="${item.id()}">
                                 <input type="hidden" name="search" th:value="${search}">

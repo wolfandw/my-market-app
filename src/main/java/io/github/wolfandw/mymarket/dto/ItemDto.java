@@ -1,7 +1,5 @@
 package io.github.wolfandw.mymarket.dto;
 
-import jakarta.persistence.Column;
-
 /**
  * DTO-описание товара.
  *

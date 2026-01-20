@@ -1,0 +1,14 @@
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="010_fill_data.xml" author="wolfandw">
+        <sqlFile path="db/changelog/sql/010_fill_data.sql"/>
+        <rollback>
+            <sqlFile path="db/changelog/sql/010_rollback_data.sql"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

@@ -11,12 +11,12 @@ import org.springframework.transaction.annotation.Transactional;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Интеграционный тест сервиса товаров.
+ * Интеграционные тесты сервиса товаров.
  */
 @SpringBootTest
 class ItemServiceIntegrationTest extends AbstractIntegrationTest {
     @Autowired
-    protected ItemService itemService;
+    private ItemService itemService;
 
     @Test
     @Transactional
@@ -25,34 +25,63 @@ class ItemServiceIntegrationTest extends AbstractIntegrationTest {
         assertThat(itemsPageDto.items()).size().isEqualTo(2);
         assertThat(itemsPageDto.items().get(0)).size().isEqualTo(3);
         assertThat(itemsPageDto.items().get(1)).size().isEqualTo(3);
+        assertThat(itemsPageDto.items().get(1).get(1).title()).isEqualTo("Item 11");
+
+        // stubs
+        assertThat(itemsPageDto.items().get(1).get(2).id()).isEqualTo(-1L);
+        assertThat(itemsPageDto.items().get(1).get(2).title()).isEqualTo("");
     }
 
     @Test
     @Transactional
     public void getItemsPageSearchTest() {
-        ItemsPageDto itemsPageDto = itemService.getItemsPage("item", "NO", 1, 5);
-        assertThat(itemsPageDto.items()).size().isEqualTo(1);
+        ItemsPageDto itemsPageDto = itemService.getItemsPage("searchtag", "NO", 1, 5);
+        assertThat(itemsPageDto.items()).size().isEqualTo(2);
         assertThat(itemsPageDto.items().get(0)).size().isEqualTo(3);
+        assertThat(itemsPageDto.items().get(1)).size().isEqualTo(3);
+        assertThat(itemsPageDto.items().get(1).get(0).title()).isEqualTo("Item 06");
+
+        // stubs
+        assertThat(itemsPageDto.items().get(1).get(1).id()).isEqualTo(-1L);
+        assertThat(itemsPageDto.items().get(1).get(1).title()).isEqualTo("");
+
+        assertThat(itemsPageDto.items().get(1).get(2).id()).isEqualTo(-1L);
+        assertThat(itemsPageDto.items().get(1).get(2).title()).isEqualTo("");
     }
 
     @Test
     @Transactional
     public void getItemsPageSearchOrderByTitleTest() {
-        ItemsPageDto itemsPageDto = itemService.getItemsPage("item", "ALPHA", 1, 5);
-        assertThat(itemsPageDto.items()).size().isEqualTo(1);
+        ItemsPageDto itemsPageDto = itemService.getItemsPage("searchtag", "ALPHA", 1, 5);
+        assertThat(itemsPageDto.items()).size().isEqualTo(2);
         assertThat(itemsPageDto.items().get(0)).size().isEqualTo(3);
-        assertThat(itemsPageDto.items().get(0).get(0).title()).isEqualTo("01 Item");
-        assertThat(itemsPageDto.items().get(0).get(1).title()).isEqualTo("02");
+        assertThat(itemsPageDto.items().get(1)).size().isEqualTo(3);
+        assertThat(itemsPageDto.items().get(1).get(0).title()).isEqualTo("Item 10");
+
+        // stubs
+        assertThat(itemsPageDto.items().get(1).get(1).id()).isEqualTo(-1L);
+        assertThat(itemsPageDto.items().get(1).get(1).title()).isEqualTo("");
+
+        assertThat(itemsPageDto.items().get(1).get(2).id()).isEqualTo(-1L);
+        assertThat(itemsPageDto.items().get(1).get(2).title()).isEqualTo("");
     }
 
     @Test
     @Transactional
     public void getItemsPageSearchOrderByPriceTest() {
-        ItemsPageDto itemsPageDto = itemService.getItemsPage("item", "PRICE", 1, 5);
-        assertThat(itemsPageDto.items()).size().isEqualTo(1);
+        ItemsPageDto itemsPageDto = itemService.getItemsPage("SEARCHTAG", "PRICE", 1, 5);
+        assertThat(itemsPageDto.items()).size().isEqualTo(2);
         assertThat(itemsPageDto.items().get(0)).size().isEqualTo(3);
-        assertThat(itemsPageDto.items().get(0).get(0).title()).isEqualTo("02");
-        assertThat(itemsPageDto.items().get(0).get(1).title()).isEqualTo("01 Item");
+        assertThat(itemsPageDto.items().get(1)).size().isEqualTo(3);
+        System.out.println("********** " + itemsPageDto.items().get(0));
+        assertThat(itemsPageDto.items().get(1).get(0).title()).isEqualTo("Item 01 searchtag");
+
+        // stubs
+        assertThat(itemsPageDto.items().get(1).get(1).id()).isEqualTo(-1L);
+        assertThat(itemsPageDto.items().get(1).get(1).title()).isEqualTo("");
+
+        assertThat(itemsPageDto.items().get(1).get(2).id()).isEqualTo(-1L);
+        assertThat(itemsPageDto.items().get(1).get(2).title()).isEqualTo("");
     }
 
     @Test
@@ -62,5 +91,10 @@ class ItemServiceIntegrationTest extends AbstractIntegrationTest {
         assertThat(itemsPageDto.items()).size().isEqualTo(2);
         assertThat(itemsPageDto.items().get(0)).size().isEqualTo(3);
         assertThat(itemsPageDto.items().get(1)).size().isEqualTo(3);
+        assertThat(itemsPageDto.items().get(1).get(1).title()).isEqualTo("Item 11");
+
+        // stubs
+        assertThat(itemsPageDto.items().get(1).get(2).id()).isEqualTo(-1L);
+        assertThat(itemsPageDto.items().get(1).get(2).title()).isEqualTo("");
     }
 }
