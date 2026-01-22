@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS chart_items;
+DROP TABLE IF EXISTS chart;

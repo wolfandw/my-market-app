@@ -4,9 +4,11 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
-    <include file="001_init_items_table.xml" relativeToChangelogFile="true"/>
-    <include file="002_init_carts_tables.xml" relativeToChangelogFile="true"/>
-    <include file="003_init_orders_tables.xml" relativeToChangelogFile="true"/>
-    <include file="010_fill_data.xml" relativeToChangelogFile="true"/>
+    <changeSet id="003_init_orders_tables" author="wolfandw">
+        <sqlFile path="sql/003_init_orders_tables.sql" relativeToChangelogFile="true"/>
+        <rollback>
+            <sqlFile path="sql/003_rollback_orders_tables.sql" relativeToChangelogFile="true"/>
+        </rollback>
+    </changeSet>
 
 </databaseChangeLog>

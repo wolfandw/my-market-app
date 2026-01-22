@@ -5,9 +5,9 @@
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
     <changeSet id="010_fill_data.xml" author="wolfandw">
-        <sqlFile path="db/changelog/sql/010_fill_data.sql"/>
+        <sqlFile path="sql/010_fill_data.sql" relativeToChangelogFile="true"/>
         <rollback>
-            <sqlFile path="db/changelog/sql/010_rollback_data.sql"/>
+            <sqlFile path="sql/010_rollback_data.sql" relativeToChangelogFile="true"/>
         </rollback>
     </changeSet>
 

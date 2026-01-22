@@ -1,6 +1,7 @@
 package io.github.wolfandw.mymarket.itest;
 
 import io.github.wolfandw.mymarket.model.Item;
+import io.github.wolfandw.mymarket.repository.CartRepository;
 import io.github.wolfandw.mymarket.repository.ItemRepository;
 import io.github.wolfandw.mymarket.service.ItemService;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,4 +18,10 @@ public abstract class AbstractIntegrationTest {
      */
     @Autowired
     protected ItemRepository itemRepository;
+
+    /**
+     * Репозиторий корзин.
+     */
+    @Autowired
+    protected CartRepository cartRepository;
 }

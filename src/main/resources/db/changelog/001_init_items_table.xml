@@ -5,9 +5,9 @@
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
     <changeSet id="001_init_items_table" author="wolfandw">
-        <sqlFile path="db/changelog/sql/001_init_items_table.sql"/>
+        <sqlFile path="sql/001_init_items_table.sql" relativeToChangelogFile="true"/>
         <rollback>
-            <sqlFile path="db/changelog/sql/001_rollback_items_table.sql"/>
+            <sqlFile path="sql/001_rollback_items_table.sql" relativeToChangelogFile="true"/>
         </rollback>
     </changeSet>
 
