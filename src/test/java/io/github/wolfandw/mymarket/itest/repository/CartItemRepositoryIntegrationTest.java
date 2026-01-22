@@ -2,6 +2,7 @@ package io.github.wolfandw.mymarket.itest.repository;
 
 import io.github.wolfandw.mymarket.model.Cart;
 import io.github.wolfandw.mymarket.model.CartItem;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -14,9 +15,15 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Интеграционные тесты репозитория строк корзин.
  */
 public class CartItemRepositoryIntegrationTest extends AbstractRepositoryIntegrationTest {
+    private Cart defaultCart;
+
+    @BeforeEach
+    void setup() {
+        defaultCart = cartRepository.findById(1L).orElse(null);
+    }
+
     @Test
     void findAllByCartTest() {
-        Cart defaultCart = cartRepository.findById(1L).orElse(null);
         assertThat(defaultCart).isNotNull();
 
         List<CartItem> actualContent = cartItemRepository.findAllByCart(defaultCart);
@@ -30,7 +37,6 @@ public class CartItemRepositoryIntegrationTest extends AbstractRepositoryIntegra
 
     @Test
     void findAllByCartAndItemInTest() {
-        Cart defaultCart = cartRepository.findById(1L).orElse(null);
         assertThat(defaultCart).isNotNull();
 
         List<CartItem> actualContent = cartItemRepository.findAllByCartAndItemIn(defaultCart,
@@ -46,7 +52,6 @@ public class CartItemRepositoryIntegrationTest extends AbstractRepositoryIntegra
 
     @Test
     void findByCartAndItemIdTest() {
-        Cart defaultCart = cartRepository.findById(1L).orElse(null);
         assertThat(defaultCart).isNotNull();
 
         Optional<CartItem> actualContent = cartItemRepository.findByCartAndItemId(defaultCart, 13L);
