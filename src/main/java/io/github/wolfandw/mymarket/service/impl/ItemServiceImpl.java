@@ -10,6 +10,7 @@ import io.github.wolfandw.mymarket.repository.ItemRepository;
 import io.github.wolfandw.mymarket.service.CartService;
 import io.github.wolfandw.mymarket.service.ItemService;
 import io.github.wolfandw.mymarket.service.mapper.ItemToDtoMapper;
+import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -72,30 +73,42 @@ public class ItemServiceImpl implements ItemService {
         pageSize = pageSize == null ? PAGE_SIZE_DEFAULT : pageSize;
         sort = sort == null ? SORT_DEFAULT : sort;
 
-        Pageable pageable = PageRequest.of(pageNumber - PAGE_NUMBER_DELTA, pageSize, SORT_BY.getOrDefault(sort, Sort.unsorted()));
-        Page<Item> page = getPage(search, pageable);
-
-        List<CartItem> cartItems = cartItemRepository.findAllByCartAndItemIn(cartService.getDefaultCart(), page.getContent());
-        Map<Long, Integer> itemsCount = cartItems.stream().collect(Collectors.toMap(cik -> cik.getItem().getId(), CartItem::getCount));
-
-        List<ItemDto> itemsDto = itemToItemDtoMapper.mapItems(page.getContent(), itemsCount);
-        List<List<ItemDto>> itemDtoTriples = convertToTriples(itemsDto);
-
+        Page<Item> page = getPage(search, sort, pageNumber, pageSize);
+        Map<Long, Integer> itemsCount = getItemsCount(page);
+        List<List<ItemDto>> itemDtoTriples = getTriples(page, itemsCount);
         ItemsPagingDto paging = new ItemsPagingDto(pageSize, pageNumber, page.hasPrevious(), page.hasNext());
 
         return new ItemsPageDto(itemDtoTriples, search, sort, paging);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ItemDto getItem(Long id) {
         Optional<Item> item = itemRepository.findById(id);
         Optional<CartItem> cartItem = cartItemRepository.findByCartAndItemId(cartService.getDefaultCart(), id);
         return itemToItemDtoMapper.mapItem(item.orElse(null), cartItem.map(CartItem::getCount).orElse(0));
     }
 
+    private @NonNull List<List<ItemDto>> getTriples(Page<Item> page, Map<Long, Integer> itemsCount) {
+        List<ItemDto> itemsDto = itemToItemDtoMapper.mapItems(page.getContent(), itemsCount);
+        return convertToTriples(itemsDto);
+    }
+
+    private @NonNull Map<Long, Integer> getItemsCount(Page<Item> page) {
+        List<CartItem> cartItems = cartItemRepository.findAllByCartAndItemIn(cartService.getDefaultCart(), page.getContent());
+        return cartItems.stream().collect(Collectors.toMap(cik -> cik.getItem().getId(), CartItem::getCount));
+    }
+
+    private Page<Item> getPage(String search, String sort, Integer pageNumber, Integer pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber - PAGE_NUMBER_DELTA, pageSize, SORT_BY.getOrDefault(sort, Sort.unsorted()));
+        return getPage(search, pageable);
+    }
+
     private Page<Item> getPage(String search, Pageable pageable) {
-        return isNoSearch(search) ? itemRepository.findAll(pageable) :
-                itemRepository.findByTitleContainingOrDescriptionContainingAllIgnoreCase(search, search, pageable);
+        if (isNoSearch(search)) {
+            return itemRepository.findAll(pageable);
+        }
+        return itemRepository.findByTitleContainingOrDescriptionContainingAllIgnoreCase(search, search, pageable);
     }
 
     private List<List<ItemDto>> convertToTriples(List<ItemDto> itemsDto) {
@@ -115,6 +128,4 @@ public class ItemServiceImpl implements ItemService {
     private boolean isNoSearch(String search) {
         return search == null || search.isEmpty();
     }
-
-
 }

@@ -13,11 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Интеграционные тесты сервиса товаров.
  */
-@SpringBootTest
 class ItemServiceIntegrationTest extends AbstractIntegrationTest {
-    @Autowired
-    private ItemService itemService;
-
     @Test
     @Transactional
     public void getItemsPageTest() {
@@ -73,7 +69,6 @@ class ItemServiceIntegrationTest extends AbstractIntegrationTest {
         assertThat(itemsPageDto.items()).size().isEqualTo(2);
         assertThat(itemsPageDto.items().get(0)).size().isEqualTo(3);
         assertThat(itemsPageDto.items().get(1)).size().isEqualTo(3);
-        System.out.println("********** " + itemsPageDto.items().get(0));
         assertThat(itemsPageDto.items().get(1).get(0).title()).isEqualTo("Item 01 searchtag");
 
         // stubs

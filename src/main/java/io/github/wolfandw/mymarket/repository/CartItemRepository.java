@@ -33,7 +33,7 @@ public interface CartItemRepository extends JpaRepository<CartItem, Long> {
     List<CartItem> findAllByCartAndItemIn(Cart cart, Collection<Item> items);
 
     /**
-     * Возвращает список строк корзины с фильтром по идентификатору товара.
+     * Возвращает строку корзины с фильтром по идентификатору товара.
      *
      * @param cart корзина
      * @param itemId фильтр по идентификатору товара

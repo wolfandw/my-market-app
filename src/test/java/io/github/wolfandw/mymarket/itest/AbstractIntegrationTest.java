@@ -1,27 +1,20 @@
 package io.github.wolfandw.mymarket.itest;
 
-import io.github.wolfandw.mymarket.model.Item;
+import io.github.wolfandw.mymarket.repository.CartItemRepository;
 import io.github.wolfandw.mymarket.repository.CartRepository;
 import io.github.wolfandw.mymarket.repository.ItemRepository;
 import io.github.wolfandw.mymarket.service.ItemService;
-import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.math.BigDecimal;
+import org.springframework.boot.test.context.SpringBootTest;
 
 /**
  * Абстрактный интеграционный тест.
  */
+@SpringBootTest
 public abstract class AbstractIntegrationTest {
     /**
-     * Репозиторий товаров.
+     * Сервис товаров.
      */
     @Autowired
-    protected ItemRepository itemRepository;
-
-    /**
-     * Репозиторий корзин.
-     */
-    @Autowired
-    protected CartRepository cartRepository;
+    protected ItemService itemService;
 }
