@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Маппер модели товара в DTO-представление товара.
+ * Маппер модели товара в DTO-представление.
  */
 public interface ItemToDtoMapper {
     /**

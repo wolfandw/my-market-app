@@ -18,9 +18,9 @@ public class OrderRepositoryIntegrationTest extends AbstractRepositoryIntegratio
 
         assertThat(actualOrders).size().isEqualTo(1);
         assertThat(actualOrders.get(0).getId()).isEqualTo(1L);
-        assertThat(actualOrders.get(0).getItems()).size().isEqualTo(13);
-        assertThat(actualOrders.get(0).getItems().get(0).getItem().getTitle()).isEqualTo("Item 07 SearchTag");
-        assertThat(actualOrders.get(0).getItems().get(12).getItem().getTitle()).isEqualTo("Item 06");
-        assertThat(actualOrders.get(0).getTotalSum()).isEqualTo(new BigDecimal(8645));
+        assertThat(actualOrders.get(0).getItems()).size().isEqualTo(12);
+        assertThat(actualOrders.get(0).getItems().get(0).getItem().getTitle()).isEqualTo("Item 08");
+        assertThat(actualOrders.get(0).getItems().get(11).getItem().getTitle()).isEqualTo("Item 06");
+        assertThat(actualOrders.get(0).getTotalSum()).isEqualTo(new BigDecimal(8120));
     }
 }

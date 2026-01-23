@@ -28,11 +28,11 @@ public class OrderItemRepositoryIntegrationTest extends AbstractRepositoryIntegr
 
         List<OrderItem> actualContent = orderItemRepository.findAllByOrder(defaultOrder);
 
-        assertThat(actualContent).size().isEqualTo(13);
-        assertThat(actualContent.get(0).getItem().getTitle()).isEqualTo("Item 07 SearchTag");
-        assertThat(actualContent.get(0).getCount()).isEqualTo(75);
-        assertThat(actualContent.get(12).getItem().getTitle()).isEqualTo("Item 06");
-        assertThat(actualContent.get(12).getCount()).isEqualTo(85);
+        assertThat(actualContent).size().isEqualTo(12);
+        assertThat(actualContent.get(0).getItem().getTitle()).isEqualTo("Item 08");
+        assertThat(actualContent.get(0).getCount()).isEqualTo(65);
+        assertThat(actualContent.get(11).getItem().getTitle()).isEqualTo("Item 06");
+        assertThat(actualContent.get(11).getCount()).isEqualTo(85);
     }
 
     @Test
@@ -40,12 +40,12 @@ public class OrderItemRepositoryIntegrationTest extends AbstractRepositoryIntegr
         assertThat(defaultOrder).isNotNull();
 
         List<OrderItem> actualContent = orderItemRepository.findAllByOrderAndItemIn(defaultOrder,
-                List.of(Objects.requireNonNull(itemRepository.findById(1L).orElse(null)),
+                List.of(Objects.requireNonNull(itemRepository.findById(2L).orElse(null)),
                         Objects.requireNonNull(itemRepository.findById(13L).orElse(null))));
 
         assertThat(actualContent).size().isEqualTo(2);
-        assertThat(actualContent.get(0).getItem().getTitle()).isEqualTo("Item 07 SearchTag");
-        assertThat(actualContent.get(0).getCount()).isEqualTo(75);
+        assertThat(actualContent.get(0).getItem().getTitle()).isEqualTo("Item 08");
+        assertThat(actualContent.get(0).getCount()).isEqualTo(65);
         assertThat(actualContent.get(1).getItem().getTitle()).isEqualTo("Item 06");
         assertThat(actualContent.get(1).getCount()).isEqualTo(85);
     }

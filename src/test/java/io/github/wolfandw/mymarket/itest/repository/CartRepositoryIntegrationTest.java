@@ -18,9 +18,9 @@ public class CartRepositoryIntegrationTest extends AbstractRepositoryIntegration
 
         assertThat(actualCarts).size().isEqualTo(1);
         assertThat(actualCarts.get(0).getId()).isEqualTo(1L);
-        assertThat(actualCarts.get(0).getItems()).size().isEqualTo(13);
-        assertThat(actualCarts.get(0).getItems().get(0).getItem().getTitle()).isEqualTo("Item 07 SearchTag");
-        assertThat(actualCarts.get(0).getItems().get(12).getItem().getTitle()).isEqualTo("Item 06");
-        assertThat(actualCarts.get(0).getTotal()).isEqualTo(new BigDecimal(8190));
+        assertThat(actualCarts.get(0).getItems()).size().isEqualTo(12);
+        assertThat(actualCarts.get(0).getItems().get(0).getItem().getTitle()).isEqualTo("Item 08");
+        assertThat(actualCarts.get(0).getItems().get(11).getItem().getTitle()).isEqualTo("Item 06");
+        assertThat(actualCarts.get(0).getTotal()).isEqualTo(new BigDecimal(7700));
     }
 }

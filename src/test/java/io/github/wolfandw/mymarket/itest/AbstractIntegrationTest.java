@@ -1,8 +1,5 @@
 package io.github.wolfandw.mymarket.itest;
 
-import io.github.wolfandw.mymarket.repository.CartItemRepository;
-import io.github.wolfandw.mymarket.repository.CartRepository;
-import io.github.wolfandw.mymarket.repository.ItemRepository;
 import io.github.wolfandw.mymarket.service.ItemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

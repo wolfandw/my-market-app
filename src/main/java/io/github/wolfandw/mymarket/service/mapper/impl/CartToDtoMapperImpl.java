@@ -2,7 +2,7 @@ package io.github.wolfandw.mymarket.service.mapper.impl;
 
 import io.github.wolfandw.mymarket.dto.ItemDto;
 import io.github.wolfandw.mymarket.model.CartItem;
-import io.github.wolfandw.mymarket.service.mapper.CartItemToDtoMapper;
+import io.github.wolfandw.mymarket.service.mapper.CartToDtoMapper;
 import io.github.wolfandw.mymarket.service.mapper.ItemToDtoMapper;
 import org.springframework.stereotype.Component;
 
@@ -10,10 +10,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Реализация {@link CartItemToDtoMapper}.
+ * Реализация {@link CartToDtoMapper}.
  */
 @Component
-public class CartItemToDtoMapperImpl implements CartItemToDtoMapper {
+public class CartToDtoMapperImpl implements CartToDtoMapper {
     private final ItemToDtoMapper itemToDtoMapper;
 
     /**
@@ -21,7 +21,7 @@ public class CartItemToDtoMapperImpl implements CartItemToDtoMapper {
      *
      * @param itemToDtoMapper маппер товаров
      */
-    public CartItemToDtoMapperImpl(ItemToDtoMapper itemToDtoMapper) {
+    public CartToDtoMapperImpl(ItemToDtoMapper itemToDtoMapper) {
         this.itemToDtoMapper = itemToDtoMapper;
     }
 

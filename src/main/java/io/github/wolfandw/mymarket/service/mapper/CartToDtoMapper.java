@@ -6,9 +6,9 @@ import io.github.wolfandw.mymarket.model.CartItem;
 import java.util.List;
 
 /**
- * Маппер модели строк корзины товаров в DTO-представление товара.
+ * Маппер модели корзины в DTO-представление.
  */
-public interface CartItemToDtoMapper {
+public interface CartToDtoMapper {
     /**
      * Преобразует список строк корзины товаров в DTO-товары с количеством.
      *

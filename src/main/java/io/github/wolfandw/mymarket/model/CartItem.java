@@ -2,9 +2,6 @@ package io.github.wolfandw.mymarket.model;
 
 import jakarta.persistence.*;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-
 /**
  * Класс модели строки корзины.
  */
@@ -24,7 +21,7 @@ public class CartItem {
     private Item item;
 
     @Column(nullable = false)
-    private Integer count = 1;
+    private Integer count = 0;
 
     /**
      * Возвращает идентификатор строки корзины.

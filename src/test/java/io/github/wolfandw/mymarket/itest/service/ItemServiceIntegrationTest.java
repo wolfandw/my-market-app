@@ -1,11 +1,9 @@
 package io.github.wolfandw.mymarket.itest.service;
 
+import io.github.wolfandw.mymarket.MyMarketConstants;
 import io.github.wolfandw.mymarket.dto.ItemsPageDto;
 import io.github.wolfandw.mymarket.itest.AbstractIntegrationTest;
-import io.github.wolfandw.mymarket.service.ItemService;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -16,8 +14,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ItemServiceIntegrationTest extends AbstractIntegrationTest {
     @Test
     @Transactional
-    public void getItemsPageTest() {
-        ItemsPageDto itemsPageDto = itemService.getItemsPage(null, "NO", 1, 5);
+    public void getItemsTest() {
+        ItemsPageDto itemsPageDto = itemService.getItems(MyMarketConstants.DEFAULT_CART_ID, null, "NO", 1, 5);
         assertThat(itemsPageDto.items()).size().isEqualTo(2);
         assertThat(itemsPageDto.items().get(0)).size().isEqualTo(3);
         assertThat(itemsPageDto.items().get(1)).size().isEqualTo(3);
@@ -30,8 +28,8 @@ class ItemServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @Transactional
-    public void getItemsPageSearchTest() {
-        ItemsPageDto itemsPageDto = itemService.getItemsPage("searchtag", "NO", 1, 5);
+    public void getItemsSearchTest() {
+        ItemsPageDto itemsPageDto = itemService.getItems(MyMarketConstants.DEFAULT_CART_ID, "searchtag", "NO", 1, 5);
         assertThat(itemsPageDto.items()).size().isEqualTo(2);
         assertThat(itemsPageDto.items().get(0)).size().isEqualTo(3);
         assertThat(itemsPageDto.items().get(1)).size().isEqualTo(3);
@@ -47,8 +45,8 @@ class ItemServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @Transactional
-    public void getItemsPageSearchOrderByTitleTest() {
-        ItemsPageDto itemsPageDto = itemService.getItemsPage("searchtag", "ALPHA", 1, 5);
+    public void getItemsSearchOrderByTitleTest() {
+        ItemsPageDto itemsPageDto = itemService.getItems(MyMarketConstants.DEFAULT_CART_ID, "searchtag", "ALPHA", 1, 5);
         assertThat(itemsPageDto.items()).size().isEqualTo(2);
         assertThat(itemsPageDto.items().get(0)).size().isEqualTo(3);
         assertThat(itemsPageDto.items().get(1)).size().isEqualTo(3);
@@ -64,8 +62,8 @@ class ItemServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @Transactional
-    public void getItemsPageSearchOrderByPriceTest() {
-        ItemsPageDto itemsPageDto = itemService.getItemsPage("SEARCHTAG", "PRICE", 1, 5);
+    public void getItemsSearchOrderByPriceTest() {
+        ItemsPageDto itemsPageDto = itemService.getItems(MyMarketConstants.DEFAULT_CART_ID, "SEARCHTAG", "PRICE", 1, 5);
         assertThat(itemsPageDto.items()).size().isEqualTo(2);
         assertThat(itemsPageDto.items().get(0)).size().isEqualTo(3);
         assertThat(itemsPageDto.items().get(1)).size().isEqualTo(3);
@@ -81,8 +79,8 @@ class ItemServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @Transactional
-    public void getItemsPageDefaultTest() {
-        ItemsPageDto itemsPageDto = itemService.getItemsPage(null, null, null, null);
+    public void getItemsDefaultTest() {
+        ItemsPageDto itemsPageDto = itemService.getItems(MyMarketConstants.DEFAULT_CART_ID, null, null, null, null);
         assertThat(itemsPageDto.items()).size().isEqualTo(2);
         assertThat(itemsPageDto.items().get(0)).size().isEqualTo(3);
         assertThat(itemsPageDto.items().get(1)).size().isEqualTo(3);

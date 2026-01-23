@@ -55,7 +55,7 @@ public class OrderItem {
      *
      * @param order родительский заказ
      */
-    public void setCart(Order order) {
+    public void setOrder(Order order) {
         this.order = order;
     }
 

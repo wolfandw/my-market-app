@@ -9,5 +9,5 @@ import java.util.List;
  * @param total сумма Всего корзины
  */
 public record CartDto(List<ItemDto> items,
-                      long total) {
+                      Long total) {
 }

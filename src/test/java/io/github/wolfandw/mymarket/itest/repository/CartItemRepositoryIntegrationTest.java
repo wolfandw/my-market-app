@@ -28,11 +28,11 @@ public class CartItemRepositoryIntegrationTest extends AbstractRepositoryIntegra
 
         List<CartItem> actualContent = cartItemRepository.findAllByCart(defaultCart);
 
-        assertThat(actualContent).size().isEqualTo(13);
-        assertThat(actualContent.get(0).getItem().getTitle()).isEqualTo("Item 07 SearchTag");
-        assertThat(actualContent.get(0).getCount()).isEqualTo(70);
-        assertThat(actualContent.get(12).getItem().getTitle()).isEqualTo("Item 06");
-        assertThat(actualContent.get(12).getCount()).isEqualTo(80);
+        assertThat(actualContent).size().isEqualTo(12);
+        assertThat(actualContent.get(0).getItem().getTitle()).isEqualTo("Item 08");
+        assertThat(actualContent.get(0).getCount()).isEqualTo(60);
+        assertThat(actualContent.get(11).getItem().getTitle()).isEqualTo("Item 06");
+        assertThat(actualContent.get(11).getCount()).isEqualTo(80);
     }
 
     @Test
@@ -40,12 +40,12 @@ public class CartItemRepositoryIntegrationTest extends AbstractRepositoryIntegra
         assertThat(defaultCart).isNotNull();
 
         List<CartItem> actualContent = cartItemRepository.findAllByCartAndItemIn(defaultCart,
-                List.of(Objects.requireNonNull(itemRepository.findById(1L).orElse(null)),
+                List.of(Objects.requireNonNull(itemRepository.findById(2L).orElse(null)),
                         Objects.requireNonNull(itemRepository.findById(13L).orElse(null))));
 
         assertThat(actualContent).size().isEqualTo(2);
-        assertThat(actualContent.get(0).getItem().getTitle()).isEqualTo("Item 07 SearchTag");
-        assertThat(actualContent.get(0).getCount()).isEqualTo(70);
+        assertThat(actualContent.get(0).getItem().getTitle()).isEqualTo("Item 08");
+        assertThat(actualContent.get(0).getCount()).isEqualTo(60);
         assertThat(actualContent.get(1).getItem().getTitle()).isEqualTo("Item 06");
         assertThat(actualContent.get(1).getCount()).isEqualTo(80);
     }

@@ -1,6 +1,8 @@
 package io.github.wolfandw.mymarket.repository;
 
-import io.github.wolfandw.mymarket.model.*;
+import io.github.wolfandw.mymarket.model.Item;
+import io.github.wolfandw.mymarket.model.Order;
+import io.github.wolfandw.mymarket.model.OrderItem;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -6,8 +6,8 @@ import io.github.wolfandw.mymarket.dto.ItemsPagingDto;
 import io.github.wolfandw.mymarket.model.CartItem;
 import io.github.wolfandw.mymarket.model.Item;
 import io.github.wolfandw.mymarket.repository.CartItemRepository;
+import io.github.wolfandw.mymarket.repository.CartRepository;
 import io.github.wolfandw.mymarket.repository.ItemRepository;
-import io.github.wolfandw.mymarket.service.CartService;
 import io.github.wolfandw.mymarket.service.ItemService;
 import io.github.wolfandw.mymarket.service.mapper.ItemToDtoMapper;
 import org.jspecify.annotations.NonNull;
@@ -18,10 +18,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -46,7 +43,7 @@ public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final CartItemRepository cartItemRepository;
     private final ItemToDtoMapper itemToItemDtoMapper;
-    private final CartService cartService;
+    private final CartRepository cartRepository;
 
     /**
      * Создает сервис работы с товарами.
@@ -54,27 +51,27 @@ public class ItemServiceImpl implements ItemService {
      * @param itemRepository      репозиторий товаров
      * @param cartItemRepository  репозиторий строк корзин
      * @param itemToItemDtoMapper маппер товаров на DTO-представление товаров.
-     * @param cartService         сервис корзин
+     * @param cartRepository      репозиторий корзин
      */
     public ItemServiceImpl(ItemRepository itemRepository,
                            CartItemRepository cartItemRepository,
                            ItemToDtoMapper itemToItemDtoMapper,
-                           CartService cartService) {
+                           CartRepository cartRepository) {
         this.itemRepository = itemRepository;
         this.itemToItemDtoMapper = itemToItemDtoMapper;
         this.cartItemRepository = cartItemRepository;
-        this.cartService = cartService;
+        this.cartRepository = cartRepository;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public ItemsPageDto getItemsPage(String search, String sort, Integer pageNumber, Integer pageSize) {
+    public ItemsPageDto getItems(Long cartId, String search, String sort, Integer pageNumber, Integer pageSize) {
         pageNumber = pageNumber == null ? PAGE_NUMBER_DEFAULT : pageNumber;
         pageSize = pageSize == null ? PAGE_SIZE_DEFAULT : pageSize;
         sort = sort == null ? SORT_DEFAULT : sort;
 
         Page<Item> page = getPage(search, sort, pageNumber, pageSize);
-        Map<Long, Integer> itemsCount = getItemsCount(page);
+        Map<Long, Integer> itemsCount = getItemsCount(cartId, page);
         List<List<ItemDto>> itemDtoTriples = getTriples(page, itemsCount);
         ItemsPagingDto paging = new ItemsPagingDto(pageSize, pageNumber, page.hasPrevious(), page.hasNext());
 
@@ -83,10 +80,13 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional(readOnly = true)
-    public ItemDto getItem(Long id) {
-        Optional<Item> item = itemRepository.findById(id);
-        Optional<CartItem> cartItem = cartItemRepository.findByCartAndItemId(cartService.getDefaultCart(), id);
-        return itemToItemDtoMapper.mapItem(item.orElse(null), cartItem.map(CartItem::getCount).orElse(0));
+    public Optional<ItemDto> getItem(Long cartId, Long id) {
+        return itemRepository.findById(id).map(item -> {
+            Integer count = cartRepository.findById(cartId).
+                    map(c -> cartItemRepository.findByCartAndItemId(c, id).
+                            map(CartItem::getCount).orElse(0)).orElse(0);
+            return itemToItemDtoMapper.mapItem(item, count);
+        });
     }
 
     private @NonNull List<List<ItemDto>> getTriples(Page<Item> page, Map<Long, Integer> itemsCount) {
@@ -94,9 +94,11 @@ public class ItemServiceImpl implements ItemService {
         return convertToTriples(itemsDto);
     }
 
-    private @NonNull Map<Long, Integer> getItemsCount(Page<Item> page) {
-        List<CartItem> cartItems = cartItemRepository.findAllByCartAndItemIn(cartService.getDefaultCart(), page.getContent());
-        return cartItems.stream().collect(Collectors.toMap(cik -> cik.getItem().getId(), CartItem::getCount));
+    private @NonNull Map<Long, Integer> getItemsCount(Long cartId, Page<Item> page) {
+        return cartRepository.findById(cartId).map(cart -> {
+            List<CartItem> cartItems = cartItemRepository.findAllByCartAndItemIn(cart, page.getContent());
+            return cartItems.stream().collect(Collectors.toMap(cartItemKey -> cartItemKey.getItem().getId(), CartItem::getCount));
+        }).orElse(Collections.emptyMap());
     }
 
     private Page<Item> getPage(String search, String sort, Integer pageNumber, Integer pageSize) {
@@ -119,10 +121,13 @@ public class ItemServiceImpl implements ItemService {
             if (i % 3 == 0) {
                 result.add(new ArrayList<>());
             }
-            result.getLast().add(i < itemsSize ? itemsDto.get(i) :
-                    new ItemDto(-1L, "", "", "", 0L, 0));
+            result.getLast().add(i < itemsSize ? itemsDto.get(i) : createItemDtoStub());
         }
         return result;
+    }
+
+    private @NonNull ItemDto createItemDtoStub() {
+        return new ItemDto(-1L, "", "", "", 0L, 0);
     }
 
     private boolean isNoSearch(String search) {

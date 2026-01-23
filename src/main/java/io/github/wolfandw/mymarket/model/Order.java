@@ -3,9 +3,9 @@ package io.github.wolfandw.mymarket.model;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.time.LocalDateTime;
 
 /**
  * Класс модели заказа.
@@ -21,10 +21,26 @@ public class Order {
     private BigDecimal totalSum = BigDecimal.ZERO;
 
     @Column(nullable = false)
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items = new ArrayList<>();
+
+    /**
+     * Создает новый заказ с уазанной суммой.
+     *
+     * @param totalSum сумма
+     */
+    public Order(BigDecimal totalSum) {
+        this.totalSum = totalSum;
+    }
+
+    /**
+     * Создает новый заказ.
+     */
+    public Order() {
+        // Default
+    }
 
     /**
      * Возвращает идентификатор заказа.
@@ -58,7 +74,7 @@ public class Order {
      *
      * @param totalSum Сумма Всего заказа
      */
-    public void setTotal(BigDecimal totalSum) {
+    public void setTotalSum(BigDecimal totalSum) {
         this.totalSum = totalSum;
     }
 

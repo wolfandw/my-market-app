@@ -18,7 +18,7 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
      * @param title подстрока поиска в наименовании
      * @param description подстрока поиска в описании
      * @param pageable параметры страницы и сортировки
-     * @return страницу товаров отобранных по названию или описанию, сортировка опционально
+     * @return страницу товаров отобранных по названию или описанию и сортировкой (опционально)
      */
     Page<Item> findByTitleContainingOrDescriptionContainingAllIgnoreCase(String title, String description, Pageable pageable);
 }

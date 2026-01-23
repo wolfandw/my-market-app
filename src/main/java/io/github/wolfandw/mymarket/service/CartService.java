@@ -1,7 +1,6 @@
 package io.github.wolfandw.mymarket.service;
 
 import io.github.wolfandw.mymarket.dto.CartDto;
-import io.github.wolfandw.mymarket.model.Cart;
 
 /**
  * Сервис для работы с корзинами.
@@ -9,14 +8,18 @@ import io.github.wolfandw.mymarket.model.Cart;
 public interface CartService {
     /**
      * Возвращает DTO-представление корзины.
+     *
+     * @param id идентификатор корзины
      * @return DTO-представление корзины.
      */
-    CartDto getCart();
+    CartDto getCart(Long id);
 
     /**
-     * Возвращает корзину по-умолчанию.
+     * Изменяет количество товара в корзине со страницы товаров.
      *
-     * @return корзина по-умолчанию
+     * @param cartId идентификатор корзины
+     * @param itemId идентификатор товара
+     * @param action увеличить (уменьшить) количество товара в корзине
      */
-    Cart getDefaultCart();
+    void changeItemCount(Long cartId, Long itemId, String action);
 }
