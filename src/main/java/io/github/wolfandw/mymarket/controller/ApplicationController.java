@@ -1,14 +1,11 @@
 package io.github.wolfandw.mymarket.controller;
 
 import io.github.wolfandw.mymarket.MyMarketConstants;
-import io.github.wolfandw.mymarket.dto.OrderDto;
 import io.github.wolfandw.mymarket.service.ApplicationService;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-
-import java.util.Optional;
 
 /**
  * Контроллер приложения.
@@ -48,14 +45,8 @@ public class ApplicationController {
      */
     @PostMapping("/buy")
     public String buy() {
-        Optional<OrderDto> newOrder = applicationService.buy(MyMarketConstants.DEFAULT_CART_ID);
-        StringBuilder redirect = new StringBuilder(REDIRECT_ORDERS);
-        newOrder.ifPresent(orderDto -> {
-            redirect.append('/').
-                     append(orderDto.id()).
-                     append('?').
-                     append(PARAMETER_NEW_ORDER).append("true");
-        });
-        return redirect.toString();
+        return applicationService.buy(MyMarketConstants.DEFAULT_CART_ID).map(orderDto ->
+                REDIRECT_ORDERS + '/' + orderDto.id() + '?' + PARAMETER_NEW_ORDER + Boolean.TRUE.toString())
+                .orElse(REDIRECT_ORDERS);
     }
 }

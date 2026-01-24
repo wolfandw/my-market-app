@@ -3,6 +3,7 @@ package io.github.wolfandw.mymarket.controller;
 import io.github.wolfandw.mymarket.MyMarketConstants;
 import io.github.wolfandw.mymarket.dto.CartDto;
 import io.github.wolfandw.mymarket.service.CartService;
+import io.github.wolfandw.mymarket.service.EntityImageService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,14 +23,17 @@ public class CartController {
     private static final String ATTRIBUTE_TOTAL = "total";
 
     private final CartService cartService;
+    private final EntityImageService entityImageService;
 
     /**
      * Создает контроллер корзины.
      *
      * @param cartService сервис корзины
+     * @param entityImageService сервис картинок
      */
-    public CartController(CartService cartService) {
+    public CartController(CartService cartService, EntityImageService entityImageService) {
         this.cartService = cartService;
+        this.entityImageService = entityImageService;
     }
 
     /**
@@ -41,6 +45,8 @@ public class CartController {
     @GetMapping
     public String getCart(Model model) {
         CartDto cart = cartService.getCart(MyMarketConstants.DEFAULT_CART_ID);
+        cart.items().forEach(item ->
+                item.setImgData(entityImageService.getEntityImageBase64(item.id())));
         model.addAttribute(ATTRIBUTE_ITEMS, cart.items());
         model.addAttribute(ATTRIBUTE_TOTAL, cart.total());
         return TEMPLATE_CART;

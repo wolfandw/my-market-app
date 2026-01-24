@@ -25,7 +25,6 @@ public class ItemToDtoMapperImpl implements ItemToDtoMapper {
         return new ItemDto(item.getId(),
                 item.getTitle(),
                 item.getDescription(),
-                item.getImgPath(),
                 item.getPrice().longValue(),
                 count);
     }
