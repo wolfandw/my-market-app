@@ -21,7 +21,7 @@ import java.util.Optional;
 /**
  * Реализация {@link CartService}.
  */
-@Service("сartService")
+@Service
 public class CartServiceImpl implements CartService {
     private static final String ACTION_MINUS = "MINUS";
     private static final String ACTION_PLUS = "PLUS";

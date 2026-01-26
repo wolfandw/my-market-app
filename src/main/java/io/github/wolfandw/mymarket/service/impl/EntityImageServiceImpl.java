@@ -20,7 +20,7 @@ import java.util.Optional;
 /**
  * Реализация {@link EntityImageService}
  */
-@Service("entityImageService")
+@Service
 public class EntityImageServiceImpl implements EntityImageService {
     private static final String JPG = "jpg";
     private static final Logger log = LoggerFactory.getLogger(EntityImageServiceImpl.class);
@@ -104,8 +104,8 @@ public class EntityImageServiceImpl implements EntityImageService {
                 if (imageName != null) {
                     try {
                         fileStorageService.deleteFile(imageName);
-                            entity.setImgPath(null);
-                            entityRepository.save(entity);
+                        entity.setImgPath(null);
+                        entityRepository.save(entity);
                     } catch (IOException e) {
                         log.error("Картинка {} поста {} не удалилась", imageName, entityId, e);
                     }

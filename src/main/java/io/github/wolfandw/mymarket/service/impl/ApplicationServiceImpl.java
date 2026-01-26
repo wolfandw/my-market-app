@@ -20,7 +20,7 @@ import java.util.Optional;
 /**
  * Реализация {@link ApplicationService}.
  */
-@Service("applicationService")
+@Service
 public class ApplicationServiceImpl implements ApplicationService {
     private static final String ACTION_MINUS = "MINUS";
     private static final String ACTION_PLUS = "PLUS";

@@ -13,7 +13,7 @@ import java.nio.file.Paths;
 /**
  * Реализация {@link FileStorageService}
  */
-@Service("fileStorageService")
+@Service
 public class FileStorageServiceImpl implements FileStorageService {
     private final String fileDir;
 

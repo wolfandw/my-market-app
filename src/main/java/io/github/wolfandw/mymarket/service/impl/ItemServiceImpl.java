@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 /**
  * Реализация {@link ItemService}.
  */
-@Service("itemService")
+@Service
 public class ItemServiceImpl implements ItemService {
     private static final int PAGE_NUMBER_DEFAULT = 1;
     private static final int PAGE_NUMBER_DELTA = 1;
@@ -39,8 +39,8 @@ public class ItemServiceImpl implements ItemService {
     private static final String SORT_ALPHA = "ALPHA";
     private static final String SORT_PRICE = "PRICE";
 
-    public static final String PRICE_COLUMN = "price";
-    public static final String TITLE_COLUMN = "title";
+    private static final String PRICE_COLUMN = "price";
+    private static final String TITLE_COLUMN = "title";
     private static final Map<String, Sort> SORT_BY = Map.of(SORT_ALPHA, Sort.by(TITLE_COLUMN),
             SORT_PRICE, Sort.by(PRICE_COLUMN));
 

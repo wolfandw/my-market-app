@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 /**
  * Реализация {@link OrderService}.
  */
-@Service("orderService")
+@Service
 public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;

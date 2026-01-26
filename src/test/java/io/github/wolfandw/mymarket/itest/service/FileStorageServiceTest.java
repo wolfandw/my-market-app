@@ -1,12 +1,10 @@
 package io.github.wolfandw.mymarket.itest.service;
 
-import io.github.wolfandw.mymarket.service.FileStorageService;
-import io.github.wolfandw.mymarket.test.AbstractTest;
+import io.github.wolfandw.mymarket.itest.AbstractIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -20,14 +18,11 @@ import static org.mockito.Mockito.*;
 /**
  * Модульный тест сервиса файлов.
  */
-public class FileStorageServiceTest extends AbstractTest {
+public class FileStorageServiceTest extends AbstractIntegrationTest {
     private static final String FILE_DIR = "upload/images/";
     private static final Path PATH_DIR = Paths.get(FILE_DIR);
     private static final String FILE_NAME = "1.jpg";
     private static final Path FILE_PATH = PATH_DIR.resolve(FILE_NAME);
-
-    @Autowired
-    private FileStorageService fileStorageService;
 
     @Test
     void readFileFileTest() throws IOException {
