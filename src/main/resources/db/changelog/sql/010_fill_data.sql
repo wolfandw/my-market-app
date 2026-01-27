@@ -1,18 +1,18 @@
 INSERT INTO items(title, description, img_path, price)
 VALUES
-('Item 07 SearchTag', 'item 07 description', '7.png', '07.00'),
-('Item 08', 'item 08 description', '8.png', '06.00'),
-('Item 09', 'item 09 description', '9.png', '05.00'),
-('Item 10', 'item 10 description SearchTag', '10.png', '04.00'),
-('Item 11', 'item 11 description', '11.png', '03.00'),
-('Item 12', 'item 12 description', '12.png', '02.00'),
-('Item 13', 'item 13 description', '13.png', '01.00'),
-('Item 01 searchtag', 'item 01 description', '1.png', '13.00'),
-('Item 02', 'item 02 description', '2.png', '12.00'),
-('Item 03', 'item 03 description', '3.png', '11.00'),
-('Item 04', 'item 04 description', '4.png', '10.00'),
-('Item 05', 'item 05 description', '5.png', '09.00'),
-('Item 06', 'item 06 description searchtag', '6.png', '08.00');
+('Item 07 SearchTag', 'item 07 description', '1.png', '07.00'),
+('Item 08', 'item 08 description', '2.png', '06.00'),
+('Item 09', 'item 09 description', '3.png', '05.00'),
+('Item 10', 'item 10 description SearchTag', '4.png', '04.00'),
+('Item 11', 'item 11 description', '5.png', '03.00'),
+('Item 12', 'item 12 description', '6.png', '02.00'),
+('Item 13', 'item 13 description', '7.png', '01.00'),
+('Item 01 searchtag', 'item 01 description', '8.png', '13.00'),
+('Item 02', 'item 02 description', '9.png', '12.00'),
+('Item 03', 'item 03 description', '10.png', '11.00'),
+('Item 04', 'item 04 description', '11.png', '10.00'),
+('Item 05', 'item 05 description', '12.png', '09.00'),
+('Item 06', 'item 06 description searchtag', '13.png', '08.00');
 
 INSERT INTO carts(id, total)
 VALUES

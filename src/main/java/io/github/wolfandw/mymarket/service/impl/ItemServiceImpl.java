@@ -97,8 +97,8 @@ public class ItemServiceImpl implements ItemService {
         });
     }
 
-    @Transactional
     @Override
+    @Transactional
     public ItemDto createItem(String title, String description, BigDecimal price) {
         Item item = new Item();
         item.setTitle(title);

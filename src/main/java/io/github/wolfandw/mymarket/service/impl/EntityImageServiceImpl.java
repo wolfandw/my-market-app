@@ -38,8 +38,8 @@ public class EntityImageServiceImpl implements EntityImageService {
         this.fileStorageService = fileStorageService;
     }
 
-    @Transactional
     @Override
+    @Transactional(readOnly = true)
     public EntityImageDto getEntityImage(Long entityId) {
         Optional<Item> entity = entityRepository.findById(entityId);
         if (entity.isPresent())  {
@@ -56,8 +56,8 @@ public class EntityImageServiceImpl implements EntityImageService {
         return new EntityImageDto(entityId, new byte[0], MediaType.APPLICATION_OCTET_STREAM);
     }
 
-    @Transactional
     @Override
+    @Transactional(readOnly = true)
     public String getEntityImageBase64(Long entityId) {
         Optional<Item> entity = entityRepository.findById(entityId);
         if (entity.isPresent())  {
@@ -75,8 +75,8 @@ public class EntityImageServiceImpl implements EntityImageService {
         return "";
     }
 
-    @Transactional
     @Override
+    @Transactional
     public void updateEntityImage(Long entityId, MultipartFile image) {
         if (image == null) {
             return;
@@ -85,18 +85,25 @@ public class EntityImageServiceImpl implements EntityImageService {
         String extension = getImageExtension(originName);
         String imageName = entityId.toString() + "." + extension;
         try {
-            fileStorageService.writeFile(imageName, image);
-            entityRepository.findById(entityId).ifPresent(entity -> {
+            Optional<Item> entityOptional = entityRepository.findById(entityId);
+            if (entityOptional.isPresent()) {
+                Item entity = entityOptional.get();
+
+                if (entity.getImgPath() != null && !entity.getImgPath().isEmpty()) {
+                    fileStorageService.deleteFile(entity.getImgPath());
+                }
+                fileStorageService.writeFile(imageName, image);
+
                 entity.setImgPath(imageName);
                 entityRepository.save(entity);
-            });
+            };
         } catch (IOException e) {
             log.error("Картинка {} сущности {} не обновилась", imageName, entityId, e);
         }
     }
 
-    @Transactional
     @Override
+    @Transactional
     public void deleteEntityImage(Long entityId) {
         entityRepository.findById(entityId).ifPresent(
             entity -> {

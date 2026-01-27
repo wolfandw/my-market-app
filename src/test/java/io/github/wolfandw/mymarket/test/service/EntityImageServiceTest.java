@@ -3,7 +3,6 @@ package io.github.wolfandw.mymarket.test.service;
 import io.github.wolfandw.mymarket.dto.EntityImageDto;
 import io.github.wolfandw.mymarket.model.Item;
 import io.github.wolfandw.mymarket.service.EntityImageService;
-import io.github.wolfandw.mymarket.test.AbstractTest;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +18,7 @@ import static org.mockito.Mockito.*;
 /**
  * Модульный тест сервиса картинок.
  */
-public class EntityImageServiceTest extends AbstractTest {
+public class EntityImageServiceTest extends AbstractServiceTest {
     @Autowired
     private EntityImageService entityImageService;
 
