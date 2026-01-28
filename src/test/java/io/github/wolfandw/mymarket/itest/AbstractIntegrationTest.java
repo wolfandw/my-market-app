@@ -1,6 +1,5 @@
 package io.github.wolfandw.mymarket.itest;
 
-import io.github.wolfandw.mymarket.repository.ItemRepository;
 import io.github.wolfandw.mymarket.service.*;
 import org.junit.jupiter.api.AfterEach;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,12 +20,6 @@ import java.util.Iterator;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 public abstract class AbstractIntegrationTest {
-    /**
-     * Сервис товаров.
-     */
-    @Autowired
-    protected ItemRepository itemRepository;
-
     /**
      * Сервис товаров.
      */

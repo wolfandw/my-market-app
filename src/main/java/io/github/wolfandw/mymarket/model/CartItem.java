@@ -24,6 +24,28 @@ public class CartItem {
     private Integer count = 0;
 
     /**
+     * Создает элемент корзины.
+     *
+     * @param id идентификатор строки корзины
+     * @param cart корзина
+     * @param item товар
+     * @param count количество
+     */
+    public CartItem(Long id, Cart cart, Item item, Integer count ) {
+        this.id = id;
+        this.cart = cart;
+        this.item = item;
+        this.count = count;
+    }
+
+    /**
+     * Создает элемент корзины.
+     */
+    public CartItem() {
+        // By default
+    }
+
+    /**
      * Возвращает идентификатор строки корзины.
      *
      * @return идентификатор строки корзины

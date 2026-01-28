@@ -43,9 +43,9 @@ public class OrderServiceIntegrationTest extends AbstractIntegrationTest {
     @Transactional
     void createOrderTest() {
         CartDto cartDto = cartService.getCart(MyMarketUtils.DEFAULT_CART_ID);
-        OrderDto newOrderDto = orderService.createOrder(cartDto.total(), cartDto.items());
-        assertThat(newOrderDto).isNotNull();
-        assertThat(newOrderDto.totalSum()).isEqualTo(cartDto.total());
-        assertThat(newOrderDto.items().size()).isEqualTo(cartDto.items().size());
+        Optional<OrderDto> newOrderDto = orderService.createOrderByCart(MyMarketUtils.DEFAULT_CART_ID);
+        assertThat(newOrderDto).isPresent();
+        assertThat(newOrderDto.get().totalSum()).isEqualTo(cartDto.total());
+        assertThat(newOrderDto.get().items().size()).isEqualTo(cartDto.items().size());
     }
 }

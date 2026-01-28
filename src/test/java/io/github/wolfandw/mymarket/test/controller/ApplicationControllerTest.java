@@ -6,7 +6,6 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(ApplicationController.class)
-public class ApplicationControllerTest {
-    @Autowired
-    MockMvc mockMvc;
+public class ApplicationControllerTest extends AbstractControllerTest {
+
 }

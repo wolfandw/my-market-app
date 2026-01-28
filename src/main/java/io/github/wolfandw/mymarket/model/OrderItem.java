@@ -24,6 +24,40 @@ public class OrderItem {
     private Integer count = 1;
 
     /**
+     * Создает элемент заказа.
+     *
+     * @param id идентификатор строки заказа
+     * @param order заказ
+     * @param item товар
+     * @param count количество
+     */
+    public OrderItem(Long id, Order order, Item item, Integer count ) {
+        this.id = id;
+        this.order = order;
+        this.item = item;
+        this.count = count;
+    }
+
+    /**
+     * Создает элемент заказа.
+     *
+     * @param order заказ
+     * @param item товар
+     * @param count количество
+     */
+    public OrderItem(Order order, Item item, Integer count ) {
+        this.order = order;
+        this.item = item;
+        this.count = count;
+    }
+
+    /**
+     * Создает элемент корзины.
+     */
+    public OrderItem() {
+        // By default
+    }
+    /**
      * Возвращает идентификатор строки заказа.
      *
      * @return идентификатор строки заказа

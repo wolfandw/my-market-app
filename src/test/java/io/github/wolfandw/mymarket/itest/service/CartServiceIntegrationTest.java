@@ -43,7 +43,7 @@ public class CartServiceIntegrationTest extends AbstractIntegrationTest {
         assertTrue(entity.isPresent(), "Сущность должна присутствовать");
         int countBefore = entity.get().count();
 
-        cartService.changeItemCount(cartId, entityId, "PLUS");
+        cartService.changeItemCount(cartId, entityId, MyMarketUtils.ACTION_PLUS);
 
         entity = itemService.getItem(cartId, entityId);
         assertTrue(entity.isPresent(), "Сущность должна присутствовать");
@@ -62,7 +62,7 @@ public class CartServiceIntegrationTest extends AbstractIntegrationTest {
         assertTrue(entity.isPresent(), "Сущность должна присутствовать");
         int countBefore = entity.get().count();
 
-        cartService.changeItemCount(cartId, entityId, "MINUS");
+        cartService.changeItemCount(cartId, entityId, MyMarketUtils.ACTION_MINUS);
 
         entity = itemService.getItem(cartId, entityId);
         assertTrue(entity.isPresent(), "Сущность должна присутствовать");

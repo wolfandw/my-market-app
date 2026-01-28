@@ -27,12 +27,12 @@ public class Order {
     private List<OrderItem> items = new ArrayList<>();
 
     /**
-     * Создает новый заказ с уазанной суммой.
+     * Создает заказ с идентификатором.
      *
-     * @param totalSum сумма
+     * @param id идентификатор заказа
      */
-    public Order(BigDecimal totalSum) {
-        this.totalSum = totalSum;
+    public Order(Long id) {
+        this.id = id;
     }
 
     /**

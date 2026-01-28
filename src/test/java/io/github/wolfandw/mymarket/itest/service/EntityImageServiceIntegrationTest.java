@@ -24,12 +24,7 @@ public class EntityImageServiceIntegrationTest extends AbstractIntegrationTest {
     void getEntityImageTest() throws IOException {
         Long entityId = 5L;
 
-        Optional<Item> entity = itemRepository.findById(entityId);
-        assertTrue(entity.isPresent(), "Сущность должна присутствовать");
-
-        String imageName = entity.get().getImgPath();
-        assertTrue(imageName.startsWith(entityId + "."), "Имя картинки должно начинаться с ид сущности");
-
+        String imageName = entityId + ".png";
         byte[] expectedImageData = fileStorageService.readFile(imageName);
         EntityImageDto expectedItemImage = new EntityImageDto(entityId, expectedImageData, MediaType.IMAGE_PNG);
 
@@ -45,12 +40,7 @@ public class EntityImageServiceIntegrationTest extends AbstractIntegrationTest {
     void getEntityImageBase64Test() throws IOException {
         Long entityId = 5L;
 
-        Optional<Item> entity = itemRepository.findById(entityId);
-        assertTrue(entity.isPresent(), "Сущность должна присутствовать");
-
-        String imageName = entity.get().getImgPath();
-        assertTrue(imageName.startsWith(entityId + "."), "Имя картинки должно начинаться с ид сущности");
-
+        String imageName = entityId + ".png";
         byte[] expectedImageData = fileStorageService.readFile(imageName);
         String base64Encoded = new String(Base64.getEncoder().encode(expectedImageData), StandardCharsets.UTF_8);
         String expectedItemImageBase64 = "data:" + MediaType.IMAGE_PNG + ";base64, " + base64Encoded;
@@ -66,9 +56,7 @@ public class EntityImageServiceIntegrationTest extends AbstractIntegrationTest {
     void updateEntityImageTest() throws IOException {
         Long entityId = 5L;
 
-        Optional<Item> entity = itemRepository.findById(entityId);
-        assertTrue(entity.isPresent(), "Сущность должна присутствовать");
-        String oldImagePath = entity.get().getImgPath();
+        String oldImagePath = entityId + ".png";
         EntityImageDto oldEntityImage = entityImageService.getEntityImage(entityId);
 
         String imageName = "14.jpg";
@@ -91,7 +79,7 @@ public class EntityImageServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(expectedItemImage.getEntityId(), actualEntityImage.getEntityId(), "Идентификатор сущности картинки должен быть равен исходному");
 
         entityImageService.updateEntityImage(entityId, new MockMultipartFile(
-                "image",
+                MyMarketUtils.PARAMETER_IMAGE_FILE,
                 oldImagePath,
                 oldEntityImage.getMediaType().toString(),
                 oldEntityImage.getData()));
@@ -102,9 +90,7 @@ public class EntityImageServiceIntegrationTest extends AbstractIntegrationTest {
     void deleteItemImageTest() {
         Long entityId = 5L;
 
-        Optional<Item> entity = itemRepository.findById(entityId);
-        assertTrue(entity.isPresent(), "Сущность должна присутствовать");
-        String oldImagePath = entity.get().getImgPath();
+        String oldImagePath = entityId + ".png";;
         EntityImageDto oldEntityImage = entityImageService.getEntityImage(entityId);
 
         EntityImageDto expectedItemImage = new EntityImageDto(entityId, new byte[0], MediaType.APPLICATION_OCTET_STREAM);

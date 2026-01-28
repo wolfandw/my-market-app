@@ -27,6 +27,29 @@ public class Item {
     private BigDecimal price;
 
     /**
+     * Создает модель товара.
+     *
+     * @param id идентификатор товара
+     * @param title название товара
+     * @param description описание товара
+     * @param imgPath путь к картинке
+     * @param price цена
+     */
+    public Item(Long id, String title, String description, String imgPath, BigDecimal price) {
+        this.id = id;
+        this.title = title;
+        this.description = description;
+        this.imgPath = imgPath;
+        this.price = price;
+    }
+
+    /**
+     * Создает модель товара.
+     */
+     public Item() {
+     }
+
+    /**
      * Возвращает идентификатор товара.
      *
      * @return идентификатор товара

@@ -1,17 +1,12 @@
 package io.github.wolfandw.mymarket.controller;
 
 import io.github.wolfandw.mymarket.MyMarketUtils;
-import io.github.wolfandw.mymarket.dto.CartDto;
-import io.github.wolfandw.mymarket.dto.ItemDto;
-import io.github.wolfandw.mymarket.dto.OrderDto;
 import io.github.wolfandw.mymarket.service.CartService;
 import io.github.wolfandw.mymarket.service.OrderService;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-
-import java.util.List;
 
 /**
  * Контроллер приложения.
@@ -25,7 +20,7 @@ public class ApplicationController {
     /**
      * Создает контроллер приложения.
      *
-     * @param cartService сервис корзин
+     * @param cartService  сервис корзин
      * @param orderService сервис заказов
      */
     public ApplicationController(CartService cartService, OrderService orderService) {
@@ -51,18 +46,10 @@ public class ApplicationController {
      */
     @PostMapping("/buy")
     public String buy() {
-        CartDto cartDto = cartService.getCart(MyMarketUtils.DEFAULT_CART_ID);
-        List<ItemDto> cartItems = cartDto.items();
-        if (!cartItems.isEmpty()) {
-            OrderDto orderDto = orderService.createOrder(cartDto.total(), cartItems);
+        return orderService.createOrderByCart(MyMarketUtils.DEFAULT_CART_ID).map(orderDto -> {
             cartService.clearCart(MyMarketUtils.DEFAULT_CART_ID);
-            return MyMarketUtils.REDIRECT +
-                    '/' + MyMarketUtils.TEMPLATE_ORDERS +
-                    '/' + orderDto.id() +
-                    '?' + MyMarketUtils.PARAMETER_NEW_ORDER + '=' + Boolean.TRUE;
-        }
-        return MyMarketUtils.REDIRECT +
-                '/' +
-                MyMarketUtils.TEMPLATE_ORDERS;
+            return MyMarketUtils.REDIRECT + '/' + MyMarketUtils.TEMPLATE_ORDERS +
+                    '/' + orderDto.id() + '?' + MyMarketUtils.PARAMETER_NEW_ORDER + '=' + Boolean.TRUE;
+        }).orElse(MyMarketUtils.REDIRECT + '/' + MyMarketUtils.TEMPLATE_ORDERS);
     }
 }
