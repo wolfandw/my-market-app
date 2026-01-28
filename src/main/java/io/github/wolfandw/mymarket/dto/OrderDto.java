@@ -12,4 +12,22 @@ import java.util.List;
 public record OrderDto(Long id,
                        List<ItemDto> items,
                        Long totalSum) {
+    /**
+     * Возвращает список товаров заказа.
+     * Для тестов.
+     *
+     * @return список товаров заказа
+     */
+    public List<ItemDto> getItems() {
+        return items;
+    }
+
+    /**
+     * Возвращает итоговую сумму заказа.
+     *
+     * @return итоговая сумма заказа.
+     */
+    public Long getTotalSum() {
+        return totalSum;
+    }
 }

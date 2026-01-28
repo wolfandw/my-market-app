@@ -1,5 +1,6 @@
 package io.github.wolfandw.mymarket.service.impl;
 
+import io.github.wolfandw.mymarket.MyMarketUtils;
 import io.github.wolfandw.mymarket.dto.CartDto;
 import io.github.wolfandw.mymarket.dto.ItemDto;
 import io.github.wolfandw.mymarket.model.Cart;
@@ -23,10 +24,6 @@ import java.util.Optional;
  */
 @Service
 public class CartServiceImpl implements CartService {
-    private static final String ACTION_MINUS = "MINUS";
-    private static final String ACTION_PLUS = "PLUS";
-    private static final String ACTION_DELETE = "DELETE";
-
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
     private final ItemRepository itemRepository;
@@ -54,8 +51,7 @@ public class CartServiceImpl implements CartService {
     @Transactional(readOnly = true)
     public CartDto getCart(Long cartId) {
         return cartRepository.findById(cartId).map(cart -> {
-            List<CartItem> cartItems = cart.getItems();//cartItemRepository.findAllByCart(cart);
-            List<ItemDto> items = cartToCartDtoMapper.mapCartItems(cartItems);
+            List<ItemDto> items = cartToCartDtoMapper.mapCartItems(cart.getItems());
             return new CartDto(items, cart.getTotal().longValue());
         }).orElse(new CartDto(List.of(), 0L));
     }
@@ -75,13 +71,13 @@ public class CartServiceImpl implements CartService {
 
         CartItem cartItem = cartItemRepository.findByCartAndItemId(cart, itemId).orElseGet(() -> createCartItem(cart, item));
         int count = cartItem.getCount();
-        if (ACTION_MINUS.equals(action)) {
+        if (MyMarketUtils.ACTION_MINUS.equals(action)) {
             count--;
             total = total.subtract(price);
-        } else if (ACTION_PLUS.equals(action)) {
+        } else if (MyMarketUtils.ACTION_PLUS.equals(action)) {
             count++;
             total = total.add(price);
-        } else if (ACTION_DELETE.equals(action)) {
+        } else if (MyMarketUtils.ACTION_DELETE.equals(action)) {
             total = total.subtract(price.multiply(BigDecimal.valueOf(count)));
             count = 0;
         }
@@ -96,6 +92,15 @@ public class CartServiceImpl implements CartService {
             cart.setTotal(total);
             cartRepository.save(cart);
         }
+    }
+
+    @Override
+    public void clearCart(Long cartId) {
+        cartRepository.findById(cartId).ifPresent(cart -> {
+            cart.getItems().clear();
+            cart.setTotal(BigDecimal.ZERO);
+            cartRepository.save(cart);
+        });
     }
 
     private @NonNull CartItem createCartItem(Cart cart, Item item) {

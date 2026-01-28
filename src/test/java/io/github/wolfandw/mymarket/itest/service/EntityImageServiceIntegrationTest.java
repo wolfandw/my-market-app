@@ -1,5 +1,6 @@
 package io.github.wolfandw.mymarket.itest.service;
 
+import io.github.wolfandw.mymarket.MyMarketUtils;
 import io.github.wolfandw.mymarket.dto.EntityImageDto;
 import io.github.wolfandw.mymarket.itest.AbstractIntegrationTest;
 import io.github.wolfandw.mymarket.model.Item;
@@ -9,6 +10,8 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -39,6 +42,26 @@ public class EntityImageServiceIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void getEntityImageBase64Test() throws IOException {
+        Long entityId = 5L;
+
+        Optional<Item> entity = itemRepository.findById(entityId);
+        assertTrue(entity.isPresent(), "Сущность должна присутствовать");
+
+        String imageName = entity.get().getImgPath();
+        assertTrue(imageName.startsWith(entityId + "."), "Имя картинки должно начинаться с ид сущности");
+
+        byte[] expectedImageData = fileStorageService.readFile(imageName);
+        String base64Encoded = new String(Base64.getEncoder().encode(expectedImageData), StandardCharsets.UTF_8);
+        String expectedItemImageBase64 = "data:" + MediaType.IMAGE_PNG + ";base64, " + base64Encoded;
+
+        String actualEntityImageBase64 = entityImageService.getEntityImageBase64(entityId);
+
+        assertNotNull(actualEntityImageBase64, "Картинка должна быть получена");
+        assertEquals(expectedItemImageBase64, actualEntityImageBase64, "Данные картинки должны быть равны исходным");
+    }
+
+    @Test
     @Transactional
     void updateEntityImageTest() throws IOException {
         Long entityId = 5L;
@@ -53,7 +76,7 @@ public class EntityImageServiceIntegrationTest extends AbstractIntegrationTest {
         EntityImageDto expectedItemImage = new EntityImageDto(entityId, expectedImageData, MediaType.IMAGE_JPEG);
 
         MockMultipartFile multipartFile = new MockMultipartFile(
-                "image",
+                MyMarketUtils.PARAMETER_IMAGE_FILE,
                 imageName,
                 MediaType.IMAGE_JPEG_VALUE,
                 expectedImageData);
@@ -95,7 +118,7 @@ public class EntityImageServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(expectedItemImage.getEntityId(), actualEntityImage.getEntityId(), "Идентификатор сущности картинки должен быть равен исходному");
 
         entityImageService.updateEntityImage(entityId, new MockMultipartFile(
-                "image",
+                MyMarketUtils.PARAMETER_IMAGE_FILE,
                 oldImagePath,
                 oldEntityImage.getMediaType().toString(),
                 oldEntityImage.getData()));

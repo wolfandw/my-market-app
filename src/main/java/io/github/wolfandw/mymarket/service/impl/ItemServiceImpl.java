@@ -8,19 +8,15 @@ import io.github.wolfandw.mymarket.model.Item;
 import io.github.wolfandw.mymarket.repository.CartItemRepository;
 import io.github.wolfandw.mymarket.repository.CartRepository;
 import io.github.wolfandw.mymarket.repository.ItemRepository;
-import io.github.wolfandw.mymarket.service.EntityImageService;
 import io.github.wolfandw.mymarket.service.ItemService;
 import io.github.wolfandw.mymarket.service.mapper.ItemToDtoMapper;
 import org.jspecify.annotations.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -44,9 +40,6 @@ public class ItemServiceImpl implements ItemService {
     private static final Map<String, Sort> SORT_BY = Map.of(SORT_ALPHA, Sort.by(TITLE_COLUMN),
             SORT_PRICE, Sort.by(PRICE_COLUMN));
 
-    private static final String JPG = "jpg";
-    private static final Logger log = LoggerFactory.getLogger(ItemServiceImpl.class);
-
     private final ItemRepository itemRepository;
     private final CartItemRepository cartItemRepository;
     private final ItemToDtoMapper itemToItemDtoMapper;
@@ -63,8 +56,7 @@ public class ItemServiceImpl implements ItemService {
     public ItemServiceImpl(ItemRepository itemRepository,
                            CartItemRepository cartItemRepository,
                            ItemToDtoMapper itemToItemDtoMapper,
-                           CartRepository cartRepository,
-                           EntityImageService entityImageService) {
+                           CartRepository cartRepository) {
         this.itemRepository = itemRepository;
         this.itemToItemDtoMapper = itemToItemDtoMapper;
         this.cartItemRepository = cartItemRepository;
@@ -105,25 +97,6 @@ public class ItemServiceImpl implements ItemService {
         item.setDescription(description);
         item.setPrice(price);
         return itemToItemDtoMapper.mapItem(itemRepository.save(item), 0);
-    }
-
-    private String getImageFileName(MultipartFile imageFile, Long itemId){
-        if (imageFile == null) {
-            return null;
-        }
-        String originName = imageFile.getOriginalFilename();
-        String extension = getImageExtension(originName);
-        return itemId.toString() + "." + extension;
-    }
-
-    private String getImageExtension(String originName) {
-        if (originName != null && originName.lastIndexOf('.') != -1) {
-            String extension = originName.substring(originName.lastIndexOf('.') + 1).toLowerCase();
-            if (!extension.isEmpty()) {
-                return extension;
-            }
-        }
-        return JPG;
     }
 
     private @NonNull List<List<ItemDto>> getTriples(Page<Item> page, Map<Long, Integer> itemsCount) {

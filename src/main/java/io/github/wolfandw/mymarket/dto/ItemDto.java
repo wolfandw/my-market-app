@@ -44,10 +44,21 @@ public class ItemDto {
 
     /**
      * Возвращает название товара.
+     * Для кода и шаблонов.
      *
      * @return название товара
      */
     public String title() {
+        return title;
+    }
+
+    /**
+     * Возвращает название товара.
+     * Для тестов.
+     *
+     * @return название товара
+     */
+    public String getTitle() {
         return title;
     }
 
@@ -89,10 +100,21 @@ public class ItemDto {
 
     /**
      * Возвращает количество товара в корзине.
+     * Для шаблонов и кода.
      *
      * @return количество товара
      */
     public int count() {
+        return count;
+    }
+
+    /**
+     * Возвращает количество товара в корзине.
+     * Для тестов.
+     *
+     * @return количество товара
+     */
+    public int getCount() {
         return count;
     }
 }

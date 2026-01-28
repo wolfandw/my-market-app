@@ -1,11 +1,17 @@
 package io.github.wolfandw.mymarket.controller;
 
-import io.github.wolfandw.mymarket.MyMarketConstants;
-import io.github.wolfandw.mymarket.service.ApplicationService;
+import io.github.wolfandw.mymarket.MyMarketUtils;
+import io.github.wolfandw.mymarket.dto.CartDto;
+import io.github.wolfandw.mymarket.dto.ItemDto;
+import io.github.wolfandw.mymarket.dto.OrderDto;
+import io.github.wolfandw.mymarket.service.CartService;
+import io.github.wolfandw.mymarket.service.OrderService;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import java.util.List;
 
 /**
  * Контроллер приложения.
@@ -13,19 +19,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping("/")
 public class ApplicationController {
-    private static final String REDIRECT_TO_ITEMS = "redirect:/items";
-    private static final String REDIRECT_ORDERS = "redirect:/orders";
-    private static final String PARAMETER_NEW_ORDER = "newOrder=";
-
-    private final ApplicationService applicationService;
+    private final CartService cartService;
+    private final OrderService orderService;
 
     /**
      * Создает контроллер приложения.
      *
-     * @param applicationService сервис приложения
+     * @param cartService сервис корзин
+     * @param orderService сервис заказов
      */
-    public ApplicationController(ApplicationService applicationService) {
-        this.applicationService = applicationService;
+    public ApplicationController(CartService cartService, OrderService orderService) {
+        this.cartService = cartService;
+        this.orderService = orderService;
     }
 
     /**
@@ -35,7 +40,8 @@ public class ApplicationController {
      */
     @GetMapping
     public String redirectToItems() {
-        return REDIRECT_TO_ITEMS;
+        return MyMarketUtils.REDIRECT +
+                '/' + MyMarketUtils.TEMPLATE_ITEMS;
     }
 
     /**
@@ -45,8 +51,18 @@ public class ApplicationController {
      */
     @PostMapping("/buy")
     public String buy() {
-        return applicationService.buy(MyMarketConstants.DEFAULT_CART_ID).map(orderDto ->
-                REDIRECT_ORDERS + '/' + orderDto.id() + '?' + PARAMETER_NEW_ORDER + Boolean.TRUE.toString())
-                .orElse(REDIRECT_ORDERS);
+        CartDto cartDto = cartService.getCart(MyMarketUtils.DEFAULT_CART_ID);
+        List<ItemDto> cartItems = cartDto.items();
+        if (!cartItems.isEmpty()) {
+            OrderDto orderDto = orderService.createOrder(cartDto.total(), cartItems);
+            cartService.clearCart(MyMarketUtils.DEFAULT_CART_ID);
+            return MyMarketUtils.REDIRECT +
+                    '/' + MyMarketUtils.TEMPLATE_ORDERS +
+                    '/' + orderDto.id() +
+                    '?' + MyMarketUtils.PARAMETER_NEW_ORDER + '=' + Boolean.TRUE;
+        }
+        return MyMarketUtils.REDIRECT +
+                '/' +
+                MyMarketUtils.TEMPLATE_ORDERS;
     }
 }

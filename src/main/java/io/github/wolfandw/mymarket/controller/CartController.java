@@ -1,6 +1,6 @@
 package io.github.wolfandw.mymarket.controller;
 
-import io.github.wolfandw.mymarket.MyMarketConstants;
+import io.github.wolfandw.mymarket.MyMarketUtils;
 import io.github.wolfandw.mymarket.dto.CartDto;
 import io.github.wolfandw.mymarket.service.CartService;
 import io.github.wolfandw.mymarket.service.EntityImageService;
@@ -17,11 +17,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 @RequestMapping("/cart/items")
 public class CartController {
-    private static final String TEMPLATE_CART = "cart";
-
-    private static final String ATTRIBUTE_ITEMS = "items";
-    private static final String ATTRIBUTE_TOTAL = "total";
-
     private final CartService cartService;
     private final EntityImageService entityImageService;
 
@@ -44,12 +39,12 @@ public class CartController {
      */
     @GetMapping
     public String getCart(Model model) {
-        CartDto cart = cartService.getCart(MyMarketConstants.DEFAULT_CART_ID);
+        CartDto cart = cartService.getCart(MyMarketUtils.DEFAULT_CART_ID);
         cart.items().forEach(item ->
                 item.setImgData(entityImageService.getEntityImageBase64(item.id())));
-        model.addAttribute(ATTRIBUTE_ITEMS, cart.items());
-        model.addAttribute(ATTRIBUTE_TOTAL, cart.total());
-        return TEMPLATE_CART;
+        model.addAttribute(MyMarketUtils.ATTRIBUTE_ITEMS, cart.items());
+        model.addAttribute(MyMarketUtils.ATTRIBUTE_TOTAL, cart.total());
+        return MyMarketUtils.TEMPLATE_CART;
     }
 
     /**
@@ -62,10 +57,10 @@ public class CartController {
      */
     @PostMapping
     public String changeChartItemCount(
-            @RequestParam(value = "id", required = true, defaultValue = "0") Long id,
-            @RequestParam(value = "action", required = true, defaultValue = "PLUS")  String action,
+            @RequestParam(value = MyMarketUtils.PARAMETER_ID, defaultValue = "0") Long id,
+            @RequestParam(value = MyMarketUtils.PARAMETER_ACTION, defaultValue = MyMarketUtils.ACTION_PLUS)  String action,
             Model model) {
-        cartService.changeItemCount(MyMarketConstants.DEFAULT_CART_ID, id, action);
+        cartService.changeItemCount(MyMarketUtils.DEFAULT_CART_ID, id, action);
         return getCart(model);
     }
 }

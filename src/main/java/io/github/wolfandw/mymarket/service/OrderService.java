@@ -1,5 +1,6 @@
 package io.github.wolfandw.mymarket.service;
 
+import io.github.wolfandw.mymarket.dto.ItemDto;
 import io.github.wolfandw.mymarket.dto.OrderDto;
 
 import java.util.List;
@@ -24,4 +25,6 @@ public interface OrderService {
      * @return DTO-представление заказа.
      */
     Optional<OrderDto> getOrder(Long id, boolean newOrder);
+
+    OrderDto createOrder(Long totalSum, List<ItemDto> items);
 }

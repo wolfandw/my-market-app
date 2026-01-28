@@ -22,4 +22,11 @@ public interface CartService {
      * @param action увеличить (уменьшить) количество товара в корзине
      */
     void changeItemCount(Long cartId, Long itemId, String action);
+
+    /**
+     * Очищает корзину.
+     *
+     * @param cartId идентификатор корзины
+     */
+    void clearCart(Long cartId);
 }

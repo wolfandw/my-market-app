@@ -1,5 +1,6 @@
 package io.github.wolfandw.mymarket.controller;
 
+import io.github.wolfandw.mymarket.MyMarketUtils;
 import io.github.wolfandw.mymarket.dto.OrderDto;
 import io.github.wolfandw.mymarket.service.OrderService;
 import org.springframework.stereotype.Controller;
@@ -17,14 +18,6 @@ import java.util.List;
 @Controller
 @RequestMapping("/orders")
 public class OrderController {
-    private static final String TEMPLATE_ORDERS = "orders";
-    private static final String TEMPLATE_ORDER = "order";
-
-    private static final String ATTRIBUTE_ORDERS = "orders";
-    private static final String ATTRIBUTE_ORDER = "order";
-    private static final String ATTRIBUTE_TOTAL_SUM = "totalSum";
-    private static final String ATTRIBUTE_NEW_ORDER = "newOrder";
-
     private final OrderService orderService;
 
     /**
@@ -45,8 +38,8 @@ public class OrderController {
     @GetMapping
     public String getOrders(Model model) {
         List<OrderDto> orders = orderService.getOrders();
-        model.addAttribute(ATTRIBUTE_ORDERS, orders);
-        return TEMPLATE_ORDERS;
+        model.addAttribute(MyMarketUtils.ATTRIBUTE_ORDERS, orders);
+        return MyMarketUtils.TEMPLATE_ORDERS;
     }
 
     /**
@@ -59,13 +52,13 @@ public class OrderController {
      */
     @GetMapping("/{id}")
     public String getOrder(@PathVariable Long id,
-                           @RequestParam(value = "newOrder", required = false, defaultValue = "false") boolean newOrder,
+                           @RequestParam(value = MyMarketUtils.PARAMETER_NEW_ORDER, required = false, defaultValue = "false") boolean newOrder,
                            Model model) {
         orderService.getOrder(id, newOrder).ifPresent(order -> {
-            model.addAttribute(ATTRIBUTE_ORDER, order);
-            model.addAttribute(ATTRIBUTE_TOTAL_SUM, order.totalSum());
-            model.addAttribute(ATTRIBUTE_NEW_ORDER, newOrder);
+            model.addAttribute(MyMarketUtils.ATTRIBUTE_ORDER, order);
+            model.addAttribute(MyMarketUtils.ATTRIBUTE_TOTAL_SUM, order.totalSum());
+            model.addAttribute(MyMarketUtils.ATTRIBUTE_NEW_ORDER, newOrder);
         });
-        return TEMPLATE_ORDER;
+        return MyMarketUtils.TEMPLATE_ORDER;
     }
 }

@@ -1,14 +1,13 @@
 package io.github.wolfandw.mymarket.itest;
 
 import io.github.wolfandw.mymarket.repository.ItemRepository;
-import io.github.wolfandw.mymarket.service.EntityImageService;
-import io.github.wolfandw.mymarket.service.FileStorageService;
-import io.github.wolfandw.mymarket.service.ItemService;
+import io.github.wolfandw.mymarket.service.*;
 import org.junit.jupiter.api.AfterEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.test.web.servlet.MockMvc;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -35,6 +34,18 @@ public abstract class AbstractIntegrationTest {
     protected ItemService itemService;
 
     /**
+     * Сервис корзин.
+     */
+    @Autowired
+    protected CartService cartService;
+
+    /**
+     * Сервис корзин.
+     */
+    @Autowired
+    protected OrderService orderService;
+
+    /**
      * Сервис работы с картинками.
      */
     @Autowired
@@ -51,6 +62,9 @@ public abstract class AbstractIntegrationTest {
      */
     @Value("${mymarket.upload.images.dir}")
     protected String fileDir;
+
+    @Autowired
+    protected MockMvc mockMvc;
 
     @AfterEach
     void cleanUp() {
