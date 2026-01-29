@@ -90,7 +90,7 @@ public class RedirectUrlFactory {
      * @return адрес перехода на страницу нового товара
      */
     public static @NonNull String createUrlToItems() {
-        return REDIRECT + '/' + DtoConstants.TEMPLATE_ITEMS;
+        return '/' + DtoConstants.TEMPLATE_ITEMS;
     }
 
     /**
@@ -117,8 +117,8 @@ public class RedirectUrlFactory {
      * @return адрес перехода на страницу нового заказа
      */
     public static @NonNull String createUrlToNewOrder(Long newOrderId) {
-        return REDIRECT + '/' + DtoConstants.TEMPLATE_ORDERS +
-                '/' + newOrderId + '?' + DtoConstants.PARAMETER_NEW_ORDER + '=' + Boolean.TRUE;
+        return '/' + DtoConstants.TEMPLATE_ORDERS +
+               '/' + newOrderId + '?' + DtoConstants.PARAMETER_NEW_ORDER + '=' + Boolean.TRUE;
     }
 
     /**
