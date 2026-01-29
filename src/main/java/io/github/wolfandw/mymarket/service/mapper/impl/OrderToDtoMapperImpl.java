@@ -18,7 +18,7 @@ public class OrderToDtoMapperImpl implements OrderToDtoMapper {
     private final ItemToDtoMapper itemToDtoMapper;
 
     /**
-     * Создает маппер строк заказа товаров.
+     * Создает маппер заказа товаров.
      *
      * @param itemToDtoMapper маппер товаров
      */

@@ -87,7 +87,7 @@ public class RedirectUrlFactory {
     /**
      * Создает адрес начальной страницы.
      *
-     * @return адрес перехода на страницу нового товара
+     * @return адрес перехода на начальную страницу
      */
     public static @NonNull String createUrlToItems() {
         return '/' + DtoConstants.TEMPLATE_ITEMS;
@@ -96,7 +96,7 @@ public class RedirectUrlFactory {
     /**
      * Создает редирект на адрес начальной страницы.
      *
-     * @return редирект на адрес перехода на страницу нового товара
+     * @return редирект на адрес перехода на начальную страницу
      */
     public static @NonNull String createRedirectUrlToItems() {
         return REDIRECT + createUrlToItems();

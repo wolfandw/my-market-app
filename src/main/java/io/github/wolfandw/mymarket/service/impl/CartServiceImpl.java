@@ -27,31 +27,31 @@ public class CartServiceImpl implements CartService {
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
     private final ItemRepository itemRepository;
-    private final CartToDtoMapper cartToCartDtoMapper;
+    private final CartToDtoMapper cartToDtoMapper;
 
     /**
      * Создает сервис работы с корзинами.
      *
-     * @param cartRepository      репозиторий корзин
-     * @param cartItemRepository  репозиторий строк корзин
-     * @param itemRepository      репозиторий товаров
-     * @param cartToCartDtoMapper маппер строк корзин
+     * @param cartRepository     репозиторий корзин
+     * @param cartItemRepository репозиторий строк корзин
+     * @param itemRepository     репозиторий товаров
+     * @param cartToDtoMapper    маппер строк корзин
      */
     public CartServiceImpl(CartRepository cartRepository,
                            CartItemRepository cartItemRepository,
                            ItemRepository itemRepository,
-                           CartToDtoMapper cartToCartDtoMapper) {
+                           CartToDtoMapper cartToDtoMapper) {
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
         this.itemRepository = itemRepository;
-        this.cartToCartDtoMapper = cartToCartDtoMapper;
+        this.cartToDtoMapper = cartToDtoMapper;
     }
 
     @Override
     @Transactional(readOnly = true)
     public CartDto getCart(Long cartId) {
         return cartRepository.findById(cartId).map(cart -> {
-            List<ItemDto> items = cartToCartDtoMapper.mapCartItems(cart.getItems());
+            List<ItemDto> items = cartToDtoMapper.mapCartItems(cart.getItems());
             return new CartDto(items, cart.getTotal().longValue());
         }).orElse(new CartDto(List.of(), 0L));
     }

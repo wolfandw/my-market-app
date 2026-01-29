@@ -17,7 +17,7 @@ public class CartToDtoMapperImpl implements CartToDtoMapper {
     private final ItemToDtoMapper itemToDtoMapper;
 
     /**
-     * Создает маппер строк корзины товаров.
+     * Создает маппер корзины товаров.
      *
      * @param itemToDtoMapper маппер товаров
      */

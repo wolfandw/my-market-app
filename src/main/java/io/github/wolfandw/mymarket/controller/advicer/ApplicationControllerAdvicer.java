@@ -19,8 +19,8 @@ public class ApplicationControllerAdvicer {
     /**
      * Обрабатывает исключение MethodArgumentTypeMismatchException.
      *
-     * @param e        исключение типа Exception
-     * @param model    исключение типа Exception
+     * @param e        исключение типа IllegalArgumentException
+     * @param model    модель
      * @param response ответ
      * @return имя шаблона ошибки
      */
@@ -35,8 +35,8 @@ public class ApplicationControllerAdvicer {
     /**
      * Обрабатывает исключение DataAccessException.
      *
-     * @param e        исключение типа Exception
-     * @param model    исключение типа Exception
+     * @param e        исключение типа DataAccessException
+     * @param model    модель
      * @param response ответ
      * @return имя шаблона ошибки
      */
@@ -51,8 +51,8 @@ public class ApplicationControllerAdvicer {
     /**
      * Обрабатывает исключение NoHandlerFoundException.
      *
-     * @param e        исключение типа Exception
-     * @param model    исключение типа Exception
+     * @param e        исключение типа NoHandlerFoundException
+     * @param model    модель
      * @param response ответ
      * @return имя шаблона ошибки
      */
@@ -68,7 +68,7 @@ public class ApplicationControllerAdvicer {
      * Обрабатывает непредвиденные исключения.
      *
      * @param e        исключение типа Exception
-     * @param model    исключение типа Exception
+     * @param model    модель
      * @param response ответ
      * @return имя шаблона ошибки
      */

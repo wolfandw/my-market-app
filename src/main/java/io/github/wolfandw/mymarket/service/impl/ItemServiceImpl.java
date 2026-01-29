@@ -51,17 +51,17 @@ public class ItemServiceImpl implements ItemService {
     /**
      * Создает сервис работы с товарами.
      *
-     * @param itemRepository      репозиторий товаров
-     * @param cartItemRepository  репозиторий строк корзин
-     * @param itemToItemDtoMapper маппер товаров на DTO-представление товаров.
-     * @param cartRepository      репозиторий корзин
+     * @param itemRepository     репозиторий товаров
+     * @param cartItemRepository репозиторий строк корзин
+     * @param itemToDtoMapper    маппер товаров на DTO-представление товаров.
+     * @param cartRepository     репозиторий корзин
      */
     public ItemServiceImpl(ItemRepository itemRepository,
                            CartItemRepository cartItemRepository,
-                           ItemToDtoMapper itemToItemDtoMapper,
+                           ItemToDtoMapper itemToDtoMapper,
                            CartRepository cartRepository) {
         this.itemRepository = itemRepository;
-        this.itemToItemDtoMapper = itemToItemDtoMapper;
+        this.itemToItemDtoMapper = itemToDtoMapper;
         this.cartItemRepository = cartItemRepository;
         this.cartRepository = cartRepository;
     }

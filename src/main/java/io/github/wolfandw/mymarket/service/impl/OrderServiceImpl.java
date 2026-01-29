@@ -22,28 +22,28 @@ import java.util.stream.Collectors;
 public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final CartRepository cartRepository;
-    private final OrderToDtoMapper orderToOrderDtoMapper;
+    private final OrderToDtoMapper orderToDtoMapper;
 
     /**
      * Создает сервис работы с заказами товаров.
      *
      * @param orderRepository      репозиторий заказов
      * @param cartRepository      репозиторий корзин
-     * @param orderToOrderDtoMapper  маппер строк заказов
+     * @param orderToDtoMapper  маппер строк заказов
      */
     public OrderServiceImpl(OrderRepository orderRepository,
                             CartRepository cartRepository,
-                            OrderToDtoMapper orderToOrderDtoMapper) {
+                            OrderToDtoMapper orderToDtoMapper) {
         this.orderRepository = orderRepository;
         this.cartRepository = cartRepository;
-        this.orderToOrderDtoMapper = orderToOrderDtoMapper;
+        this.orderToDtoMapper = orderToDtoMapper;
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<OrderDto> getOrders() {
         return orderRepository.findAll().stream().map(order -> {
-            List<ItemDto> items = orderToOrderDtoMapper.mapOrderItems(order.getItems());
+            List<ItemDto> items = orderToDtoMapper.mapOrderItems(order.getItems());
             return new OrderDto(order.getId(), items, order.getTotalSum().longValue());
         }).collect(Collectors.toList());
     }
@@ -52,7 +52,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     public Optional<OrderDto> getOrder(Long id, boolean newOrder) {
         return orderRepository.findById(id).map(order -> {
-            List<ItemDto> items = orderToOrderDtoMapper.mapOrderItems(order.getItems());
+            List<ItemDto> items = orderToDtoMapper.mapOrderItems(order.getItems());
             return new OrderDto(order.getId(), items, order.getTotalSum().longValue());
         });
     }
@@ -67,7 +67,7 @@ public class OrderServiceImpl implements OrderService {
             List<OrderItem> orderItems = cart.getItems().stream().map(cartItem ->
                     new OrderItem(order, cartItem.getItem(), cartItem.getCount())).toList();
             order.setItems(orderItems);
-            return orderToOrderDtoMapper.mapOrder(orderRepository.save(order));
+            return orderToDtoMapper.mapOrder(orderRepository.save(order));
         });
     }
 }

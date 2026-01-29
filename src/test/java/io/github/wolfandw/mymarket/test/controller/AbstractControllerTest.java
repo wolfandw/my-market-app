@@ -14,6 +14,9 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
+/**
+ * Абстрактный модельный тест контроллеров.
+ */
 public class AbstractControllerTest extends AbstractTest {
     @Autowired
     protected MockMvc mockMvc;

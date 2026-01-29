@@ -11,8 +11,17 @@ import java.util.TreeMap;
  * Абстрактный модульный тест.
  */
 public abstract class AbstractTest {
+    /**
+     * Тестовы еданные товаров.
+     */
     public static Map<Long, Item> ITEMS = new TreeMap<>();
+    /**
+     * Тестовы еданные корзин.
+     */
     public static Map<Long, Cart> CARTS = new TreeMap<>();
+    /**
+     * Тестовы еданные заказов.
+     */
     public static Map<Long, Order> ORDERS = new TreeMap<>();
 
     @BeforeEach
