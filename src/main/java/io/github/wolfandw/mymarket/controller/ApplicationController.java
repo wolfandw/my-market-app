@@ -1,6 +1,6 @@
 package io.github.wolfandw.mymarket.controller;
 
-import io.github.wolfandw.mymarket.MyMarketUtils;
+import io.github.wolfandw.mymarket.dto.DtoConstants;
 import io.github.wolfandw.mymarket.service.CartService;
 import io.github.wolfandw.mymarket.service.OrderService;
 import org.springframework.stereotype.Controller;
@@ -35,8 +35,7 @@ public class ApplicationController {
      */
     @GetMapping
     public String redirectToItems() {
-        return MyMarketUtils.REDIRECT +
-                '/' + MyMarketUtils.TEMPLATE_ITEMS;
+        return RedirectUrlFactory.createRedirectUrlToItems();
     }
 
     /**
@@ -46,10 +45,9 @@ public class ApplicationController {
      */
     @PostMapping("/buy")
     public String buy() {
-        return orderService.createOrderByCart(MyMarketUtils.DEFAULT_CART_ID).map(orderDto -> {
-            cartService.clearCart(MyMarketUtils.DEFAULT_CART_ID);
-            return MyMarketUtils.REDIRECT + '/' + MyMarketUtils.TEMPLATE_ORDERS +
-                    '/' + orderDto.id() + '?' + MyMarketUtils.PARAMETER_NEW_ORDER + '=' + Boolean.TRUE;
-        }).orElse(MyMarketUtils.REDIRECT + '/' + MyMarketUtils.TEMPLATE_ORDERS);
+        return orderService.createOrderByCart(DtoConstants.DEFAULT_CART_ID).map(orderDto -> {
+            cartService.clearCart(DtoConstants.DEFAULT_CART_ID);
+            return RedirectUrlFactory.createRedirectUrlToNewOrder(orderDto.id());
+        }).orElse(RedirectUrlFactory.createRedirectUrlToOrders());
     }
 }

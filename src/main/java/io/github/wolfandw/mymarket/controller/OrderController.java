@@ -1,6 +1,6 @@
 package io.github.wolfandw.mymarket.controller;
 
-import io.github.wolfandw.mymarket.MyMarketUtils;
+import io.github.wolfandw.mymarket.dto.DtoConstants;
 import io.github.wolfandw.mymarket.dto.OrderDto;
 import io.github.wolfandw.mymarket.service.OrderService;
 import org.springframework.stereotype.Controller;
@@ -38,8 +38,8 @@ public class OrderController {
     @GetMapping
     public String getOrders(Model model) {
         List<OrderDto> orders = orderService.getOrders();
-        model.addAttribute(MyMarketUtils.ATTRIBUTE_ORDERS, orders);
-        return MyMarketUtils.TEMPLATE_ORDERS;
+        model.addAttribute(DtoConstants.ATTRIBUTE_ORDERS, orders);
+        return DtoConstants.TEMPLATE_ORDERS;
     }
 
     /**
@@ -52,13 +52,13 @@ public class OrderController {
      */
     @GetMapping("/{id}")
     public String getOrder(@PathVariable Long id,
-                           @RequestParam(value = MyMarketUtils.PARAMETER_NEW_ORDER, required = false, defaultValue = "false") boolean newOrder,
+                           @RequestParam(value = DtoConstants.PARAMETER_NEW_ORDER, required = false, defaultValue = "false") boolean newOrder,
                            Model model) {
         orderService.getOrder(id, newOrder).ifPresent(order -> {
-            model.addAttribute(MyMarketUtils.ATTRIBUTE_ORDER, order);
-            model.addAttribute(MyMarketUtils.ATTRIBUTE_TOTAL_SUM, order.totalSum());
-            model.addAttribute(MyMarketUtils.ATTRIBUTE_NEW_ORDER, newOrder);
+            model.addAttribute(DtoConstants.ATTRIBUTE_ORDER, order);
+            model.addAttribute(DtoConstants.ATTRIBUTE_TOTAL_SUM, order.totalSum());
+            model.addAttribute(DtoConstants.ATTRIBUTE_NEW_ORDER, newOrder);
         });
-        return MyMarketUtils.TEMPLATE_ORDER;
+        return DtoConstants.TEMPLATE_ORDER;
     }
 }

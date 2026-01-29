@@ -1,6 +1,6 @@
 package io.github.wolfandw.mymarket.test.service;
 
-import io.github.wolfandw.mymarket.MyMarketUtils;
+import io.github.wolfandw.mymarket.dto.DtoConstants;
 import io.github.wolfandw.mymarket.dto.OrderDto;
 import io.github.wolfandw.mymarket.model.Cart;
 import io.github.wolfandw.mymarket.model.Order;
@@ -54,7 +54,7 @@ public class OrderServiceTest extends AbstractServiceTest {
 
     @Test
     void createOrderTest() {
-        Long cartId = MyMarketUtils.DEFAULT_CART_ID;
+        Long cartId = DtoConstants.DEFAULT_CART_ID;
         Cart cart = CARTS.get(cartId);
         assert cart != null;
         when(cartRepository.findById(cartId)).thenReturn(Optional.ofNullable(cart));

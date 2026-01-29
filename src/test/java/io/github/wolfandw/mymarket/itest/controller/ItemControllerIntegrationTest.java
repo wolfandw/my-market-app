@@ -1,6 +1,7 @@
 package io.github.wolfandw.mymarket.itest.controller;
 
-import io.github.wolfandw.mymarket.MyMarketUtils;
+import io.github.wolfandw.mymarket.controller.RedirectUrlFactory;
+import io.github.wolfandw.mymarket.dto.DtoConstants;
 import io.github.wolfandw.mymarket.dto.ItemDto;
 import io.github.wolfandw.mymarket.itest.AbstractIntegrationTest;
 import org.hamcrest.beans.HasProperty;
@@ -25,30 +26,30 @@ public class ItemControllerIntegrationTest extends AbstractIntegrationTest {
     @Test
     void getItemsTest() throws Exception {
         mockMvc.perform(get("/items")
-                        .param(MyMarketUtils.PARAMETER_SEARCH, "")
-                        .param(MyMarketUtils.PARAMETER_SORT, "")
-                        .param(MyMarketUtils.PARAMETER_PAGE_NUMBER, "")
-                        .param(MyMarketUtils.PARAMETER_PAGE_SIZE, ""))
+                        .param(DtoConstants.PARAMETER_SEARCH, "")
+                        .param(DtoConstants.PARAMETER_SORT, "")
+                        .param(DtoConstants.PARAMETER_PAGE_NUMBER, "")
+                        .param(DtoConstants.PARAMETER_PAGE_SIZE, ""))
                 .andExpect(status().isOk())
-                .andExpect(model().attributeExists(MyMarketUtils.ATTRIBUTE_ITEMS))
-                .andExpect(model().attribute(MyMarketUtils.ATTRIBUTE_ITEMS, IsCollectionWithSize.<List<ItemDto>>hasSize(2)))
-                .andExpect(model().attributeExists(MyMarketUtils.ATTRIBUTE_SEARCH))
-                .andExpect(model().attributeExists(MyMarketUtils.ATTRIBUTE_SORT))
-                .andExpect(model().attributeExists(MyMarketUtils.ATTRIBUTE_PAGING))
-                .andExpect(view().name(MyMarketUtils.TEMPLATE_ITEMS));
+                .andExpect(model().attributeExists(DtoConstants.ATTRIBUTE_ITEMS))
+                .andExpect(model().attribute(DtoConstants.ATTRIBUTE_ITEMS, IsCollectionWithSize.<List<ItemDto>>hasSize(2)))
+                .andExpect(model().attributeExists(DtoConstants.ATTRIBUTE_SEARCH))
+                .andExpect(model().attributeExists(DtoConstants.ATTRIBUTE_SORT))
+                .andExpect(model().attributeExists(DtoConstants.ATTRIBUTE_PAGING))
+                .andExpect(view().name(DtoConstants.TEMPLATE_ITEMS));
     }
 
     @Test
     void getItemTest() throws Exception {
         mockMvc.perform(get("/items/2"))
                 .andExpect(status().isOk())
-                .andExpect(model().attributeExists(MyMarketUtils.ATTRIBUTE_ITEM))
-                .andExpect(model().attribute(MyMarketUtils.ATTRIBUTE_ITEM, IsNull.notNullValue(ItemDto.class)))
-                .andExpect(model().attribute(MyMarketUtils.ATTRIBUTE_ITEM, HasProperty.hasProperty(MyMarketUtils.ATTRIBUTE_TITLE)))
-                .andExpect(model().attribute(MyMarketUtils.ATTRIBUTE_ITEM, HasPropertyWithValue.hasProperty(MyMarketUtils.ATTRIBUTE_TITLE, equalTo("Item 08"))))
-                .andExpect(model().attributeExists(MyMarketUtils.ATTRIBUTE_NEW_ITEM))
-                .andExpect(model().attribute(MyMarketUtils.ATTRIBUTE_NEW_ITEM, equalTo(false)))
-                .andExpect(view().name(MyMarketUtils.TEMPLATE_ITEM));
+                .andExpect(model().attributeExists(DtoConstants.ATTRIBUTE_ITEM))
+                .andExpect(model().attribute(DtoConstants.ATTRIBUTE_ITEM, IsNull.notNullValue(ItemDto.class)))
+                .andExpect(model().attribute(DtoConstants.ATTRIBUTE_ITEM, HasProperty.hasProperty(DtoConstants.ATTRIBUTE_TITLE)))
+                .andExpect(model().attribute(DtoConstants.ATTRIBUTE_ITEM, HasPropertyWithValue.hasProperty(DtoConstants.ATTRIBUTE_TITLE, equalTo("Item 08"))))
+                .andExpect(model().attributeExists(DtoConstants.ATTRIBUTE_NEW_ITEM))
+                .andExpect(model().attribute(DtoConstants.ATTRIBUTE_NEW_ITEM, equalTo(false)))
+                .andExpect(view().name(DtoConstants.TEMPLATE_ITEM));
     }
 
     @Test
@@ -60,15 +61,15 @@ public class ItemControllerIntegrationTest extends AbstractIntegrationTest {
         Integer pageNumberParamValue = 1;
         Integer pageSizeParamValue = 5;
 
-        String redirectUrl = MyMarketUtils.buildRedirectUrlToItems(searchParamValue, sortParamValue, pageNumberParamValue, pageSizeParamValue);
+        String redirectUrl = RedirectUrlFactory.createUrlToItems(searchParamValue, sortParamValue, pageNumberParamValue, pageSizeParamValue);
 
         mockMvc.perform(post("/items")
-                        .param(MyMarketUtils.PARAMETER_ID, Long.toString(itemId))
-                        .param(MyMarketUtils.PARAMETER_ACTION, MyMarketUtils.ACTION_PLUS)
-                        .param(MyMarketUtils.PARAMETER_SEARCH, searchParamValue)
-                        .param(MyMarketUtils.PARAMETER_SORT, sortParamValue)
-                        .param(MyMarketUtils.PARAMETER_PAGE_NUMBER, pageNumberParamValue.toString())
-                        .param(MyMarketUtils.PARAMETER_PAGE_SIZE, pageSizeParamValue.toString())
+                        .param(DtoConstants.PARAMETER_ID, Long.toString(itemId))
+                        .param(DtoConstants.PARAMETER_ACTION, DtoConstants.ACTION_PLUS)
+                        .param(DtoConstants.PARAMETER_SEARCH, searchParamValue)
+                        .param(DtoConstants.PARAMETER_SORT, sortParamValue)
+                        .param(DtoConstants.PARAMETER_PAGE_NUMBER, pageNumberParamValue.toString())
+                        .param(DtoConstants.PARAMETER_PAGE_SIZE, pageSizeParamValue.toString())
                 )
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(redirectUrl));
@@ -78,16 +79,16 @@ public class ItemControllerIntegrationTest extends AbstractIntegrationTest {
     @Transactional
     void changeItemCountOnItemTest() throws Exception {
         mockMvc.perform(post("/items/1")
-                        .param(MyMarketUtils.PARAMETER_ACTION, MyMarketUtils.ACTION_PLUS))
+                        .param(DtoConstants.PARAMETER_ACTION, DtoConstants.ACTION_PLUS))
                 .andExpect(status().isOk())
-                .andExpect(model().attributeExists(MyMarketUtils.ATTRIBUTE_ITEM))
-                .andExpect(model().attribute(MyMarketUtils.ATTRIBUTE_ITEM, IsNull.notNullValue(ItemDto.class)))
-                .andExpect(model().attribute(MyMarketUtils.ATTRIBUTE_ITEM, HasProperty.hasProperty(MyMarketUtils.ATTRIBUTE_TITLE)))
-                .andExpect(model().attribute(MyMarketUtils.ATTRIBUTE_ITEM, HasPropertyWithValue.hasProperty(MyMarketUtils.ATTRIBUTE_TITLE, equalTo("Item 07 SearchTag"))))
-                .andExpect(model().attribute(MyMarketUtils.ATTRIBUTE_ITEM, HasProperty.hasProperty(MyMarketUtils.ATTRIBUTE_COUNT)))
-                .andExpect(model().attribute(MyMarketUtils.ATTRIBUTE_ITEM, HasPropertyWithValue.hasProperty(MyMarketUtils.ATTRIBUTE_COUNT, equalTo(1))))
+                .andExpect(model().attributeExists(DtoConstants.ATTRIBUTE_ITEM))
+                .andExpect(model().attribute(DtoConstants.ATTRIBUTE_ITEM, IsNull.notNullValue(ItemDto.class)))
+                .andExpect(model().attribute(DtoConstants.ATTRIBUTE_ITEM, HasProperty.hasProperty(DtoConstants.ATTRIBUTE_TITLE)))
+                .andExpect(model().attribute(DtoConstants.ATTRIBUTE_ITEM, HasPropertyWithValue.hasProperty(DtoConstants.ATTRIBUTE_TITLE, equalTo("Item 07 SearchTag"))))
+                .andExpect(model().attribute(DtoConstants.ATTRIBUTE_ITEM, HasProperty.hasProperty(DtoConstants.ATTRIBUTE_COUNT)))
+                .andExpect(model().attribute(DtoConstants.ATTRIBUTE_ITEM, HasPropertyWithValue.hasProperty(DtoConstants.ATTRIBUTE_COUNT, equalTo(1))))
 
-                .andExpect(view().name(MyMarketUtils.TEMPLATE_ITEM));
+                .andExpect(view().name(DtoConstants.TEMPLATE_ITEM));
     }
 
     @Test
@@ -95,7 +96,7 @@ public class ItemControllerIntegrationTest extends AbstractIntegrationTest {
     void addNewItemTest() throws Exception {
         mockMvc.perform(get("/items/new"))
                 .andExpect(status().isOk())
-                .andExpect(view().name(MyMarketUtils.TEMPLATE_ITEM_NEW));
+                .andExpect(view().name(DtoConstants.TEMPLATE_ITEM_NEW));
     }
 
     @Test
@@ -106,22 +107,24 @@ public class ItemControllerIntegrationTest extends AbstractIntegrationTest {
         String descriptionParamValue = "Item 15 description";
         long priceParamValue = 15L;
 
-        String imageName = "14.jpg";
+        String imageName = "15.jpg";
         byte[] expectedImageData = fileStorageService.readFile(imageName);
-        MockMultipartFile imageFileParamValue = new MockMultipartFile(MyMarketUtils.PARAMETER_IMAGE_FILE,
+        MockMultipartFile imageFileParamValue = new MockMultipartFile(DtoConstants.PARAMETER_IMAGE_FILE,
                 imageName,
                 MediaType.IMAGE_JPEG_VALUE,
                 expectedImageData);
 
-        String redirectUrl = MyMarketUtils.buildRedirectUrlToNewItem(itemId);
+        String redirectUrl = RedirectUrlFactory.createUrlToNewItem(itemId);
 
         mockMvc.perform(multipart("/items/new")
-                        .param(MyMarketUtils.PARAMETER_TITLE, titleParamValue)
-                        .param(MyMarketUtils.PARAMETER_DESCRIPTION, descriptionParamValue)
-                        .param(MyMarketUtils.PARAMETER_PRICE, Long.toString(priceParamValue))
+                        .param(DtoConstants.PARAMETER_TITLE, titleParamValue)
+                        .param(DtoConstants.PARAMETER_DESCRIPTION, descriptionParamValue)
+                        .param(DtoConstants.PARAMETER_PRICE, Long.toString(priceParamValue))
                         .file(imageFileParamValue)
                 )
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(redirectUrl));
+
+        fileStorageService.deleteFile(imageName);
     }
 }

@@ -1,6 +1,6 @@
 package io.github.wolfandw.mymarket.itest.controller;
 
-import io.github.wolfandw.mymarket.MyMarketUtils;
+import io.github.wolfandw.mymarket.dto.DtoConstants;
 import io.github.wolfandw.mymarket.dto.ItemDto;
 import io.github.wolfandw.mymarket.dto.OrderDto;
 import io.github.wolfandw.mymarket.itest.AbstractIntegrationTest;
@@ -24,21 +24,21 @@ public class OrderControllerIntegrationTest extends AbstractIntegrationTest {
     void getOrdersTest() throws Exception {
         mockMvc.perform(get("/orders"))
                 .andExpect(status().isOk())
-                .andExpect(model().attributeExists(MyMarketUtils.ATTRIBUTE_ORDERS))
-                .andExpect(model().attribute(MyMarketUtils.ATTRIBUTE_ORDERS, IsCollectionWithSize.<List<OrderDto>>hasSize(1)))
-                .andExpect(view().name(MyMarketUtils.TEMPLATE_ORDERS));
+                .andExpect(model().attributeExists(DtoConstants.ATTRIBUTE_ORDERS))
+                .andExpect(model().attribute(DtoConstants.ATTRIBUTE_ORDERS, IsCollectionWithSize.<List<OrderDto>>hasSize(1)))
+                .andExpect(view().name(DtoConstants.TEMPLATE_ORDERS));
     }
 
     @Test
     void getOrderTest() throws Exception {
         mockMvc.perform(get("/orders/1"))
                 .andExpect(status().isOk())
-                .andExpect(model().attributeExists(MyMarketUtils.ATTRIBUTE_ORDER))
-                .andExpect(model().attribute(MyMarketUtils.ATTRIBUTE_ORDER, IsNull.notNullValue(OrderDto.class)))
-                .andExpect(model().attribute(MyMarketUtils.ATTRIBUTE_ORDER, HasProperty.hasProperty(MyMarketUtils.ATTRIBUTE_ITEMS)))
-                .andExpect(model().attribute(MyMarketUtils.ATTRIBUTE_ORDER, HasPropertyWithValue.hasProperty(MyMarketUtils.ATTRIBUTE_ITEMS, IsCollectionWithSize.<List<ItemDto>>hasSize(12))))
-                .andExpect(model().attribute(MyMarketUtils.ATTRIBUTE_ORDER, HasProperty.hasProperty(MyMarketUtils.ATTRIBUTE_TOTAL_SUM)))
-                .andExpect(model().attribute(MyMarketUtils.ATTRIBUTE_ORDER, HasPropertyWithValue.hasProperty(MyMarketUtils.ATTRIBUTE_TOTAL_SUM, equalTo(8120L))))
-                .andExpect(view().name(MyMarketUtils.TEMPLATE_ORDER));
+                .andExpect(model().attributeExists(DtoConstants.ATTRIBUTE_ORDER))
+                .andExpect(model().attribute(DtoConstants.ATTRIBUTE_ORDER, IsNull.notNullValue(OrderDto.class)))
+                .andExpect(model().attribute(DtoConstants.ATTRIBUTE_ORDER, HasProperty.hasProperty(DtoConstants.ATTRIBUTE_ITEMS)))
+                .andExpect(model().attribute(DtoConstants.ATTRIBUTE_ORDER, HasPropertyWithValue.hasProperty(DtoConstants.ATTRIBUTE_ITEMS, IsCollectionWithSize.<List<ItemDto>>hasSize(12))))
+                .andExpect(model().attribute(DtoConstants.ATTRIBUTE_ORDER, HasProperty.hasProperty(DtoConstants.ATTRIBUTE_TOTAL_SUM)))
+                .andExpect(model().attribute(DtoConstants.ATTRIBUTE_ORDER, HasPropertyWithValue.hasProperty(DtoConstants.ATTRIBUTE_TOTAL_SUM, equalTo(8120L))))
+                .andExpect(view().name(DtoConstants.TEMPLATE_ORDER));
     }
 }

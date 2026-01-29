@@ -1,18 +1,24 @@
 package io.github.wolfandw.mymarket.itest.service;
 
-import io.github.wolfandw.mymarket.MyMarketUtils;
+import io.github.wolfandw.mymarket.dto.DtoConstants;
 import io.github.wolfandw.mymarket.dto.EntityImageDto;
 import io.github.wolfandw.mymarket.itest.AbstractIntegrationTest;
-import io.github.wolfandw.mymarket.model.Item;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Base64;
-import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -20,6 +26,37 @@ import static org.junit.jupiter.api.Assertions.*;
  * Интеграционный тест сервиса картинок.
  */
 public class EntityImageServiceIntegrationTest extends AbstractIntegrationTest {
+    @BeforeEach
+    public void setup() throws IOException {
+        Path dest = Paths.get(fileDir);
+        Path src = new ClassPathResource(fileDirTest).getFilePath();
+        if (Files.exists(src) && Files.exists(dest)) {
+            Stream<Path> files = Files.walk(src);
+            files.forEach(file -> {
+                try {
+                    Files.copy(file, dest.resolve(src.relativize(file)), StandardCopyOption.REPLACE_EXISTING);
+                } catch (IOException ignored) {
+                }
+            });
+            files.close();
+        }
+    }
+
+    @AfterEach
+    void cleanUp() throws IOException {
+        Path dest = Paths.get(fileDir);
+        if (Files.exists(dest)) {
+            Stream<Path> files = Files.walk(dest);
+            files.forEach(file -> {
+                try {
+                    Files.deleteIfExists(file);
+                } catch (IOException ignored) {
+                }
+            });
+            files.close();
+        }
+    }
+
     @Test
     void getEntityImageTest() throws IOException {
         Long entityId = 5L;
@@ -64,7 +101,7 @@ public class EntityImageServiceIntegrationTest extends AbstractIntegrationTest {
         EntityImageDto expectedItemImage = new EntityImageDto(entityId, expectedImageData, MediaType.IMAGE_JPEG);
 
         MockMultipartFile multipartFile = new MockMultipartFile(
-                MyMarketUtils.PARAMETER_IMAGE_FILE,
+                DtoConstants.PARAMETER_IMAGE_FILE,
                 imageName,
                 MediaType.IMAGE_JPEG_VALUE,
                 expectedImageData);
@@ -79,7 +116,7 @@ public class EntityImageServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(expectedItemImage.getEntityId(), actualEntityImage.getEntityId(), "Идентификатор сущности картинки должен быть равен исходному");
 
         entityImageService.updateEntityImage(entityId, new MockMultipartFile(
-                MyMarketUtils.PARAMETER_IMAGE_FILE,
+                DtoConstants.PARAMETER_IMAGE_FILE,
                 oldImagePath,
                 oldEntityImage.getMediaType().toString(),
                 oldEntityImage.getData()));
@@ -90,7 +127,8 @@ public class EntityImageServiceIntegrationTest extends AbstractIntegrationTest {
     void deleteItemImageTest() {
         Long entityId = 5L;
 
-        String oldImagePath = entityId + ".png";;
+        String oldImagePath = entityId + ".png";
+        ;
         EntityImageDto oldEntityImage = entityImageService.getEntityImage(entityId);
 
         EntityImageDto expectedItemImage = new EntityImageDto(entityId, new byte[0], MediaType.APPLICATION_OCTET_STREAM);
@@ -104,7 +142,7 @@ public class EntityImageServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(expectedItemImage.getEntityId(), actualEntityImage.getEntityId(), "Идентификатор сущности картинки должен быть равен исходному");
 
         entityImageService.updateEntityImage(entityId, new MockMultipartFile(
-                MyMarketUtils.PARAMETER_IMAGE_FILE,
+                DtoConstants.PARAMETER_IMAGE_FILE,
                 oldImagePath,
                 oldEntityImage.getMediaType().toString(),
                 oldEntityImage.getData()));

@@ -9,7 +9,6 @@ import io.github.wolfandw.mymarket.service.mapper.OrderToDtoMapper;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Реализация {@link OrderToDtoMapper}.
@@ -35,6 +34,6 @@ public class OrderToDtoMapperImpl implements OrderToDtoMapper {
     @Override
     public List<ItemDto> mapOrderItems(List<OrderItem> orderItems) {
         return orderItems.stream().map(orderItem -> itemToDtoMapper.mapItem(orderItem.getItem(),
-                orderItem.getCount())).collect(Collectors.toList());
+                orderItem.getCount())).toList();
     }
 }

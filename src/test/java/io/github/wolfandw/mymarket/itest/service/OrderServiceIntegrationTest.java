@@ -1,6 +1,6 @@
 package io.github.wolfandw.mymarket.itest.service;
 
-import io.github.wolfandw.mymarket.MyMarketUtils;
+import io.github.wolfandw.mymarket.dto.DtoConstants;
 import io.github.wolfandw.mymarket.dto.CartDto;
 import io.github.wolfandw.mymarket.dto.OrderDto;
 import io.github.wolfandw.mymarket.itest.AbstractIntegrationTest;
@@ -42,8 +42,8 @@ public class OrderServiceIntegrationTest extends AbstractIntegrationTest {
     @Test
     @Transactional
     void createOrderTest() {
-        CartDto cartDto = cartService.getCart(MyMarketUtils.DEFAULT_CART_ID);
-        Optional<OrderDto> newOrderDto = orderService.createOrderByCart(MyMarketUtils.DEFAULT_CART_ID);
+        CartDto cartDto = cartService.getCart(DtoConstants.DEFAULT_CART_ID);
+        Optional<OrderDto> newOrderDto = orderService.createOrderByCart(DtoConstants.DEFAULT_CART_ID);
         assertThat(newOrderDto).isPresent();
         assertThat(newOrderDto.get().totalSum()).isEqualTo(cartDto.total());
         assertThat(newOrderDto.get().items().size()).isEqualTo(cartDto.items().size());

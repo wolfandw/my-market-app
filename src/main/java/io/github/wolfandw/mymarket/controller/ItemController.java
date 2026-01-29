@@ -1,6 +1,5 @@
 package io.github.wolfandw.mymarket.controller;
 
-import io.github.wolfandw.mymarket.MyMarketUtils;
 import io.github.wolfandw.mymarket.dto.*;
 import io.github.wolfandw.mymarket.service.CartService;
 import io.github.wolfandw.mymarket.service.EntityImageService;
@@ -44,19 +43,19 @@ public class ItemController {
      */
     @GetMapping
     public String getItems(@ModelAttribute ItemsPageFormRequest request, Model model) {
-        ItemsPageDto itemsPageDto = itemService.getItems(MyMarketUtils.DEFAULT_CART_ID, request.getSearch(),
+        ItemsPageDto itemsPageDto = itemService.getItems(DtoConstants.DEFAULT_CART_ID, request.getSearch(),
                 request.getSort(),
                 request.getPageNumber(),
                 request.getPageSize());
 
         itemsPageDto.items().forEach(triple -> triple.forEach(item ->
                 item.setImgData(entityImageService.getEntityImageBase64(item.id()))));
-        model.addAttribute(MyMarketUtils.ATTRIBUTE_ITEMS, itemsPageDto.items());
-        model.addAttribute(MyMarketUtils.ATTRIBUTE_SEARCH, request.getSearch());
-        model.addAttribute(MyMarketUtils.ATTRIBUTE_SORT, request.getSort());
-        model.addAttribute(MyMarketUtils.ATTRIBUTE_PAGING, itemsPageDto.paging());
+        model.addAttribute(DtoConstants.ATTRIBUTE_ITEMS, itemsPageDto.items());
+        model.addAttribute(DtoConstants.ATTRIBUTE_SEARCH, request.getSearch());
+        model.addAttribute(DtoConstants.ATTRIBUTE_SORT, request.getSort());
+        model.addAttribute(DtoConstants.ATTRIBUTE_PAGING, itemsPageDto.paging());
 
-        return MyMarketUtils.TEMPLATE_ITEMS;
+        return DtoConstants.TEMPLATE_ITEMS;
     }
 
     /**
@@ -68,15 +67,15 @@ public class ItemController {
      */
     @GetMapping("/{id}")
     public String getItem(@PathVariable Long id,
-                          @RequestParam(value = MyMarketUtils.PARAMETER_NEW_ITEM, required = false, defaultValue = "false") boolean newItem,
+                          @RequestParam(value = DtoConstants.PARAMETER_NEW_ITEM, required = false, defaultValue = "false") boolean newItem,
                           Model model) {
-        itemService.getItem(MyMarketUtils.DEFAULT_CART_ID, id).
+        itemService.getItem(DtoConstants.DEFAULT_CART_ID, id).
                 ifPresent(item -> {
                     item.setImgData(entityImageService.getEntityImageBase64(item.id()));
-                    model.addAttribute(MyMarketUtils.ATTRIBUTE_ITEM, item);
-                    model.addAttribute(MyMarketUtils.ATTRIBUTE_NEW_ITEM, newItem);
+                    model.addAttribute(DtoConstants.ATTRIBUTE_ITEM, item);
+                    model.addAttribute(DtoConstants.ATTRIBUTE_NEW_ITEM, newItem);
                 });
-        return MyMarketUtils.TEMPLATE_ITEM;
+        return DtoConstants.TEMPLATE_ITEM;
     }
 
     /**
@@ -87,7 +86,7 @@ public class ItemController {
      */
     @PostMapping
     public String changeItemCount(@ModelAttribute ItemsPageChangeCountFormRequest request) {
-        cartService.changeItemCount(MyMarketUtils.DEFAULT_CART_ID, request.getId(),
+        cartService.changeItemCount(DtoConstants.DEFAULT_CART_ID, request.getId(),
                 request.getAction());
 
         String searchParamValue = request.getSearch();
@@ -95,8 +94,7 @@ public class ItemController {
         Integer pageNumberParamValue = request.getPageNumber();
         Integer pageSizeParamValue = request.getPageSize();
 
-        return MyMarketUtils.REDIRECT +
-                MyMarketUtils.buildRedirectUrlToItems(searchParamValue,
+        return RedirectUrlFactory.createRedirectUrlToItems(searchParamValue,
                         sortParamValue,
                         pageNumberParamValue,
                         pageSizeParamValue);
@@ -112,9 +110,9 @@ public class ItemController {
     @PostMapping("/{id}")
     public String changeItemCount(
             @PathVariable Long id,
-            @RequestParam(value = MyMarketUtils.PARAMETER_ACTION, defaultValue = MyMarketUtils.ACTION_PLUS)  String action,
+            @RequestParam(value = DtoConstants.PARAMETER_ACTION, defaultValue = DtoConstants.ACTION_PLUS)  String action,
             Model model) {
-        cartService.changeItemCount(MyMarketUtils.DEFAULT_CART_ID, id, action);
+        cartService.changeItemCount(DtoConstants.DEFAULT_CART_ID, id, action);
         return getItem(id, false, model);
     }
 
@@ -125,7 +123,7 @@ public class ItemController {
      */
     @GetMapping("/new")
     public String addNewItem() {
-        return MyMarketUtils.TEMPLATE_ITEM_NEW;
+        return DtoConstants.TEMPLATE_ITEM_NEW;
     }
 
     /**
@@ -144,7 +142,6 @@ public class ItemController {
                               @RequestParam MultipartFile imageFile) {
         ItemDto newItemDto = itemService.createItem(title, description, BigDecimal.valueOf(price));
         entityImageService.updateEntityImage(newItemDto.id(), imageFile);
-        return MyMarketUtils.REDIRECT +
-                MyMarketUtils.buildRedirectUrlToNewItem(newItemDto.id());
+        return RedirectUrlFactory.createRedirectUrlToNewItem(newItemDto.id());
     }
 }

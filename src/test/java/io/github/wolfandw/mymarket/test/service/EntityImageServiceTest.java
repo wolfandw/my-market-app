@@ -1,12 +1,10 @@
 package io.github.wolfandw.mymarket.test.service;
 
-import io.github.wolfandw.mymarket.MyMarketUtils;
+import io.github.wolfandw.mymarket.dto.DtoConstants;
 import io.github.wolfandw.mymarket.dto.EntityImageDto;
 import io.github.wolfandw.mymarket.model.Item;
-import io.github.wolfandw.mymarket.service.EntityImageService;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 
@@ -16,7 +14,8 @@ import java.util.Base64;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Модульный тест сервиса картинок.
@@ -71,7 +70,7 @@ public class EntityImageServiceTest extends AbstractServiceTest {
         Optional<Item> optionalMockItem = Optional.of(mockItem);
 
         MockMultipartFile multipartFile = new MockMultipartFile(
-                MyMarketUtils.PARAMETER_IMAGE_FILE,
+                DtoConstants.PARAMETER_IMAGE_FILE,
                 mockPostImageName,
                 MediaType.IMAGE_JPEG_VALUE,
                 new byte[]{1, 2, 3});

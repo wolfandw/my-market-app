@@ -11,13 +11,14 @@ import java.util.Map;
  */
 public interface ItemToDtoMapper {
     /**
-     * Преобразует список модельных товаров в DTO-товары с количеством.
+     * Преобразует список модельных товаров в DTO-товары с количеством
+     * в виде триплетов.
      *
      * @param items модельные товары
-     * @param itemsCount количество
-     * @return DTO-товары с количеством
+     * @param itemsCartCount количество товара в корзине
+     * @return DTO-товары с количеством в виде триплетов
      */
-    List<ItemDto> mapItems(List<Item> items, Map<Long, Integer> itemsCount);
+    List<List<ItemDto>> mapToTriples(List<Item> items, Map<Long, Integer> itemsCartCount);
 
     /**
      * Преобразует модельный товар в DTO-товар с количеством.

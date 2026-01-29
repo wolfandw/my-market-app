@@ -19,7 +19,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -71,9 +74,10 @@ public class ItemServiceImpl implements ItemService {
         sort = sort == null ? SORT_DEFAULT : sort;
 
         Page<Item> page = getPage(search, sort, pageNumber, pageSize);
-        Map<Long, Integer> itemsCount = getItemsCount(cartId, page);
-        List<List<ItemDto>> itemDtoTriples = getTriples(page, itemsCount);
         ItemsPagingDto paging = new ItemsPagingDto(pageSize, pageNumber, page.hasPrevious(), page.hasNext());
+
+        Map<Long, Integer> itemsCartCount = getItemsCartCount(cartId, page.getContent());
+        List<List<ItemDto>> itemDtoTriples = itemToItemDtoMapper.mapToTriples(page.getContent(), itemsCartCount);
 
         return new ItemsPageDto(itemDtoTriples, search, sort, paging);
     }
@@ -99,14 +103,9 @@ public class ItemServiceImpl implements ItemService {
         return itemToItemDtoMapper.mapItem(itemRepository.save(item), 0);
     }
 
-    private @NonNull List<List<ItemDto>> getTriples(Page<Item> page, Map<Long, Integer> itemsCount) {
-        List<ItemDto> itemsDto = itemToItemDtoMapper.mapItems(page.getContent(), itemsCount);
-        return convertToTriples(itemsDto);
-    }
-
-    private @NonNull Map<Long, Integer> getItemsCount(Long cartId, Page<Item> page) {
+    private @NonNull Map<Long, Integer> getItemsCartCount(Long cartId, List<Item> items) {
         return cartRepository.findById(cartId).map(cart -> {
-            List<CartItem> cartItems = cartItemRepository.findAllByCartAndItemIn(cart, page.getContent());
+            List<CartItem> cartItems = cartItemRepository.findAllByCartAndItemIn(cart, items);
             return cartItems.stream().collect(Collectors.toMap(cartItemKey -> cartItemKey.getItem().getId(), CartItem::getCount));
         }).orElse(Collections.emptyMap());
     }
@@ -117,30 +116,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private Page<Item> getPage(String search, Pageable pageable) {
-        if (isNoSearch(search)) {
-            return itemRepository.findAll(pageable);
-        }
-        return itemRepository.findByTitleContainingOrDescriptionContainingAllIgnoreCase(search, search, pageable);
-    }
-
-    private List<List<ItemDto>> convertToTriples(List<ItemDto> itemsDto) {
-        int itemsSize = itemsDto.size();
-        int itemsDtoSize = itemsSize % 3 == 0 ? itemsSize : (itemsSize / 3 * 3 + 3);
-        List<List<ItemDto>> result = new ArrayList<>();
-        for (int i = 0; i < itemsDtoSize; i++) {
-            if (i % 3 == 0) {
-                result.add(new ArrayList<>());
-            }
-            result.getLast().add(i < itemsSize ? itemsDto.get(i) : createItemDtoStub());
-        }
-        return result;
-    }
-
-    private @NonNull ItemDto createItemDtoStub() {
-        return new ItemDto(-1L, "", "", 0L, 0);
-    }
-
-    private boolean isNoSearch(String search) {
-        return search == null || search.isEmpty();
+        return search == null || search.isEmpty() ? itemRepository.findAll(pageable) :
+                itemRepository.findByTitleContainingOrDescriptionContainingAllIgnoreCase(search, search, pageable);
     }
 }

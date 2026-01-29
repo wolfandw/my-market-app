@@ -1,13 +1,14 @@
 package io.github.wolfandw.mymarket.itest.controller;
 
-import io.github.wolfandw.mymarket.MyMarketUtils;
+import io.github.wolfandw.mymarket.controller.RedirectUrlFactory;
 import io.github.wolfandw.mymarket.itest.AbstractIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * Интеграционные тесты контроллера приложения.
@@ -18,7 +19,7 @@ public class ApplicationControllerIntegrationTest extends AbstractIntegrationTes
         mockMvc.perform(get("/"))
                 .andExpect(status().isFound())
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl('/' + MyMarketUtils.TEMPLATE_ITEMS));
+                .andExpect(redirectedUrl(RedirectUrlFactory.createUrlToItems()));
     }
 
     @Test
@@ -27,8 +28,6 @@ public class ApplicationControllerIntegrationTest extends AbstractIntegrationTes
         mockMvc.perform(post("/buy"))
                 .andExpect(status().isFound())
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl('/' + MyMarketUtils.TEMPLATE_ORDERS +
-                        '/' + 3 +
-                        '?' + MyMarketUtils.PARAMETER_NEW_ORDER + '=' + Boolean.TRUE));
+                .andExpect(redirectedUrl(RedirectUrlFactory.createUrlToNewOrder(3L)));
     }
 }

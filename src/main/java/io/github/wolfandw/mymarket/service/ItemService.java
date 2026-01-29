@@ -2,7 +2,6 @@ package io.github.wolfandw.mymarket.service;
 
 import io.github.wolfandw.mymarket.dto.ItemDto;
 import io.github.wolfandw.mymarket.dto.ItemsPageDto;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.Optional;

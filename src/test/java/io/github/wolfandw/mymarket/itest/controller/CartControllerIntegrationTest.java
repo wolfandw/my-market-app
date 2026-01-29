@@ -1,6 +1,6 @@
 package io.github.wolfandw.mymarket.itest.controller;
 
-import io.github.wolfandw.mymarket.MyMarketUtils;
+import io.github.wolfandw.mymarket.dto.DtoConstants;
 import io.github.wolfandw.mymarket.dto.ItemDto;
 import io.github.wolfandw.mymarket.itest.AbstractIntegrationTest;
 import org.hamcrest.collection.IsCollectionWithSize;
@@ -23,11 +23,11 @@ public class CartControllerIntegrationTest extends AbstractIntegrationTest {
     void getCartTest() throws Exception {
         mockMvc.perform(get("/cart/items"))
                 .andExpect(status().isOk())
-                .andExpect(model().attributeExists(MyMarketUtils.ATTRIBUTE_ITEMS))
-                .andExpect(model().attribute(MyMarketUtils.ATTRIBUTE_ITEMS, IsCollectionWithSize.<List<ItemDto>>hasSize(12)))
-                .andExpect(model().attributeExists(MyMarketUtils.ATTRIBUTE_TOTAL))
-                .andExpect(model().attribute(MyMarketUtils.ATTRIBUTE_TOTAL, equalTo(7700L)))
-                .andExpect(view().name(MyMarketUtils.TEMPLATE_CART));
+                .andExpect(model().attributeExists(DtoConstants.ATTRIBUTE_ITEMS))
+                .andExpect(model().attribute(DtoConstants.ATTRIBUTE_ITEMS, IsCollectionWithSize.<List<ItemDto>>hasSize(12)))
+                .andExpect(model().attributeExists(DtoConstants.ATTRIBUTE_TOTAL))
+                .andExpect(model().attribute(DtoConstants.ATTRIBUTE_TOTAL, equalTo(7700L)))
+                .andExpect(view().name(DtoConstants.TEMPLATE_CART));
     }
 
     @Test
@@ -35,13 +35,13 @@ public class CartControllerIntegrationTest extends AbstractIntegrationTest {
     void changeChartItemCountTest() throws Exception {
         Long itemId = 1L;
         mockMvc.perform(post("/cart/items")
-                        .param(MyMarketUtils.PARAMETER_ID, itemId.toString())
-                        .param(MyMarketUtils.PARAMETER_ACTION, MyMarketUtils.ACTION_PLUS))
+                        .param(DtoConstants.PARAMETER_ID, itemId.toString())
+                        .param(DtoConstants.PARAMETER_ACTION, DtoConstants.ACTION_PLUS))
                 .andExpect(status().isOk())
-                .andExpect(model().attributeExists(MyMarketUtils.ATTRIBUTE_ITEMS))
-                .andExpect(model().attribute(MyMarketUtils.ATTRIBUTE_ITEMS, IsCollectionWithSize.<List<ItemDto>>hasSize(13)))
-                .andExpect(model().attributeExists(MyMarketUtils.ATTRIBUTE_TOTAL))
-                .andExpect(model().attribute(MyMarketUtils.ATTRIBUTE_TOTAL, equalTo(7707L)))
-                .andExpect(view().name(MyMarketUtils.TEMPLATE_CART));
+                .andExpect(model().attributeExists(DtoConstants.ATTRIBUTE_ITEMS))
+                .andExpect(model().attribute(DtoConstants.ATTRIBUTE_ITEMS, IsCollectionWithSize.<List<ItemDto>>hasSize(13)))
+                .andExpect(model().attributeExists(DtoConstants.ATTRIBUTE_TOTAL))
+                .andExpect(model().attribute(DtoConstants.ATTRIBUTE_TOTAL, equalTo(7707L)))
+                .andExpect(view().name(DtoConstants.TEMPLATE_CART));
     }
 }

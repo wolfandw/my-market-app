@@ -1,6 +1,6 @@
 package io.github.wolfandw.mymarket.itest.service;
 
-import io.github.wolfandw.mymarket.MyMarketUtils;
+import io.github.wolfandw.mymarket.dto.DtoConstants;
 import io.github.wolfandw.mymarket.dto.CartDto;
 import io.github.wolfandw.mymarket.dto.ItemDto;
 import io.github.wolfandw.mymarket.itest.AbstractIntegrationTest;
@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class CartServiceIntegrationTest extends AbstractIntegrationTest {
     @Test
     void getCartTest() {
-        Long cartId = MyMarketUtils.DEFAULT_CART_ID;
+        Long cartId = DtoConstants.DEFAULT_CART_ID;
         CartDto actualCart = cartService.getCart(cartId);
         assertThat(actualCart).isNotNull();
 
@@ -36,14 +36,14 @@ public class CartServiceIntegrationTest extends AbstractIntegrationTest {
     @Test
     @Transactional
     void changeItemCountPlus() {
-        Long cartId = MyMarketUtils.DEFAULT_CART_ID;
+        Long cartId = DtoConstants.DEFAULT_CART_ID;
         Long entityId = 2L;
 
         Optional<ItemDto> entity = itemService.getItem(cartId, entityId);
         assertTrue(entity.isPresent(), "Сущность должна присутствовать");
         int countBefore = entity.get().count();
 
-        cartService.changeItemCount(cartId, entityId, MyMarketUtils.ACTION_PLUS);
+        cartService.changeItemCount(cartId, entityId, DtoConstants.ACTION_PLUS);
 
         entity = itemService.getItem(cartId, entityId);
         assertTrue(entity.isPresent(), "Сущность должна присутствовать");
@@ -55,14 +55,14 @@ public class CartServiceIntegrationTest extends AbstractIntegrationTest {
     @Test
     @Transactional
     void changeItemCountMinus() {
-        Long cartId = MyMarketUtils.DEFAULT_CART_ID;
+        Long cartId = DtoConstants.DEFAULT_CART_ID;
         Long entityId = 2L;
 
         Optional<ItemDto> entity = itemService.getItem(cartId, entityId);
         assertTrue(entity.isPresent(), "Сущность должна присутствовать");
         int countBefore = entity.get().count();
 
-        cartService.changeItemCount(cartId, entityId, MyMarketUtils.ACTION_MINUS);
+        cartService.changeItemCount(cartId, entityId, DtoConstants.ACTION_MINUS);
 
         entity = itemService.getItem(cartId, entityId);
         assertTrue(entity.isPresent(), "Сущность должна присутствовать");
@@ -74,7 +74,7 @@ public class CartServiceIntegrationTest extends AbstractIntegrationTest {
     @Test
     @Transactional
     void clearCartTest() {
-        Long cartId = MyMarketUtils.DEFAULT_CART_ID;
+        Long cartId = DtoConstants.DEFAULT_CART_ID;
         CartDto actualCart = cartService.getCart(cartId);
         assertThat(actualCart).isNotNull();
 

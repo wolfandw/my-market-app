@@ -1,6 +1,6 @@
 package io.github.wolfandw.mymarket.service.impl;
 
-import io.github.wolfandw.mymarket.MyMarketUtils;
+import io.github.wolfandw.mymarket.dto.DtoConstants;
 import io.github.wolfandw.mymarket.dto.CartDto;
 import io.github.wolfandw.mymarket.dto.ItemDto;
 import io.github.wolfandw.mymarket.model.Cart;
@@ -71,13 +71,13 @@ public class CartServiceImpl implements CartService {
 
         CartItem cartItem = cartItemRepository.findByCartAndItemId(cart, itemId).orElseGet(() -> createCartItem(cart, item));
         int count = cartItem.getCount();
-        if (MyMarketUtils.ACTION_MINUS.equals(action)) {
+        if (DtoConstants.ACTION_MINUS.equals(action)) {
             count--;
             total = total.subtract(price);
-        } else if (MyMarketUtils.ACTION_PLUS.equals(action)) {
+        } else if (DtoConstants.ACTION_PLUS.equals(action)) {
             count++;
             total = total.add(price);
-        } else if (MyMarketUtils.ACTION_DELETE.equals(action)) {
+        } else if (DtoConstants.ACTION_DELETE.equals(action)) {
             total = total.subtract(price.multiply(BigDecimal.valueOf(count)));
             count = 0;
         }
