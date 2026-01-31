@@ -1,6 +1,5 @@
 package io.github.wolfandw.mymarket.itest.controller;
 
-import io.github.wolfandw.mymarket.dto.DtoConstants;
 import io.github.wolfandw.mymarket.dto.ItemDto;
 import io.github.wolfandw.mymarket.itest.AbstractIntegrationTest;
 import org.hamcrest.collection.IsCollectionWithSize;
@@ -18,30 +17,40 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Интеграционные тесты корзины товаров.
  */
 public class CartControllerIntegrationTest extends AbstractIntegrationTest {
+    private static final String TEMPLATE_CART = "cart";
+
+    private static final String ATTRIBUTE_ITEMS = "items";
+    private static final String ATTRIBUTE_TOTAL = "total";
+
+    private static final String PARAMETER_ID = "id";
+    private static final String PARAMETER_ACTION = "action";
+
+    private static final String ACTION_PLUS = "PLUS";
+
     @Test
     @Transactional
     void getCartTest() throws Exception {
         mockMvc.perform(get("/cart/items"))
                 .andExpect(status().isOk())
-                .andExpect(model().attributeExists(DtoConstants.ATTRIBUTE_ITEMS))
-                .andExpect(model().attribute(DtoConstants.ATTRIBUTE_ITEMS, IsCollectionWithSize.<List<ItemDto>>hasSize(12)))
-                .andExpect(model().attributeExists(DtoConstants.ATTRIBUTE_TOTAL))
-                .andExpect(model().attribute(DtoConstants.ATTRIBUTE_TOTAL, equalTo(7700L)))
-                .andExpect(view().name(DtoConstants.TEMPLATE_CART));
+                .andExpect(model().attributeExists(ATTRIBUTE_ITEMS))
+                .andExpect(model().attribute(ATTRIBUTE_ITEMS, IsCollectionWithSize.<List<ItemDto>>hasSize(12)))
+                .andExpect(model().attributeExists(ATTRIBUTE_TOTAL))
+                .andExpect(model().attribute(ATTRIBUTE_TOTAL, equalTo(7700L)))
+                .andExpect(view().name(TEMPLATE_CART));
     }
 
     @Test
     @Transactional
     void changeChartItemCountTest() throws Exception {
-        Long itemId = 1L;
+        long itemId = 1L;
         mockMvc.perform(post("/cart/items")
-                        .param(DtoConstants.PARAMETER_ID, itemId.toString())
-                        .param(DtoConstants.PARAMETER_ACTION, DtoConstants.ACTION_PLUS))
+                        .param(PARAMETER_ID, Long.toString(itemId))
+                        .param(PARAMETER_ACTION, ACTION_PLUS))
                 .andExpect(status().isOk())
-                .andExpect(model().attributeExists(DtoConstants.ATTRIBUTE_ITEMS))
-                .andExpect(model().attribute(DtoConstants.ATTRIBUTE_ITEMS, IsCollectionWithSize.<List<ItemDto>>hasSize(13)))
-                .andExpect(model().attributeExists(DtoConstants.ATTRIBUTE_TOTAL))
-                .andExpect(model().attribute(DtoConstants.ATTRIBUTE_TOTAL, equalTo(7707L)))
-                .andExpect(view().name(DtoConstants.TEMPLATE_CART));
+                .andExpect(model().attributeExists(ATTRIBUTE_ITEMS))
+                .andExpect(model().attribute(ATTRIBUTE_ITEMS, IsCollectionWithSize.<List<ItemDto>>hasSize(13)))
+                .andExpect(model().attributeExists(ATTRIBUTE_TOTAL))
+                .andExpect(model().attribute(ATTRIBUTE_TOTAL, equalTo(7707L)))
+                .andExpect(view().name(TEMPLATE_CART));
     }
 }

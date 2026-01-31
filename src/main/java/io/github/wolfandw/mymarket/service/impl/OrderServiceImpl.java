@@ -2,9 +2,6 @@ package io.github.wolfandw.mymarket.service.impl;
 
 import io.github.wolfandw.mymarket.dto.ItemDto;
 import io.github.wolfandw.mymarket.dto.OrderDto;
-import io.github.wolfandw.mymarket.model.Order;
-import io.github.wolfandw.mymarket.model.OrderItem;
-import io.github.wolfandw.mymarket.repository.CartRepository;
 import io.github.wolfandw.mymarket.repository.OrderRepository;
 import io.github.wolfandw.mymarket.service.OrderService;
 import io.github.wolfandw.mymarket.service.mapper.OrderToDtoMapper;
@@ -21,21 +18,17 @@ import java.util.stream.Collectors;
 @Service
 public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
-    private final CartRepository cartRepository;
     private final OrderToDtoMapper orderToDtoMapper;
 
     /**
      * Создает сервис работы с заказами товаров.
      *
      * @param orderRepository      репозиторий заказов
-     * @param cartRepository      репозиторий корзин
      * @param orderToDtoMapper  маппер строк заказов
      */
     public OrderServiceImpl(OrderRepository orderRepository,
-                            CartRepository cartRepository,
                             OrderToDtoMapper orderToDtoMapper) {
         this.orderRepository = orderRepository;
-        this.cartRepository = cartRepository;
         this.orderToDtoMapper = orderToDtoMapper;
     }
 
@@ -54,20 +47,6 @@ public class OrderServiceImpl implements OrderService {
         return orderRepository.findById(id).map(order -> {
             List<ItemDto> items = orderToDtoMapper.mapOrderItems(order.getItems());
             return new OrderDto(order.getId(), items, order.getTotalSum().longValue());
-        });
-    }
-
-    @Override
-    public Optional<OrderDto> createOrderByCart(Long cartId) {
-        return cartRepository.findById(cartId).
-                filter(cart -> !cart.getItems().isEmpty()).
-                map(cart -> {
-            Order order = new Order();
-            order.setTotalSum(cart.getTotal());
-            List<OrderItem> orderItems = cart.getItems().stream().map(cartItem ->
-                    new OrderItem(order, cartItem.getItem(), cartItem.getCount())).toList();
-            order.setItems(orderItems);
-            return orderToDtoMapper.mapOrder(orderRepository.save(order));
         });
     }
 }

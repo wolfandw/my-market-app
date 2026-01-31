@@ -1,16 +1,22 @@
 package io.github.wolfandw.mymarket.controller;
 
-import io.github.wolfandw.mymarket.dto.DtoConstants;
 import org.jspecify.annotations.NonNull;
 
 /**
  * Фабрика адресов переходов.
  */
 public class RedirectUrlFactory {
-    /*
-     * Редирект.
-     */
     private static final String REDIRECT = "redirect:";
+
+    private static final String TEMPLATE_ITEMS = "items";
+    private static final String TEMPLATE_ORDERS = "orders";
+
+    private static final String PARAMETER_SEARCH = "search";
+    private static final String PARAMETER_SORT = "sort";
+    private static final String PARAMETER_PAGE_NUMBER = "pageNumber";
+    private static final String PARAMETER_PAGE_SIZE = "pageSize";
+    private static final String PARAMETER_NEW_ITEM = "newItem";
+    private static final String PARAMETER_NEW_ORDER = "newOrder";
 
     private RedirectUrlFactory() {
         // Private
@@ -28,21 +34,21 @@ public class RedirectUrlFactory {
     public static @NonNull String createUrlToItems(String search, String sort, Integer pageNumber, Integer pageSize) {
 
         StringBuilder redirect = new StringBuilder();
-        redirect.append('/').append(DtoConstants.TEMPLATE_ITEMS);
+        redirect.append('/').append(TEMPLATE_ITEMS);
         redirect.append('?');
-        redirect.append(DtoConstants.PARAMETER_SEARCH).append('=');
+        redirect.append(PARAMETER_SEARCH).append('=');
         if (search != null) {
             redirect.append(search);
         }
-        redirect.append('&').append(DtoConstants.PARAMETER_SORT).append('=');
+        redirect.append('&').append(PARAMETER_SORT).append('=');
         if (sort != null) {
             redirect.append(sort);
         }
-        redirect.append('&').append(DtoConstants.PARAMETER_PAGE_NUMBER).append('=');
+        redirect.append('&').append(PARAMETER_PAGE_NUMBER).append('=');
         if (pageNumber != null) {
             redirect.append(pageNumber);
         }
-        redirect.append('&').append(DtoConstants.PARAMETER_PAGE_SIZE).append('=');
+        redirect.append('&').append(PARAMETER_PAGE_SIZE).append('=');
         if (pageSize != null) {
             redirect.append(pageSize);
         }
@@ -69,9 +75,9 @@ public class RedirectUrlFactory {
      * @return адрес перехода на страницу нового товара
      */
     public static @NonNull String createUrlToNewItem(Long newItemId) {
-        return '/' + DtoConstants.TEMPLATE_ITEMS +
+        return '/' + TEMPLATE_ITEMS +
                 '/' +  newItemId +
-                '?' + DtoConstants.PARAMETER_NEW_ITEM + '=' + Boolean.TRUE;
+                '?' + PARAMETER_NEW_ITEM + '=' + Boolean.TRUE;
     }
 
     /**
@@ -90,7 +96,7 @@ public class RedirectUrlFactory {
      * @return адрес перехода на начальную страницу
      */
     public static @NonNull String createUrlToItems() {
-        return '/' + DtoConstants.TEMPLATE_ITEMS;
+        return '/' + TEMPLATE_ITEMS;
     }
 
     /**
@@ -108,7 +114,7 @@ public class RedirectUrlFactory {
      * @return редирект на адрес перехода на страницу заказов
      */
     public static @NonNull String createRedirectUrlToOrders() {
-        return REDIRECT + '/' + DtoConstants.TEMPLATE_ORDERS;
+        return REDIRECT + '/' + TEMPLATE_ORDERS;
     }
 
     /**
@@ -117,8 +123,8 @@ public class RedirectUrlFactory {
      * @return адрес перехода на страницу нового заказа
      */
     public static @NonNull String createUrlToNewOrder(Long newOrderId) {
-        return '/' + DtoConstants.TEMPLATE_ORDERS +
-               '/' + newOrderId + '?' + DtoConstants.PARAMETER_NEW_ORDER + '=' + Boolean.TRUE;
+        return '/' + TEMPLATE_ORDERS +
+               '/' + newOrderId + '?' + PARAMETER_NEW_ORDER + '=' + Boolean.TRUE;
     }
 
     /**

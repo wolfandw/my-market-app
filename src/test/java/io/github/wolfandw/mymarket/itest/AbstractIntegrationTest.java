@@ -14,6 +14,11 @@ import org.springframework.test.web.servlet.MockMvc;
 @AutoConfigureMockMvc
 public abstract class AbstractIntegrationTest {
     /**
+     * Идентификатор корзины по-умолчанию.
+     */
+    protected static final Long DEFAULT_CART_ID = 1L;
+
+    /**
      * Сервис товаров.
      */
     @Autowired
@@ -42,6 +47,12 @@ public abstract class AbstractIntegrationTest {
      */
     @Autowired
     protected FileStorageService fileStorageService;
+
+    /**
+     * Сервис покупок.
+     */
+    @Autowired
+    protected BuyService  buyService;
 
     /**
      * Папка с изображениями для тестов.

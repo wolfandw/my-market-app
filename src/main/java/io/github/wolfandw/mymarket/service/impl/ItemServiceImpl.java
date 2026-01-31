@@ -77,9 +77,10 @@ public class ItemServiceImpl implements ItemService {
         ItemsPagingDto paging = new ItemsPagingDto(pageSize, pageNumber, page.hasPrevious(), page.hasNext());
 
         Map<Long, Integer> itemsCartCount = getItemsCartCount(cartId, page.getContent());
-        List<List<ItemDto>> itemDtoTriples = itemToItemDtoMapper.mapToTriples(page.getContent(), itemsCartCount);
+        List<ItemDto> itemsDto = page.getContent().stream().map(item -> itemToItemDtoMapper.mapItem(item,
+                itemsCartCount.getOrDefault(item.getId(),0))).toList();
 
-        return new ItemsPageDto(itemDtoTriples, search, sort, paging);
+        return new ItemsPageDto(itemsDto, search, sort, paging);
     }
 
     @Override

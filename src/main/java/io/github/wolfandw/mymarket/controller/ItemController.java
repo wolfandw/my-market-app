@@ -1,6 +1,9 @@
 package io.github.wolfandw.mymarket.controller;
 
-import io.github.wolfandw.mymarket.dto.*;
+import io.github.wolfandw.mymarket.dto.ItemDto;
+import io.github.wolfandw.mymarket.dto.ItemsPageChangeCountFormRequest;
+import io.github.wolfandw.mymarket.dto.ItemsPageDto;
+import io.github.wolfandw.mymarket.dto.ItemsPageFormRequest;
 import io.github.wolfandw.mymarket.service.CartService;
 import io.github.wolfandw.mymarket.service.EntityImageService;
 import io.github.wolfandw.mymarket.service.ItemService;
@@ -10,6 +13,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Контроллер для работы с товарами.
@@ -17,6 +22,24 @@ import java.math.BigDecimal;
 @Controller
 @RequestMapping("/items")
 public class ItemController {
+    private static final Long DEFAULT_CART_ID = 1L;
+
+    private static final String TEMPLATE_ITEMS = "items";
+    private static final String TEMPLATE_ITEM = "item";
+    private static final String TEMPLATE_ITEM_NEW = "item_new";
+
+    private static final String ATTRIBUTE_ITEMS = "items";
+    private static final String ATTRIBUTE_SEARCH = "search";
+    private static final String ATTRIBUTE_SORT = "sort";
+    private static final String ATTRIBUTE_PAGING = "paging";
+    private static final String ATTRIBUTE_ITEM = "item";
+    private static final String ATTRIBUTE_NEW_ITEM = "newItem";
+
+    private static final String PARAMETER_NEW_ITEM = "newItem";
+    private static final String PARAMETER_ACTION = "action";
+
+    private static final String ACTION_PLUS = "PLUS";
+
     private final ItemService itemService;
     private final CartService cartService;
     private final EntityImageService entityImageService;
@@ -43,19 +66,19 @@ public class ItemController {
      */
     @GetMapping
     public String getItems(@ModelAttribute ItemsPageFormRequest request, Model model) {
-        ItemsPageDto itemsPageDto = itemService.getItems(DtoConstants.DEFAULT_CART_ID, request.getSearch(),
+        ItemsPageDto itemsPageDto = itemService.getItems(DEFAULT_CART_ID, request.getSearch(),
                 request.getSort(),
                 request.getPageNumber(),
                 request.getPageSize());
 
-        itemsPageDto.items().forEach(triple -> triple.forEach(item ->
-                item.setImgData(entityImageService.getEntityImageBase64(item.id()))));
-        model.addAttribute(DtoConstants.ATTRIBUTE_ITEMS, itemsPageDto.items());
-        model.addAttribute(DtoConstants.ATTRIBUTE_SEARCH, request.getSearch());
-        model.addAttribute(DtoConstants.ATTRIBUTE_SORT, request.getSort());
-        model.addAttribute(DtoConstants.ATTRIBUTE_PAGING, itemsPageDto.paging());
+        itemsPageDto.items().forEach(item ->
+                item.setImgData(entityImageService.getEntityImageBase64(item.id())));
+        model.addAttribute(ATTRIBUTE_ITEMS, convertToTriples(itemsPageDto.items()));
+        model.addAttribute(ATTRIBUTE_SEARCH, request.getSearch());
+        model.addAttribute(ATTRIBUTE_SORT, request.getSort());
+        model.addAttribute(ATTRIBUTE_PAGING, itemsPageDto.paging());
 
-        return DtoConstants.TEMPLATE_ITEMS;
+        return TEMPLATE_ITEMS;
     }
 
     /**
@@ -67,15 +90,15 @@ public class ItemController {
      */
     @GetMapping("/{id}")
     public String getItem(@PathVariable Long id,
-                          @RequestParam(value = DtoConstants.PARAMETER_NEW_ITEM, required = false, defaultValue = "false") boolean newItem,
+                          @RequestParam(value = PARAMETER_NEW_ITEM, required = false, defaultValue = "false") boolean newItem,
                           Model model) {
-        itemService.getItem(DtoConstants.DEFAULT_CART_ID, id).
+        itemService.getItem(DEFAULT_CART_ID, id).
                 ifPresent(item -> {
                     item.setImgData(entityImageService.getEntityImageBase64(item.id()));
-                    model.addAttribute(DtoConstants.ATTRIBUTE_ITEM, item);
-                    model.addAttribute(DtoConstants.ATTRIBUTE_NEW_ITEM, newItem);
+                    model.addAttribute(ATTRIBUTE_ITEM, item);
+                    model.addAttribute(ATTRIBUTE_NEW_ITEM, newItem);
                 });
-        return DtoConstants.TEMPLATE_ITEM;
+        return TEMPLATE_ITEM;
     }
 
     /**
@@ -86,7 +109,7 @@ public class ItemController {
      */
     @PostMapping
     public String changeItemCount(@ModelAttribute ItemsPageChangeCountFormRequest request) {
-        cartService.changeItemCount(DtoConstants.DEFAULT_CART_ID, request.getId(),
+        cartService.changeItemCount(DEFAULT_CART_ID, request.getId(),
                 request.getAction());
 
         String searchParamValue = request.getSearch();
@@ -110,9 +133,9 @@ public class ItemController {
     @PostMapping("/{id}")
     public String changeItemCount(
             @PathVariable Long id,
-            @RequestParam(value = DtoConstants.PARAMETER_ACTION, defaultValue = DtoConstants.ACTION_PLUS)  String action,
+            @RequestParam(value = PARAMETER_ACTION, defaultValue = ACTION_PLUS)  String action,
             Model model) {
-        cartService.changeItemCount(DtoConstants.DEFAULT_CART_ID, id, action);
+        cartService.changeItemCount(DEFAULT_CART_ID, id, action);
         return getItem(id, false, model);
     }
 
@@ -123,7 +146,7 @@ public class ItemController {
      */
     @GetMapping("/new")
     public String addNewItem() {
-        return DtoConstants.TEMPLATE_ITEM_NEW;
+        return TEMPLATE_ITEM_NEW;
     }
 
     /**
@@ -143,5 +166,19 @@ public class ItemController {
         ItemDto newItemDto = itemService.createItem(title, description, BigDecimal.valueOf(price));
         entityImageService.updateEntityImage(newItemDto.id(), imageFile);
         return RedirectUrlFactory.createRedirectUrlToNewItem(newItemDto.id());
+    }
+
+    private List<List<ItemDto>> convertToTriples(List<ItemDto> itemsDto) {
+        int itemsSize = itemsDto.size();
+        int itemsDtoSize = itemsSize % 3 == 0 ? itemsSize : (itemsSize / 3 * 3 + 3);
+        List<List<ItemDto>> result = new ArrayList<>();
+        for (int i = 0; i < itemsDtoSize; i++) {
+            if (i % 3 == 0) {
+                result.add(new ArrayList<>());
+            }
+            result.getLast().add(i < itemsSize ? itemsDto.get(i) :
+                    new ItemDto(-1L, "", "", 0L, 0));
+        }
+        return result;
     }
 }

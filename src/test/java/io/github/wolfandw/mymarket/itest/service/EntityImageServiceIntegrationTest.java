@@ -1,6 +1,5 @@
 package io.github.wolfandw.mymarket.itest.service;
 
-import io.github.wolfandw.mymarket.dto.DtoConstants;
 import io.github.wolfandw.mymarket.dto.EntityImageDto;
 import io.github.wolfandw.mymarket.itest.AbstractIntegrationTest;
 import org.junit.jupiter.api.AfterEach;
@@ -26,6 +25,8 @@ import static org.junit.jupiter.api.Assertions.*;
  * Интеграционный тест сервиса картинок.
  */
 public class EntityImageServiceIntegrationTest extends AbstractIntegrationTest {
+    private static final String PARAMETER_IMAGE_FILE = "imageFile";
+
     @BeforeEach
     public void setup() throws IOException {
         Path dest = Paths.get(fileDir);
@@ -101,7 +102,7 @@ public class EntityImageServiceIntegrationTest extends AbstractIntegrationTest {
         EntityImageDto expectedItemImage = new EntityImageDto(entityId, expectedImageData, MediaType.IMAGE_JPEG);
 
         MockMultipartFile multipartFile = new MockMultipartFile(
-                DtoConstants.PARAMETER_IMAGE_FILE,
+                PARAMETER_IMAGE_FILE,
                 imageName,
                 MediaType.IMAGE_JPEG_VALUE,
                 expectedImageData);
@@ -116,7 +117,7 @@ public class EntityImageServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(expectedItemImage.getEntityId(), actualEntityImage.getEntityId(), "Идентификатор сущности картинки должен быть равен исходному");
 
         entityImageService.updateEntityImage(entityId, new MockMultipartFile(
-                DtoConstants.PARAMETER_IMAGE_FILE,
+                PARAMETER_IMAGE_FILE,
                 oldImagePath,
                 oldEntityImage.getMediaType().toString(),
                 oldEntityImage.getData()));
@@ -142,7 +143,7 @@ public class EntityImageServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(expectedItemImage.getEntityId(), actualEntityImage.getEntityId(), "Идентификатор сущности картинки должен быть равен исходному");
 
         entityImageService.updateEntityImage(entityId, new MockMultipartFile(
-                DtoConstants.PARAMETER_IMAGE_FILE,
+                PARAMETER_IMAGE_FILE,
                 oldImagePath,
                 oldEntityImage.getMediaType().toString(),
                 oldEntityImage.getData()));

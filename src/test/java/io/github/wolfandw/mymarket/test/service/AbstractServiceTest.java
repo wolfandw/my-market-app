@@ -42,4 +42,7 @@ public abstract class AbstractServiceTest extends AbstractTest {
 
     @Autowired
     protected OrderService orderService;
+
+    @Autowired
+    protected BuyService buyService;
 }

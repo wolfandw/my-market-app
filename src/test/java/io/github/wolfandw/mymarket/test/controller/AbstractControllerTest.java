@@ -39,6 +39,9 @@ public class AbstractControllerTest extends AbstractTest {
     @MockitoBean
     protected OrderService orderService;
 
+    @MockitoBean
+    protected BuyService buyService;
+
     /**
      * Маппит модельный товар на его DTO-представление.
      *

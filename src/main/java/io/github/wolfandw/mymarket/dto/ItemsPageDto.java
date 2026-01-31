@@ -5,12 +5,12 @@ import java.util.List;
 /**
  * DTO-описание страницы товаров.
  *
- * @param items список списков товаров по три
+ * @param items список товаров
  * @param search строка поиска
  * @param sort направление сортировки
  * @param paging пагинация
  */
-public record ItemsPageDto(List<List<ItemDto>> items,
+public record ItemsPageDto(List<ItemDto> items,
                            String search,
                            String sort,
                            ItemsPagingDto paging) {

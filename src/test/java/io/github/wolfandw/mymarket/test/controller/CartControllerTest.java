@@ -1,6 +1,5 @@
 package io.github.wolfandw.mymarket.test.controller;
 
-import io.github.wolfandw.mymarket.dto.DtoConstants;
 import io.github.wolfandw.mymarket.controller.CartController;
 import io.github.wolfandw.mymarket.dto.CartDto;
 import io.github.wolfandw.mymarket.dto.ItemDto;
@@ -27,49 +26,57 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @WebMvcTest(CartController.class)
 public class CartControllerTest extends AbstractControllerTest{
+    private static final String TEMPLATE_CART = "cart";
+
+    private static final String ATTRIBUTE_ITEMS = "items";
+    private static final String ATTRIBUTE_TOTAL = "total";
+
+    private static final String PARAMETER_ID = "id";
+    private static final String PARAMETER_ACTION = "action";
+
+    private static final String ACTION_PLUS = "PLUS";
+
     @Test
     void getCartTest() throws Exception {
-        Long cartId = DtoConstants.DEFAULT_CART_ID;
-        Cart cart = CARTS.get(cartId);
+        Cart cart = CARTS.get(DEFAULT_CART_ID);
         CartDto cartDto = new CartDto(mapCartItems(cart.getItems()), cart.getTotal().longValue());
-        when(cartService.getCart(DtoConstants.DEFAULT_CART_ID)).thenReturn(cartDto);
+        when(cartService.getCart(DEFAULT_CART_ID)).thenReturn(cartDto);
         when(entityImageService.getEntityImageBase64(Mockito.any(Long.class))).thenReturn("");
 
         mockMvc.perform(get("/cart/items"))
                 .andExpect(status().isOk())
-                .andExpect(model().attributeExists(DtoConstants.ATTRIBUTE_ITEMS))
-                .andExpect(model().attribute(DtoConstants.ATTRIBUTE_ITEMS, IsCollectionWithSize.<List<ItemDto>>hasSize(12)))
-                .andExpect(model().attributeExists(DtoConstants.ATTRIBUTE_TOTAL))
-                .andExpect(model().attribute(DtoConstants.ATTRIBUTE_TOTAL, equalTo(7700L)))
-                .andExpect(view().name(DtoConstants.TEMPLATE_CART));
+                .andExpect(model().attributeExists(ATTRIBUTE_ITEMS))
+                .andExpect(model().attribute(ATTRIBUTE_ITEMS, IsCollectionWithSize.<List<ItemDto>>hasSize(12)))
+                .andExpect(model().attributeExists(ATTRIBUTE_TOTAL))
+                .andExpect(model().attribute(ATTRIBUTE_TOTAL, equalTo(7700L)))
+                .andExpect(view().name(TEMPLATE_CART));
     }
 
     @Test
     void changeChartItemCountTest() throws Exception {
         Long itemId = 1L;
-        Long cartId = DtoConstants.DEFAULT_CART_ID;
 
-        Cart cart = CARTS.get(cartId);
+        Cart cart = CARTS.get(DEFAULT_CART_ID);
         Item item = ITEMS.get(itemId);
 
         cart.getItems().add(new CartItem(13L, cart, item, 1));
         cart.setTotal(cart.getTotal().add(item.getPrice()));
 
         CartDto cartDto = new CartDto(mapCartItems(cart.getItems()), cart.getTotal().longValue());
-        when(cartService.getCart(DtoConstants.DEFAULT_CART_ID)).thenReturn(cartDto);
+        when(cartService.getCart(DEFAULT_CART_ID)).thenReturn(cartDto);
         when(entityImageService.getEntityImageBase64(Mockito.any(Long.class))).thenReturn("");
 
         mockMvc.perform(post("/cart/items")
-                        .param(DtoConstants.PARAMETER_ID, itemId.toString())
-                        .param(DtoConstants.PARAMETER_ACTION, DtoConstants.ACTION_PLUS))
+                        .param(PARAMETER_ID, itemId.toString())
+                        .param(PARAMETER_ACTION, ACTION_PLUS))
                 .andExpect(status().isOk())
-                .andExpect(model().attributeExists(DtoConstants.ATTRIBUTE_ITEMS))
-                .andExpect(model().attribute(DtoConstants.ATTRIBUTE_ITEMS, IsCollectionWithSize.<List<ItemDto>>hasSize(13)))
-                .andExpect(model().attributeExists(DtoConstants.ATTRIBUTE_TOTAL))
-                .andExpect(model().attribute(DtoConstants.ATTRIBUTE_TOTAL, equalTo(7707L)))
-                .andExpect(view().name(DtoConstants.TEMPLATE_CART));
+                .andExpect(model().attributeExists(ATTRIBUTE_ITEMS))
+                .andExpect(model().attribute(ATTRIBUTE_ITEMS, IsCollectionWithSize.<List<ItemDto>>hasSize(13)))
+                .andExpect(model().attributeExists(ATTRIBUTE_TOTAL))
+                .andExpect(model().attribute(ATTRIBUTE_TOTAL, equalTo(7707L)))
+                .andExpect(view().name(TEMPLATE_CART));
 
-        verify(cartService).changeItemCount(DtoConstants.DEFAULT_CART_ID, itemId, DtoConstants.ACTION_PLUS);
+        verify(cartService).changeItemCount(DEFAULT_CART_ID, itemId, ACTION_PLUS);
     }
 
     private List<ItemDto> mapCartItems(List<CartItem> cartItems) {

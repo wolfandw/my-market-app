@@ -12,6 +12,11 @@ import java.util.TreeMap;
  */
 public abstract class AbstractTest {
     /**
+     * Идентификатор корзины по-умолчанию.
+     */
+    protected static final Long DEFAULT_CART_ID = 1L;
+
+    /**
      * Тестовы еданные товаров.
      */
     public static Map<Long, Item> ITEMS = new TreeMap<>();

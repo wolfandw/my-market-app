@@ -1,6 +1,5 @@
 package io.github.wolfandw.mymarket.test.service;
 
-import io.github.wolfandw.mymarket.dto.DtoConstants;
 import io.github.wolfandw.mymarket.dto.EntityImageDto;
 import io.github.wolfandw.mymarket.model.Item;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -21,6 +20,8 @@ import static org.mockito.Mockito.when;
  * Модульный тест сервиса картинок.
  */
 public class EntityImageServiceTest extends AbstractServiceTest {
+    private static final String PARAMETER_IMAGE_FILE = "imageFile";
+
     @ParameterizedTest
     @ValueSource(longs = {1L, 13L})
     void getEntityImageTest(Long entityId) throws IOException {
@@ -70,7 +71,7 @@ public class EntityImageServiceTest extends AbstractServiceTest {
         Optional<Item> optionalMockItem = Optional.of(mockItem);
 
         MockMultipartFile multipartFile = new MockMultipartFile(
-                DtoConstants.PARAMETER_IMAGE_FILE,
+                PARAMETER_IMAGE_FILE,
                 mockPostImageName,
                 MediaType.IMAGE_JPEG_VALUE,
                 new byte[]{1, 2, 3});

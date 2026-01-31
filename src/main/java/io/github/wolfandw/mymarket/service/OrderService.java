@@ -24,12 +24,4 @@ public interface OrderService {
      * @return DTO-представление заказа.
      */
     Optional<OrderDto> getOrder(Long id, boolean newOrder);
-
-    /**
-     * Создает заказ по непустой указанной корзине.
-     *
-     * @param cartId идентификатор корзины
-     * @return заказ, если корзина не пустая.
-     */
-    Optional<OrderDto> createOrderByCart(Long cartId);
 }

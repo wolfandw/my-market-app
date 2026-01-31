@@ -1,8 +1,7 @@
 package io.github.wolfandw.mymarket.test.controller;
 
-import io.github.wolfandw.mymarket.controller.RedirectUrlFactory;
-import io.github.wolfandw.mymarket.dto.DtoConstants;
 import io.github.wolfandw.mymarket.controller.ApplicationController;
+import io.github.wolfandw.mymarket.controller.RedirectUrlFactory;
 import io.github.wolfandw.mymarket.dto.OrderDto;
 import io.github.wolfandw.mymarket.model.Cart;
 import io.github.wolfandw.mymarket.model.Order;
@@ -13,7 +12,6 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import java.util.List;
 import java.util.Optional;
 
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -37,8 +35,7 @@ public class ApplicationControllerTest extends AbstractControllerTest {
     void buyTest() throws Exception {
         Long orderId = 2L;
 
-        Long cartId = DtoConstants.DEFAULT_CART_ID;
-        Cart cart = CARTS.get(cartId);
+        Cart cart = CARTS.get(DEFAULT_CART_ID);
 
         Order order = new Order(orderId);
         List<OrderItem> orderItems = cart.getItems().stream().map(cartItem ->
@@ -47,13 +44,11 @@ public class ApplicationControllerTest extends AbstractControllerTest {
         order.setTotalSum(cart.getTotal());
 
         Optional<OrderDto> orderDto = Optional.of(mapOrder(order));
-        when(orderService.createOrderByCart(DtoConstants.DEFAULT_CART_ID)).thenReturn(orderDto);
+        when(buyService.buy(DEFAULT_CART_ID)).thenReturn(orderDto);
 
         mockMvc.perform(post("/buy"))
                 .andExpect(status().isFound())
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(RedirectUrlFactory.createUrlToNewOrder(2L)));
-
-        verify(cartService).clearCart(DtoConstants.DEFAULT_CART_ID);
     }
 }

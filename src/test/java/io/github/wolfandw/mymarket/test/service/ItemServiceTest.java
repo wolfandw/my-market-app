@@ -1,6 +1,5 @@
 package io.github.wolfandw.mymarket.test.service;
 
-import io.github.wolfandw.mymarket.dto.DtoConstants;
 import io.github.wolfandw.mymarket.dto.ItemDto;
 import io.github.wolfandw.mymarket.dto.ItemsPageDto;
 import io.github.wolfandw.mymarket.model.Cart;
@@ -27,20 +26,14 @@ public class ItemServiceTest extends AbstractServiceTest {
         Page<Item> page = new PageImpl<>(content, pageable, content.size());
         when(itemRepository.findAll(pageable)).thenReturn(page);
 
-        Cart cart = CARTS.get(DtoConstants.DEFAULT_CART_ID);
-        when(cartRepository.findById(DtoConstants.DEFAULT_CART_ID)).thenReturn(Optional.ofNullable(cart));
+        Cart cart = CARTS.get(DEFAULT_CART_ID);
+        when(cartRepository.findById(DEFAULT_CART_ID)).thenReturn(Optional.ofNullable(cart));
         assert cart != null;
         when(cartItemRepository.findAllByCartAndItemIn(cart, page.getContent())).thenReturn(cart.getItems());
 
-        ItemsPageDto itemsPageDto = itemService.getItems(DtoConstants.DEFAULT_CART_ID, null, null, null, null);
-        assertThat(itemsPageDto.items()).size().isEqualTo(2);
-        assertThat(itemsPageDto.items().get(0)).size().isEqualTo(3);
-        assertThat(itemsPageDto.items().get(1)).size().isEqualTo(3);
-        assertThat(itemsPageDto.items().get(1).get(1).title()).isEqualTo("Item 11");
-
-        // stubs
-        assertThat(itemsPageDto.items().get(1).get(2).id()).isEqualTo(-1L);
-        assertThat(itemsPageDto.items().get(1).get(2).title()).isEqualTo("");
+        ItemsPageDto itemsPageDto = itemService.getItems(DEFAULT_CART_ID, null, null, null, null);
+        assertThat(itemsPageDto.items()).size().isEqualTo(5);
+        assertThat(itemsPageDto.items().get(4).title()).isEqualTo("Item 11");
     }
 
     @Test
@@ -49,12 +42,12 @@ public class ItemServiceTest extends AbstractServiceTest {
         Item item = ITEMS.get(itemId);
         when(itemRepository.findById(itemId)).thenReturn(Optional.ofNullable(item));
 
-        Cart cart = CARTS.get(DtoConstants.DEFAULT_CART_ID);
-        when(cartRepository.findById(DtoConstants.DEFAULT_CART_ID)).thenReturn(Optional.ofNullable(cart));
+        Cart cart = CARTS.get(DEFAULT_CART_ID);
+        when(cartRepository.findById(DEFAULT_CART_ID)).thenReturn(Optional.ofNullable(cart));
         assert cart != null;
         when(cartItemRepository.findByCartAndItemId(cart, itemId)).thenReturn(Optional.ofNullable(cart.getItems().getFirst()));
 
-        Optional<ItemDto> itemDto = itemService.getItem(DtoConstants.DEFAULT_CART_ID, itemId);
+        Optional<ItemDto> itemDto = itemService.getItem(DEFAULT_CART_ID, itemId);
         assertThat(itemDto).isPresent();
         assertThat(itemDto.get().title()).isEqualTo("Item 08");
     }
@@ -64,12 +57,12 @@ public class ItemServiceTest extends AbstractServiceTest {
         Long itemId = 14L;
         when(itemRepository.findById(itemId)).thenReturn(Optional.empty());
 
-        Cart cart = CARTS.get(DtoConstants.DEFAULT_CART_ID);
-        when(cartRepository.findById(DtoConstants.DEFAULT_CART_ID)).thenReturn(Optional.empty());
+        Cart cart = CARTS.get(DEFAULT_CART_ID);
+        when(cartRepository.findById(DEFAULT_CART_ID)).thenReturn(Optional.empty());
         assert cart != null;
         when(cartItemRepository.findByCartAndItemId(cart, itemId)).thenReturn(Optional.empty());
 
-        Optional<ItemDto> itemDto = itemService.getItem(DtoConstants.DEFAULT_CART_ID, 14L);
+        Optional<ItemDto> itemDto = itemService.getItem(DEFAULT_CART_ID, 14L);
         assertThat(itemDto).isEmpty();
     }
 

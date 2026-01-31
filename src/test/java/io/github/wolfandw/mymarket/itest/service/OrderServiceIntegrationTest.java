@@ -1,11 +1,8 @@
 package io.github.wolfandw.mymarket.itest.service;
 
-import io.github.wolfandw.mymarket.dto.DtoConstants;
-import io.github.wolfandw.mymarket.dto.CartDto;
 import io.github.wolfandw.mymarket.dto.OrderDto;
 import io.github.wolfandw.mymarket.itest.AbstractIntegrationTest;
 import org.junit.jupiter.api.Test;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -37,15 +34,5 @@ public class OrderServiceIntegrationTest extends AbstractIntegrationTest {
         assertThat(actualOrder.items().size()).isEqualTo(12);
         assertThat(actualOrder.items().get(0).title()).isEqualTo("Item 08");
         assertThat(actualOrder.items().get(0).count()).isEqualTo(65);
-    }
-
-    @Test
-    @Transactional
-    void createOrderTest() {
-        CartDto cartDto = cartService.getCart(DtoConstants.DEFAULT_CART_ID);
-        Optional<OrderDto> newOrderDto = orderService.createOrderByCart(DtoConstants.DEFAULT_CART_ID);
-        assertThat(newOrderDto).isPresent();
-        assertThat(newOrderDto.get().totalSum()).isEqualTo(cartDto.total());
-        assertThat(newOrderDto.get().items().size()).isEqualTo(cartDto.items().size());
     }
 }
