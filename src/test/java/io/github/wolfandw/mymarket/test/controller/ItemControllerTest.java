@@ -82,7 +82,7 @@ public class ItemControllerTest extends AbstractControllerTest {
                         .param(PARAMETER_PAGE_SIZE, Integer.toString(pageSizeParamValue)))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists(ATTRIBUTE_ITEMS))
-                .andExpect(model().attribute(ATTRIBUTE_ITEMS, IsCollectionWithSize.<List<ItemDto>>hasSize(2)))
+                .andExpect(model().attribute(ATTRIBUTE_ITEMS, IsCollectionWithSize.<List<ItemDto>>hasSize(5)))
                 .andExpect(model().attributeExists(ATTRIBUTE_SEARCH))
                 .andExpect(model().attributeExists(ATTRIBUTE_SORT))
                 .andExpect(model().attributeExists(ATTRIBUTE_PAGING))

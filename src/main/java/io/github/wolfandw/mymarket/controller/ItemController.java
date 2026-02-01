@@ -13,8 +13,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Контроллер для работы с товарами.
@@ -73,7 +71,7 @@ public class ItemController {
 
         itemsPageDto.items().forEach(item ->
                 item.setImgData(entityImageService.getEntityImageBase64(item.id())));
-        model.addAttribute(ATTRIBUTE_ITEMS, convertToTriples(itemsPageDto.items()));
+        model.addAttribute(ATTRIBUTE_ITEMS, itemsPageDto.items());
         model.addAttribute(ATTRIBUTE_SEARCH, request.getSearch());
         model.addAttribute(ATTRIBUTE_SORT, request.getSort());
         model.addAttribute(ATTRIBUTE_PAGING, itemsPageDto.paging());
@@ -166,19 +164,5 @@ public class ItemController {
         ItemDto newItemDto = itemService.createItem(title, description, BigDecimal.valueOf(price));
         entityImageService.updateEntityImage(newItemDto.id(), imageFile);
         return RedirectUrlFactory.createRedirectUrlToNewItem(newItemDto.id());
-    }
-
-    private List<List<ItemDto>> convertToTriples(List<ItemDto> itemsDto) {
-        int itemsSize = itemsDto.size();
-        int itemsDtoSize = itemsSize % 3 == 0 ? itemsSize : (itemsSize / 3 * 3 + 3);
-        List<List<ItemDto>> result = new ArrayList<>();
-        for (int i = 0; i < itemsDtoSize; i++) {
-            if (i % 3 == 0) {
-                result.add(new ArrayList<>());
-            }
-            result.getLast().add(i < itemsSize ? itemsDto.get(i) :
-                    new ItemDto(-1L, "", "", 0L, 0));
-        }
-        return result;
     }
 }
