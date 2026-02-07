@@ -8,7 +8,6 @@ public class ItemDto {
     private final String title;
     private final String description;
     private final long price;
-    private final int count;
 
     private String imgData;
 
@@ -19,18 +18,15 @@ public class ItemDto {
      * @param title       название товара
      * @param description описание товара
      * @param price       цена товара
-     * @param count       число товаров в корзине
      */
     public ItemDto(Long id,
                    String title,
                    String description,
-                   long price,
-                   int count) {
+                   long price) {
         this.id = id;
         this.title = title;
         this.description = description;
         this.price = price;
-        this.count = count;
     }
 
     /**
@@ -96,25 +92,5 @@ public class ItemDto {
      */
     public long price() {
         return price;
-    }
-
-    /**
-     * Возвращает количество товара в корзине.
-     * Для шаблонов и кода.
-     *
-     * @return количество товара
-     */
-    public int count() {
-        return count;
-    }
-
-    /**
-     * Возвращает количество товара в корзине.
-     * Для тестов.
-     *
-     * @return количество товара
-     */
-    public int getCount() {
-        return count;
     }
 }

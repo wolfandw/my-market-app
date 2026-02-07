@@ -1,29 +1,29 @@
 package io.github.wolfandw.mymarket.model;
 
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
 
 import java.math.BigDecimal;
 
 /**
  * Класс модели товара.
  */
-@Entity
-@Table(name = "items")
+@Table(name = "ITEMS")
 public class Item {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column
     private String title;
 
-    @Column()
+    @Column
     private String description;
 
-    @Column()
+    @Column
     private String imgPath;
 
-    @Column(nullable = false)
+    @Column
     private BigDecimal price;
 
     /**

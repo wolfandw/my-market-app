@@ -1,29 +1,17 @@
 package io.github.wolfandw.mymarket.service.impl;
 
 import io.github.wolfandw.mymarket.dto.ItemDto;
-import io.github.wolfandw.mymarket.dto.ItemsPageDto;
-import io.github.wolfandw.mymarket.dto.ItemsPagingDto;
-import io.github.wolfandw.mymarket.model.CartItem;
 import io.github.wolfandw.mymarket.model.Item;
-import io.github.wolfandw.mymarket.repository.CartItemRepository;
-import io.github.wolfandw.mymarket.repository.CartRepository;
 import io.github.wolfandw.mymarket.repository.ItemRepository;
 import io.github.wolfandw.mymarket.service.ItemService;
 import io.github.wolfandw.mymarket.service.mapper.ItemToDtoMapper;
-import org.jspecify.annotations.NonNull;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
-import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Реализация {@link ItemService}.
@@ -44,80 +32,60 @@ public class ItemServiceImpl implements ItemService {
             SORT_PRICE, Sort.by(PRICE_COLUMN));
 
     private final ItemRepository itemRepository;
-    private final CartItemRepository cartItemRepository;
     private final ItemToDtoMapper itemToItemDtoMapper;
-    private final CartRepository cartRepository;
 
     /**
      * Создает сервис работы с товарами.
      *
      * @param itemRepository     репозиторий товаров
-     * @param cartItemRepository репозиторий строк корзин
      * @param itemToDtoMapper    маппер товаров на DTO-представление товаров.
-     * @param cartRepository     репозиторий корзин
      */
     public ItemServiceImpl(ItemRepository itemRepository,
-                           CartItemRepository cartItemRepository,
-                           ItemToDtoMapper itemToDtoMapper,
-                           CartRepository cartRepository) {
+                           ItemToDtoMapper itemToDtoMapper) {
         this.itemRepository = itemRepository;
         this.itemToItemDtoMapper = itemToDtoMapper;
-        this.cartItemRepository = cartItemRepository;
-        this.cartRepository = cartRepository;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public ItemsPageDto getItems(Long cartId, String search, String sort, Integer pageNumber, Integer pageSize) {
-        pageNumber = pageNumber == null ? PAGE_NUMBER_DEFAULT : pageNumber;
-        pageSize = pageSize == null ? PAGE_SIZE_DEFAULT : pageSize;
-        sort = sort == null ? SORT_DEFAULT : sort;
+    public Flux<ItemDto> getItems(Long cartId, String search, String sort, Integer pageNumber, Integer pageSize) {
+        int finalPageNumber = pageNumber == null ? PAGE_NUMBER_DEFAULT : pageNumber;
+        int finalPageSize = pageSize == null ? PAGE_SIZE_DEFAULT : pageSize;
+        Sort sortBy = SORT_BY.getOrDefault(sort == null ? SORT_DEFAULT : sort, Sort.unsorted());
 
-        Page<Item> page = getPage(search, sort, pageNumber, pageSize);
-        ItemsPagingDto paging = new ItemsPagingDto(pageSize, pageNumber, page.hasPrevious(), page.hasNext());
+        Flux<Item> itemsAll = search == null || search.isEmpty() ? itemRepository.findAll(sortBy) :
+                itemRepository.
+                        findByTitleContainingOrDescriptionContainingAllIgnoreCase(search, search, sortBy);
 
-        Map<Long, Integer> itemsCartCount = getItemsCartCount(cartId, page.getContent());
-        List<ItemDto> itemsDto = page.getContent().stream().map(item -> itemToItemDtoMapper.mapItem(item,
-                itemsCartCount.getOrDefault(item.getId(),0))).toList();
-
-        return new ItemsPageDto(itemsDto, search, sort, paging);
+        return itemsAll.skip((long) (finalPageNumber - PAGE_NUMBER_DELTA) * finalPageSize).take(finalPageSize).
+                map(itemToItemDtoMapper::mapItem);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<ItemDto> getItem(Long cartId, Long id) {
-        return itemRepository.findById(id).map(item -> {
-            Integer count = cartRepository.findById(cartId).
-                    map(c -> cartItemRepository.findByCartAndItemId(c, id).
-                            map(CartItem::getCount).orElse(0)).orElse(0);
-            return itemToItemDtoMapper.mapItem(item, count);
-        });
+    public Mono<Long> getItemsCount(String search) {
+        return search == null || search.isEmpty() ? itemRepository.count() :
+                itemRepository.countByTitleContainingOrDescriptionContainingAllIgnoreCase(search, search);
     }
 
-    @Override
-    @Transactional
-    public ItemDto createItem(String title, String description, BigDecimal price) {
-        Item item = new Item();
-        item.setTitle(title);
-        item.setDescription(description);
-        item.setPrice(price);
-        return itemToItemDtoMapper.mapItem(itemRepository.save(item), 0);
-    }
-
-    private @NonNull Map<Long, Integer> getItemsCartCount(Long cartId, List<Item> items) {
-        return cartRepository.findById(cartId).map(cart -> {
-            List<CartItem> cartItems = cartItemRepository.findAllByCartAndItemIn(cart, items);
-            return cartItems.stream().collect(Collectors.toMap(cartItemKey -> cartItemKey.getItem().getId(), CartItem::getCount));
-        }).orElse(Collections.emptyMap());
-    }
-
-    private Page<Item> getPage(String search, String sort, Integer pageNumber, Integer pageSize) {
-        Pageable pageable = PageRequest.of(pageNumber - PAGE_NUMBER_DELTA, pageSize, SORT_BY.getOrDefault(sort, Sort.unsorted()));
-        return getPage(search, pageable);
-    }
-
-    private Page<Item> getPage(String search, Pageable pageable) {
-        return search == null || search.isEmpty() ? itemRepository.findAll(pageable) :
-                itemRepository.findByTitleContainingOrDescriptionContainingAllIgnoreCase(search, search, pageable);
-    }
+//    @Override
+//    @Transactional(readOnly = true)
+//    public Optional<ItemDto> getItem(Long cartId, Long id) {
+//        return itemRepository.findById(id).map(item -> {
+//            Integer count = cartRepository.findById(cartId).
+//                    map(c -> cartItemRepository.findByCartAndItemId(c, id).
+//                            map(CartItem::getCount).orElse(0)).orElse(0);
+//            return itemToItemDtoMapper.mapItem(item, count);
+//        });
+//    }
+//
+//    @Override
+//    @Transactional
+//    public ItemDto createItem(String title, String description, BigDecimal price) {
+//        Item item = new Item();
+//        item.setTitle(title);
+//        item.setDescription(description);
+//        item.setPrice(price);
+//        return itemToItemDtoMapper.mapItem(itemRepository.save(item), 0);
+//    }
 }

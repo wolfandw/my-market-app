@@ -3,14 +3,12 @@ package io.github.wolfandw.mymarket.controller.advicer;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.dao.DataAccessException;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.servlet.NoHandlerFoundException;
 
 /**
  * Обработчик исключений контроллеров.
  */
-@ControllerAdvice
+//@ControllerAdvice
 public class ApplicationControllerAdvicer {
     private static final String TEMPLATE_ERROR = "error";
     private static final String ATTRIBUTE_ERROR = "error";
@@ -45,22 +43,6 @@ public class ApplicationControllerAdvicer {
         response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         model.addAttribute(ATTRIBUTE_ERROR, e.getMessage());
         model.addAttribute(ATTRIBUTE_STATUS, HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        return TEMPLATE_ERROR;
-    }
-
-    /**
-     * Обрабатывает исключение NoHandlerFoundException.
-     *
-     * @param e        исключение типа NoHandlerFoundException
-     * @param model    модель
-     * @param response ответ
-     * @return имя шаблона ошибки
-     */
-    @ExceptionHandler(NoHandlerFoundException.class)
-    public String handleNotFound(Exception e, Model model, HttpServletResponse response) {
-        response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-        model.addAttribute(ATTRIBUTE_ERROR, e.getMessage());
-        model.addAttribute(ATTRIBUTE_STATUS, HttpServletResponse.SC_NOT_FOUND);
         return TEMPLATE_ERROR;
     }
 
