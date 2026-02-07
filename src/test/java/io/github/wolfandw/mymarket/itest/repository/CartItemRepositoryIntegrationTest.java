@@ -1,27 +1,32 @@
-//package io.github.wolfandw.mymarket.itest.repository;
-//
-//import io.github.wolfandw.mymarket.model.Cart;
-//import io.github.wolfandw.mymarket.model.CartItem;
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.Test;
-//
-//import java.util.List;
-//import java.util.Objects;
-//import java.util.Optional;
-//
-//import static org.assertj.core.api.Assertions.assertThat;
-//
-///**
-// * Интеграционные тесты репозитория строк корзин.
-// */
-//public class CartItemRepositoryIntegrationTest extends AbstractRepositoryIntegrationTest {
-//    private Cart defaultCart;
-//
-//    @BeforeEach
-//    void setup() {
-//        defaultCart = cartRepository.findById(1L).orElse(null);
-//    }
-//
+package io.github.wolfandw.mymarket.itest.repository;
+
+import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+/**
+ * Интеграционные тесты репозитория строк корзин.
+ */
+public class CartItemRepositoryIntegrationTest extends AbstractRepositoryIntegrationTest {
+    @Test
+    void findAllByCartIdTest() {
+        cartItemRepository.findAllByCartId(DEFAULT_CART_ID).collectList().doOnNext(cartItemsCount -> {
+            assertThat(cartItemsCount).size().isEqualTo(12);
+            assertThat(cartItemsCount.getFirst().getItemId()).isEqualTo(2L);
+            assertThat(cartItemsCount.getFirst().getCount()).isEqualTo(60);
+            assertThat(cartItemsCount.getLast().getItemId()).isEqualTo(3L);
+            assertThat(cartItemsCount.getLast().getCount()).isEqualTo(80);
+        });
+    }
+
+    @Test
+    void findByCartIdAndItemIdTest() {
+        cartItemRepository.findByCartIdAndItemId(DEFAULT_CART_ID, 2L).doOnNext(cartItemsCount -> {
+            assertThat(cartItemsCount.getItemId()).isEqualTo(2L);
+            assertThat(cartItemsCount.getCount()).isEqualTo(60);
+        });
+    }
+
 //    @Test
 //    void findAllByCartTest() {
 //        assertThat(defaultCart).isNotNull();
@@ -60,5 +65,4 @@
 //        assertThat(actualContent.get().getItem().getTitle()).isEqualTo("Item 06");
 //        assertThat(actualContent.get().getCount()).isEqualTo(80);
 //    }
-//}
-//
+}

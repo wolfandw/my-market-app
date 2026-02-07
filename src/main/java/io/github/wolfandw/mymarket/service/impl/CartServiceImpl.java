@@ -1,5 +1,6 @@
 package io.github.wolfandw.mymarket.service.impl;
 
+import io.github.wolfandw.mymarket.model.CartItem;
 import io.github.wolfandw.mymarket.repository.CartItemRepository;
 import io.github.wolfandw.mymarket.service.CartService;
 import org.springframework.stereotype.Service;
@@ -43,10 +44,14 @@ public class CartServiceImpl implements CartService {
     }
 
     @Transactional(readOnly = true)
-    @Override
-    public Mono<Map<Long, Integer>> getCartCount(Long cartId) {
+    public Mono<Map<Long, Integer>> getCartItemsCount(Long cartId) {
         return cartItemRepository.findAllByCartId(cartId).map(cartItem ->
                 Map.entry(cartItem.getItemId(), cartItem.getCount())).collectMap(Map.Entry::getKey, Map.Entry::getValue);
+    }
+
+    @Transactional(readOnly = true)
+    public Mono<Integer> getCartItemCount(Long cartId, Long itemId) {
+        return cartItemRepository.findByCartIdAndItemId(cartId, itemId).map(CartItem::getCount).defaultIfEmpty(0);
     }
 
 //    @Override

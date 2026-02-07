@@ -1,7 +1,5 @@
 package io.github.wolfandw.mymarket.service;
 
-import io.github.wolfandw.mymarket.dto.CartDto;
-import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
@@ -16,7 +14,16 @@ public interface CartService {
      * @param cartId идентификатор корзины
      * @return количество товара в корзине в разрезе идентификаторов товара
      */
-    Mono<Map<Long, Integer>> getCartCount(Long cartId);
+    Mono<Map<Long, Integer>> getCartItemsCount(Long cartId);
+
+    /**
+     * Возвращает количество товара в корзине по идентификатору товара.
+     *
+     * @param cartId идентификатор корзины
+     * @param itemId идентификатор товара
+     * @return количество товара в корзине в разрезе идентификаторов товара
+     */
+    Mono<Integer> getCartItemCount(Long cartId, Long itemId);
 
 //    /**
 //     * Возвращает DTO-представление корзины.

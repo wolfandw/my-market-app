@@ -29,7 +29,8 @@ public class ItemController {
     private static final String ATTRIBUTE_PAGING = "paging";
     private static final String ATTRIBUTE_ITEM = "item";
     private static final String ATTRIBUTE_NEW_ITEM = "newItem";
-    private static final String ATTRIBUTE_CART_COUNT = "cartCount";
+    private static final String ATTRIBUTE_CART_ITEMS_COUNT = "cartItemsCount";
+    private static final String ATTRIBUTE_CART_ITEM_COUNT = "cartItemCount";
 
     private static final String PARAMETER_NEW_ITEM = "newItem";
     private static final String PARAMETER_ACTION = "action";
@@ -60,14 +61,14 @@ public class ItemController {
 
 
     /**
-     * Рендерит шаблон items и сетит в модель потоки данных формы товаров.
+     * Рендерит шаблон items и заполняет модель данными.
      *
      * @param request запрос от формы
      * @return рендер шаблона items
      */
     @GetMapping
     public Mono<Rendering> getItems(@ModelAttribute ItemsPageFormRequest request) {
-        Flux<ItemDto> itemsDtoPage = itemService.getItems(DEFAULT_CART_ID, request.getSearch(),
+        Flux<ItemDto> itemsDtoPage = itemService.getItems(request.getSearch(),
                 request.getSort(),
                 request.getPageNumber(),
                 request.getPageSize());
@@ -81,7 +82,7 @@ public class ItemController {
                 finalPageNumber > 1,
                 (long) finalPageNumber * finalPageSize < count));
 
-        Mono<Map<Long, Integer>> cartCount = cartService.getCartCount(DEFAULT_CART_ID);
+        Mono<Map<Long, Integer>> cartItemsCount = cartService.getCartItemsCount(DEFAULT_CART_ID);
 
         return Mono.just(
                 Rendering.view(TEMPLATE_ITEMS)
@@ -89,31 +90,31 @@ public class ItemController {
                         .modelAttribute(ATTRIBUTE_SEARCH, request.getSearch())
                         .modelAttribute(ATTRIBUTE_SORT, request.getSort())
                         .modelAttribute(ATTRIBUTE_PAGING, pagingMono)
-                        .modelAttribute(ATTRIBUTE_CART_COUNT, cartCount)
+                        .modelAttribute(ATTRIBUTE_CART_ITEMS_COUNT, cartItemsCount)
                         .build()
         );
     }
 
-//    /**
-//     * Возвращает шаблон и модель формы товара.
-//     *
-//     * @param id идентификатор товара
-//     * @param model модель формы товара
-//     * @return шаблон товара
-//     */
-//    @GetMapping("/{id}")
-//    public String getItem(@PathVariable Long id,
-//                          @RequestParam(value = PARAMETER_NEW_ITEM, required = false, defaultValue = "false") boolean newItem,
-//                          Model model) {
-//        itemService.getItem(DEFAULT_CART_ID, id).
-//                ifPresent(item -> {
-//                    item.setImgData(entityImageService.getEntityImageBase64(item.id()));
-//                    model.addAttribute(ATTRIBUTE_ITEM, item);
-//                    model.addAttribute(ATTRIBUTE_NEW_ITEM, newItem);
-//                });
-//        return TEMPLATE_ITEM;
-//    }
-//
+    /**
+     * Рендерит шаблон item и заполняет модель данными.
+     *
+     * @param id идентификатор товара
+     * @return рендер шаблона item
+     */
+    @GetMapping("/{id}")
+    public Mono<Rendering> getItem(@PathVariable Long id,
+                          @RequestParam(value = PARAMETER_NEW_ITEM, required = false, defaultValue = "false") boolean newItem) {
+        Mono<ItemDto> itemDto = itemService.getItem(id);
+        Mono<Integer> cartItemCount = cartService.getCartItemCount(DEFAULT_CART_ID, id);
+        return Mono.just(
+                Rendering.view(TEMPLATE_ITEM)
+                        .modelAttribute(ATTRIBUTE_ITEM, itemDto)
+                        .modelAttribute(ATTRIBUTE_NEW_ITEM, newItem)
+                        .modelAttribute(ATTRIBUTE_CART_ITEM_COUNT, cartItemCount)
+                        .build()
+        );
+    }
+
 //    /**
 //     * Изменяет количество товара в корзине на странице товаров и делает на нее редирект.
 //     *

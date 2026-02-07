@@ -10,6 +10,11 @@ import org.springframework.boot.data.r2dbc.test.autoconfigure.DataR2dbcTest;
 @DataR2dbcTest
 public abstract class AbstractRepositoryIntegrationTest {
     /**
+     * Идентификатор корзины по умолчанию.
+     */
+    protected static final Long DEFAULT_CART_ID = 1L;
+
+    /**
      * Репозиторий товаров.
      */
     @Autowired
@@ -20,13 +25,13 @@ public abstract class AbstractRepositoryIntegrationTest {
 //     */
 //    @Autowired
 //    protected CartRepository cartRepository;
-//
-//    /**
-//     * Репозиторий строк корзин.
-//     */
-//    @Autowired
-//    protected CartItemRepository cartItemRepository;
-//
+
+    /**
+     * Репозиторий строк корзин.
+     */
+    @Autowired
+    protected CartItemRepository cartItemRepository;
+
 //    /**
 //     * Репозиторий заказов.
 //     */

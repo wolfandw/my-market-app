@@ -48,7 +48,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional(readOnly = true)
-    public Flux<ItemDto> getItems(Long cartId, String search, String sort, Integer pageNumber, Integer pageSize) {
+    public Flux<ItemDto> getItems(String search, String sort, Integer pageNumber, Integer pageSize) {
         int finalPageNumber = pageNumber == null ? PAGE_NUMBER_DEFAULT : pageNumber;
         int finalPageSize = pageSize == null ? PAGE_SIZE_DEFAULT : pageSize;
         Sort sortBy = SORT_BY.getOrDefault(sort == null ? SORT_DEFAULT : sort, Sort.unsorted());
@@ -68,17 +68,12 @@ public class ItemServiceImpl implements ItemService {
                 itemRepository.countByTitleContainingOrDescriptionContainingAllIgnoreCase(search, search);
     }
 
-//    @Override
-//    @Transactional(readOnly = true)
-//    public Optional<ItemDto> getItem(Long cartId, Long id) {
-//        return itemRepository.findById(id).map(item -> {
-//            Integer count = cartRepository.findById(cartId).
-//                    map(c -> cartItemRepository.findByCartAndItemId(c, id).
-//                            map(CartItem::getCount).orElse(0)).orElse(0);
-//            return itemToItemDtoMapper.mapItem(item, count);
-//        });
-//    }
-//
+    @Override
+    @Transactional(readOnly = true)
+    public Mono<ItemDto> getItem(Long id) {
+        return itemRepository.findById(id).map(itemToItemDtoMapper::mapItem);
+    }
+
 //    @Override
 //    @Transactional
 //    public ItemDto createItem(String title, String description, BigDecimal price) {

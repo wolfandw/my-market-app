@@ -12,16 +12,15 @@ import java.util.Map;
  */
 public interface ItemService {
     /**
-     * Возвращает DTO-страницу товаров.
+     * Возвращает список DTO-товаров по размеру страницы.
      *
-     * @param cartId идентификатор корзины
      * @param search строка поиска
      * @param sort направление сортировки
      * @param pageNumber номер страницы
      * @param pageSize размер страницы
-     * @return DTO-описание страницы товаров
+     * @return список DTO-товаров по размеру страницы
      */
-    Flux<ItemDto> getItems(Long cartId, String search, String sort, Integer pageNumber, Integer pageSize);
+    Flux<ItemDto> getItems(String search, String sort, Integer pageNumber, Integer pageSize);
 
     /**
      * Возвращает размер ассортимента товаров витрины.
@@ -31,15 +30,14 @@ public interface ItemService {
      */
     Mono<Long> getItemsCount(String search);
 
-//    /**
-//     * Возвращает DTO-товар.
-//     *
-//     * @param cartId идентификатор корзины
-//     * @param id     идентификатор товара.
-//     * @return DTO-описание товара
-//     */
-//    Optional<ItemDto> getItem(Long cartId, Long id);
-//
+    /**
+     * Возвращает DTO-товар.
+     *
+     * @param itemId идентификатор товара.
+     * @return DTO-описание товара
+     */
+    Mono<ItemDto> getItem(Long itemId);
+
 //    /**
 //     * Создает новый товар и возвращает его DTO-представление.
 //     *
