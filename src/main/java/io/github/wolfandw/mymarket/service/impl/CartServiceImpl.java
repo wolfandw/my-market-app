@@ -1,16 +1,19 @@
 package io.github.wolfandw.mymarket.service.impl;
 
+import io.github.wolfandw.mymarket.dto.CartDto;
+import io.github.wolfandw.mymarket.dto.ItemDto;
 import io.github.wolfandw.mymarket.model.Cart;
 import io.github.wolfandw.mymarket.model.CartItem;
 import io.github.wolfandw.mymarket.model.Item;
 import io.github.wolfandw.mymarket.repository.*;
 import io.github.wolfandw.mymarket.service.CartService;
+import io.github.wolfandw.mymarket.service.mapper.ItemToDtoMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
-import java.util.Map;
 
 /**
  * Реализация {@link CartService}.
@@ -24,7 +27,7 @@ public class CartServiceImpl implements CartService {
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
     private final ItemRepository itemRepository;
-    //private final CartToDtoMapper cartToDtoMapper;
+    private final ItemToDtoMapper itemToItemDtoMapper;
 
     /**
      * Создает сервис работы с корзинами.
@@ -32,38 +35,34 @@ public class CartServiceImpl implements CartService {
      * @param cartRepository     репозиторий корзин
      * @param cartItemRepository репозиторий строк корзин
      * @param itemRepository     репозиторий товаров
-     *                           // * @param cartToDtoMapper    маппер строк корзин
+     * @param itemToItemDtoMapper    маппер товаров
      */
     public CartServiceImpl(CartRepository cartRepository,
                            CartItemRepository cartItemRepository,
-                           ItemRepository itemRepository//,
-//                           CartToDtoMapper cartToDtoMapper
+                           ItemRepository itemRepository,
+                           ItemToDtoMapper itemToItemDtoMapper
     ) {
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
         this.itemRepository = itemRepository;
-        //this.cartToDtoMapper = cartToDtoMapper;
+        this.itemToItemDtoMapper = itemToItemDtoMapper;
     }
 
+    @Override
     @Transactional(readOnly = true)
-    public Mono<Map<Long, Integer>> getCartItemsCount(Long cartId) {
+    public Flux<ItemDto> getCartItems(Long cartId) {
         return cartItemRepository.findAllByCartId(cartId).map(cartItem ->
-                Map.entry(cartItem.getItemId(), cartItem.getCount())).collectMap(Map.Entry::getKey, Map.Entry::getValue);
+                itemRepository.findById(cartItem.getItemId()).
+                        map(item -> itemToItemDtoMapper.mapItem(item, cartItem.getCount())).
+                        switchIfEmpty(Mono.just(new ItemDto(-1L, "", "", 0L, 0)))).
+                flatMap(itemDto -> itemDto);
     }
 
+    @Override
     @Transactional(readOnly = true)
-    public Mono<Integer> getCartItemCount(Long cartId, Long itemId) {
-        return cartItemRepository.findByCartIdAndItemId(cartId, itemId).map(CartItem::getCount).defaultIfEmpty(0);
+    public Mono<CartDto> getCart(Long cartId) {
+        return cartRepository.findById(cartId).map(cart -> new CartDto(cart.getId(), cart.getTotal().longValue()));
     }
-
-//    @Override
-//    @Transactional(readOnly = true)
-//    public CartDto getCart(Long cartId) {
-//        return cartRepository.findById(cartId).map(cart -> {
-//            List<ItemDto> items = cartToDtoMapper.mapCartItems(cart.getItems());
-//            return new CartDto(items, cart.getTotal().longValue());
-//        }).orElse(new CartDto(List.of(), 0L));
-//    }
 
     @Override
     @Transactional

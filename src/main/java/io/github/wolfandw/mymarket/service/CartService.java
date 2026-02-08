@@ -1,6 +1,9 @@
 package io.github.wolfandw.mymarket.service;
 
+import io.github.wolfandw.mymarket.dto.CartDto;
+import io.github.wolfandw.mymarket.dto.ItemDto;
 import io.github.wolfandw.mymarket.model.Cart;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
@@ -10,29 +13,20 @@ import java.util.Map;
  */
 public interface CartService {
     /**
-     * Возвращает количество товара в корзине в разрезе идентификаторов товара.
+     * Возвращает DTO-представление корзины.
      *
-     * @param cartId идентификатор корзины
-     * @return количество товара в корзине в разрезе идентификаторов товара
+     * @param id идентификатор корзины
+     * @return DTO-представление корзины.
      */
-    Mono<Map<Long, Integer>> getCartItemsCount(Long cartId);
+    Flux<ItemDto> getCartItems(Long id);
 
     /**
-     * Возвращает количество товара в корзине по идентификатору товара.
+     * Возвращает DTO-представление корзины.
      *
-     * @param cartId идентификатор корзины
-     * @param itemId идентификатор товара
-     * @return количество товара в корзине в разрезе идентификаторов товара
+     * @param id идентификатор корзины
+     * @return DTO-представление корзины.
      */
-    Mono<Integer> getCartItemCount(Long cartId, Long itemId);
-
-//    /**
-//     * Возвращает DTO-представление корзины.
-//     *
-//     * @param id идентификатор корзины
-//     * @return DTO-представление корзины.
-//     */
-//    CartDto getCart(Long id);
+    Mono<CartDto> getCart(Long id);
 
     /**
      * Изменяет количество товара в корзине со страницы товаров.

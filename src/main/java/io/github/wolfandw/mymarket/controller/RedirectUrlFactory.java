@@ -10,6 +10,7 @@ public class RedirectUrlFactory {
 
     private static final String TEMPLATE_ITEMS = "items";
     private static final String TEMPLATE_ORDERS = "orders";
+    private static final String TEMPLATE_CART = "cart/items";
 
     private static final String PARAMETER_SEARCH = "search";
     private static final String PARAMETER_SORT = "sort";
@@ -154,5 +155,25 @@ public class RedirectUrlFactory {
      */
     public static @NonNull String createRedirectUrlToItem(Long itemId) {
         return REDIRECT + createUrlToItem(itemId);
+    }
+
+    /**
+     * Создает адрес перехода на страницу корзины.
+     *
+     * @param cartId идентификатор корзины
+     * @return адрес перехода на страницу корзины
+     */
+    public static @NonNull String createUrlToCart(Long cartId) {
+        return '/' + TEMPLATE_CART;
+    }
+
+    /**
+     * Создает редирект на адрес перехода на страницу корзины.
+     *
+     * @param cartId идентификатор корзины
+     * @return редирект на адрес перехода на страницу корзины
+     */
+    public static @NonNull String createRedirectUrlToCart(Long cartId) {
+        return REDIRECT + createUrlToCart(cartId);
     }
 }
