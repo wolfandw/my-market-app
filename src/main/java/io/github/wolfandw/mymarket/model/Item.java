@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 /**
  * Класс модели товара.
  */
-@Table(name = "ITEMS")
+@Table("ITEMS")
 public class Item {
     @Id
     private Long id;

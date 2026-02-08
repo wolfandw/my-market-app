@@ -1,12 +1,15 @@
 package io.github.wolfandw.mymarket.service.impl;
 
+import io.github.wolfandw.mymarket.model.Cart;
 import io.github.wolfandw.mymarket.model.CartItem;
-import io.github.wolfandw.mymarket.repository.CartItemRepository;
+import io.github.wolfandw.mymarket.model.Item;
+import io.github.wolfandw.mymarket.repository.*;
 import io.github.wolfandw.mymarket.service.CartService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
+import java.math.BigDecimal;
 import java.util.Map;
 
 /**
@@ -18,28 +21,27 @@ public class CartServiceImpl implements CartService {
     private static final String ACTION_PLUS = "PLUS";
     private static final String ACTION_DELETE = "DELETE";
 
-    //private final CartRepository cartRepository;
+    private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
-    //private final ItemRepository itemRepository;
+    private final ItemRepository itemRepository;
     //private final CartToDtoMapper cartToDtoMapper;
 
     /**
      * Создает сервис работы с корзинами.
      *
-    // * @param cartRepository     репозиторий корзин
+     * @param cartRepository     репозиторий корзин
      * @param cartItemRepository репозиторий строк корзин
-     //* @param itemRepository     репозиторий товаров
-    // * @param cartToDtoMapper    маппер строк корзин
+     * @param itemRepository     репозиторий товаров
+     *                           // * @param cartToDtoMapper    маппер строк корзин
      */
-    public CartServiceImpl(
-//            CartRepository cartRepository,
-                           CartItemRepository cartItemRepository//,
-//                           ItemRepository itemRepository,
+    public CartServiceImpl(CartRepository cartRepository,
+                           CartItemRepository cartItemRepository,
+                           ItemRepository itemRepository//,
 //                           CartToDtoMapper cartToDtoMapper
     ) {
-        //this.cartRepository = cartRepository;
+        this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
-        //this.itemRepository = itemRepository;
+        this.itemRepository = itemRepository;
         //this.cartToDtoMapper = cartToDtoMapper;
     }
 
@@ -62,50 +64,49 @@ public class CartServiceImpl implements CartService {
 //            return new CartDto(items, cart.getTotal().longValue());
 //        }).orElse(new CartDto(List.of(), 0L));
 //    }
-//
-//    @Override
-//    @Transactional
-//    public void changeItemCount(Long cartId, Long itemId, String action) {
-//        Optional<Item> optionalItem = itemRepository.findById(itemId);
-//        if (optionalItem.isEmpty()) {
-//            return;
-//        }
-//        Item item = optionalItem.get();
-//        BigDecimal price = item.getPrice();
-//
-//        Cart cart = cartRepository.findById(cartId).orElseGet(() -> cartRepository.save(new Cart(cartId)));
-//        BigDecimal total = cart.getTotal();
-//
-//        CartItem cartItem = cartItemRepository.findByCartAndItemId(cart, itemId).orElseGet(() -> createCartItem(cart, item));
-//        int count = cartItem.getCount();
-//        if (ACTION_MINUS.equals(action)) {
-//            count--;
-//            total = total.subtract(price);
-//        } else if (ACTION_PLUS.equals(action)) {
-//            count++;
-//            total = total.add(price);
-//        } else if (ACTION_DELETE.equals(action)) {
-//            total = total.subtract(price.multiply(BigDecimal.valueOf(count)));
-//            count = 0;
-//        }
-//
-//        if (count <= 0) {
-//            cart.getItems().remove(cartItem);
-//            cart.setTotal(total);
-//            cartRepository.save(cart);
-//        } else if (count != cartItem.getCount()) {
-//            cartItem.setCount(count);
-//            cartItemRepository.save(cartItem);
-//            cart.setTotal(total);
-//            cartRepository.save(cart);
-//        }
-//    }
-//
-//    private @NonNull CartItem createCartItem(Cart cart, Item item) {
-//        CartItem cartItem = new CartItem();
-//        cartItem.setCart(cart);
-//        cartItem.setItem(item);
-//        cart.getItems().add(cartItem);
-//        return cartItem;
-//    }
+
+    @Override
+    @Transactional
+    public Mono<Void> changeItemCount(Long cartId, Long itemId, String action) {
+        Mono<Item> itemMono = itemRepository.findById(itemId);
+        Mono<Cart> cartMono = cartRepository.findById(cartId).switchIfEmpty(cartRepository.save(new Cart(cartId)));
+        Mono<CartItem> cartItemMono = cartItemRepository.findByCartIdAndItemId(cartId, itemId).
+                defaultIfEmpty(createCartItem(cartId, itemId));
+
+        return Mono.zip(itemMono, cartMono, cartItemMono).flatMap(tuple -> {
+                    Item item = tuple.getT1();
+                    Cart cart = tuple.getT2();
+                    CartItem cartItem = tuple.getT3();
+
+                    BigDecimal price = item.getPrice();
+                    BigDecimal total = cart.getTotal();
+
+                    int count = cartItem.getCount();
+                    if (ACTION_MINUS.equals(action)) {
+                        count--;
+                        total = total.subtract(price);
+                    } else if (ACTION_PLUS.equals(action)) {
+                        count++;
+                        total = total.add(price);
+                    } else if (ACTION_DELETE.equals(action)) {
+                        total = total.subtract(price.multiply(BigDecimal.valueOf(count)));
+                        count = 0;
+                    }
+
+                    cart.setTotal(total);
+                    if (count > 0) {
+                        cartItem.setCount(count);
+                        return cartItemRepository.save(cartItem).then(cartRepository.save(cart)).then();
+                    }
+                    return cartItemRepository.delete(cartItem).then(cartRepository.save(cart)).then();
+                }
+        );
+    }
+
+    private CartItem createCartItem(Long cartId, Long itemId) {
+        CartItem cartItem = new CartItem();
+        cartItem.setCartId(cartId);
+        cartItem.setItemId(itemId);
+        return cartItem;
+    }
 }

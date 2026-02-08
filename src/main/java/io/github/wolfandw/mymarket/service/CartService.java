@@ -1,5 +1,6 @@
 package io.github.wolfandw.mymarket.service;
 
+import io.github.wolfandw.mymarket.model.Cart;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
@@ -32,13 +33,13 @@ public interface CartService {
 //     * @return DTO-представление корзины.
 //     */
 //    CartDto getCart(Long id);
-//
-//    /**
-//     * Изменяет количество товара в корзине со страницы товаров.
-//     *
-//     * @param cartId идентификатор корзины
-//     * @param itemId идентификатор товара
-//     * @param action увеличить (уменьшить) количество товара в корзине
-//     */
-//    void changeItemCount(Long cartId, Long itemId, String action);
+
+    /**
+     * Изменяет количество товара в корзине со страницы товаров.
+     *
+     * @param cartId идентификатор корзины
+     * @param itemId идентификатор товара
+     * @param action увеличить (уменьшить) количество товара в корзине
+     */
+    Mono<Void> changeItemCount(Long cartId, Long itemId, String action);
 }

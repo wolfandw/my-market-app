@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 /**
  * Класс модели корзины.
  */
-@Table(name = "CARTS")
+@Table("CARTS")
 public class Cart {
     @Id
     private Long id;

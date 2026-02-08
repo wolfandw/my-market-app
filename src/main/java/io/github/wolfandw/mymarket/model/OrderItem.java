@@ -7,7 +7,7 @@ import org.springframework.data.relational.core.mapping.Column;
 /**
  * Класс строки заказа.
  */
-@Table(name = "ORDER_ITEMS")
+@Table("ORDER_ITEMS")
 public class OrderItem {
     @Id
     private Long id;

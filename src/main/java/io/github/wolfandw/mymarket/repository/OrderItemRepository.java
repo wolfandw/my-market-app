@@ -1,20 +1,20 @@
-//package io.github.wolfandw.mymarket.repository;
-//
-//import io.github.wolfandw.mymarket.model.Item;
-//import io.github.wolfandw.mymarket.model.Order;
-//import io.github.wolfandw.mymarket.model.OrderItem;
-//import org.springframework.data.repository.reactive.ReactiveCrudRepository;
-//import org.springframework.stereotype.Repository;
-//
-//import java.util.Collection;
-//import java.util.List;
-//import java.util.Optional;
-//
-///**
-// * Репозиторий для работы со строками заказов.
-// */
-//@Repository
-//public interface OrderItemRepository extends ReactiveCrudRepository<OrderItem, Long> {
+package io.github.wolfandw.mymarket.repository;
+
+import io.github.wolfandw.mymarket.model.Item;
+import io.github.wolfandw.mymarket.model.Order;
+import io.github.wolfandw.mymarket.model.OrderItem;
+import org.springframework.data.repository.reactive.ReactiveCrudRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * Репозиторий для работы со строками заказов.
+ */
+@Repository
+public interface OrderItemRepository extends ReactiveCrudRepository<OrderItem, Long> {
 //    /**
 //     * Возвращает список строк заказа.
 //     *
@@ -40,4 +40,4 @@
 //     * @return строка заказа с фильтром по идентификатору товара.
 //     */
 //    Optional<OrderItem> findByOrderAndItemId(Order order, Long itemId);
-//}
+}

@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 /**
  * Класс модели заказа.
  */
-@Table(name = "ORDERS")
+@Table("ORDERS")
 public class Order {
     @Id
     private Long id;

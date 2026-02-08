@@ -7,7 +7,7 @@ import org.springframework.data.relational.core.mapping.Table;
 /**
  * Класс модели строки корзины.
  */
-@Table(name = "CART_ITEMS")
+@Table("CART_ITEMS")
 public class CartItem {
     @Id
     private Long id;

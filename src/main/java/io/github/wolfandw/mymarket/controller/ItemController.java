@@ -115,28 +115,25 @@ public class ItemController {
         );
     }
 
-//    /**
-//     * Изменяет количество товара в корзине на странице товаров и делает на нее редирект.
-//     *
-//     * @param request запрос на изменение количества с параметрами страницы товаров
-//     * @return редирект на страницу товаров с первоначальными значениями параметров
-//     */
-//    @PostMapping
-//    public String changeItemCount(@ModelAttribute ItemsPageChangeCountFormRequest request) {
-//        cartService.changeItemCount(DEFAULT_CART_ID, request.getId(),
-//                request.getAction());
-//
-//        String searchParamValue = request.getSearch();
-//        String sortParamValue = request.getSort();
-//        Integer pageNumberParamValue = request.getPageNumber();
-//        Integer pageSizeParamValue = request.getPageSize();
-//
-//        return RedirectUrlFactory.createRedirectUrlToItems(searchParamValue,
-//                        sortParamValue,
-//                        pageNumberParamValue,
-//                        pageSizeParamValue);
-//    }
-//
+    /**
+     * Изменяет количество товара в корзине на странице товаров и делает на нее редирект.
+     *
+     * @param request запрос на изменение количества с параметрами страницы товаров
+     * @return редирект на страницу товаров с первоначальными значениями параметров
+     */
+    @PostMapping
+    public Mono<String> changeItemCount(@ModelAttribute ItemsPageChangeCountFormRequest request) {
+        String searchParamValue = request.getSearch();
+        String sortParamValue = request.getSort();
+        Integer pageNumberParamValue = request.getPageNumber();
+        Integer pageSizeParamValue = request.getPageSize();
+        return cartService.changeItemCount(DEFAULT_CART_ID, request.getId(), request.getAction()).
+                thenReturn(RedirectUrlFactory.createRedirectUrlToItems(searchParamValue,
+                                                                        sortParamValue,
+                                                                        pageNumberParamValue,
+                                                                        pageSizeParamValue));
+    }
+
 //    /**
 //     * Изменяет количество товара в корзине на странице товара.
 //     *
