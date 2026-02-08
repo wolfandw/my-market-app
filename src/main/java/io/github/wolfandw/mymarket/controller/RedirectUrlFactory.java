@@ -135,4 +135,24 @@ public class RedirectUrlFactory {
     public static @NonNull String createRedirectUrlToNewOrder(Long newOrderId) {
         return REDIRECT + createUrlToNewOrder(newOrderId);
     }
+
+    /**
+     * Создает адрес перехода на страницу товара.
+     *
+     * @param itemId идентификатор товара
+     * @return адрес перехода на страницу товара
+     */
+    public static @NonNull String createUrlToItem(Long itemId) {
+        return '/' + TEMPLATE_ITEMS + '/' +  itemId;
+    }
+
+    /**
+     * Создает редирект на адрес перехода на страницу товара.
+     *
+     * @param itemId идентификатор товара
+     * @return редирект на адрес перехода на страницу товара
+     */
+    public static @NonNull String createRedirectUrlToItem(Long itemId) {
+        return REDIRECT + createUrlToItem(itemId);
+    }
 }

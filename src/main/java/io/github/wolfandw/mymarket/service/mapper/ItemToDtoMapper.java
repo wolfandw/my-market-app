@@ -8,10 +8,11 @@ import io.github.wolfandw.mymarket.model.Item;
  */
 public interface ItemToDtoMapper {
     /**
-     * Преобразует модельный товар в DTO-товар.
+     * Преобразует модельный товар в DTO-товар с количеством.
      *
      * @param item модельный товар
-     * @return DTO-товар
+     * @param count количество модельных товаров
+     * @return DTO-товар с количеством
      */
-    ItemDto mapItem(Item item);
+    ItemDto mapItem(Item item, int count);
 }

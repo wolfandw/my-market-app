@@ -73,9 +73,9 @@
                                 <input type="hidden" name="pageSize" th:value="${paging.pageSize()}">
                                 <input type="hidden" name="pageNumber" th:value="${paging.pageNumber()}">
                                 <button type="submit" class="btn btn-outline-secondary" name="action" value="MINUS">-</button>
-                                <span th:text="${cartItemsCount.getOrDefault(items[itemIdx].id(), 0)}"></span>
+                                <span th:text="${items[itemIdx].count()}"></span>
                                 <button type="submit" class="btn btn-outline-secondary" name="action" value="PLUS">+</button>
-                                <button type="submit" class="btn btn-warning ms-auto bi bi-cart4" name="action" value="PLUS" th:if="${cartItemsCount.getOrDefault(items[itemIdx].id(), 0)==0}"></button>
+                                <button type="submit" class="btn btn-warning ms-auto bi bi-cart4" name="action" value="PLUS" th:if="${items[itemIdx].count()==0}"></button>
                             </div>
                         </form>
                     </div>

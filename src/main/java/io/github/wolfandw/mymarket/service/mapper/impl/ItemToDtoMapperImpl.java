@@ -11,10 +11,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class ItemToDtoMapperImpl implements ItemToDtoMapper {
     @Override
-    public ItemDto mapItem(Item item) {
+    public ItemDto mapItem(Item item, int count) {
         return new ItemDto(item.getId(),
                 item.getTitle(),
                 item.getDescription(),
-                item.getPrice().longValue());
+                item.getPrice().longValue(),
+                count);
     }
 }

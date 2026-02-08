@@ -94,11 +94,14 @@ public class CartServiceImpl implements CartService {
                     }
 
                     cart.setTotal(total);
+                    cartItem.setCount(count);
+
                     if (count > 0) {
-                        cartItem.setCount(count);
                         return cartItemRepository.save(cartItem).then(cartRepository.save(cart)).then();
+                    } else if (cartItem.getId() != null) {
+                        return cartItemRepository.delete(cartItem).then(cartRepository.save(cart)).then();
                     }
-                    return cartItemRepository.delete(cartItem).then(cartRepository.save(cart)).then();
+                    return cartRepository.save(cart).then();
                 }
         );
     }
