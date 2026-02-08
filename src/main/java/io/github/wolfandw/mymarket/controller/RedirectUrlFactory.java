@@ -114,7 +114,7 @@ public class RedirectUrlFactory {
      *
      * @return редирект на адрес перехода на страницу заказов
      */
-    public static @NonNull String createRedirectUrlToOrders() {
+    public static String createRedirectUrlToOrders() {
         return REDIRECT + '/' + TEMPLATE_ORDERS;
     }
 

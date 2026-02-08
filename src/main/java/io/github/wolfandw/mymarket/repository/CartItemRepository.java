@@ -27,4 +27,11 @@ public interface CartItemRepository extends ReactiveCrudRepository<CartItem, Lon
      * @return список строк корзины.
      */
     Flux<CartItem> findAllByCartId(Long cartId);
+
+    /**
+     * Удаляет строки из корзины.
+     *
+     * @param cartId идентификатор корзины
+     */
+    Mono<Void> deleteAllByCartId(Long cartId);
 }

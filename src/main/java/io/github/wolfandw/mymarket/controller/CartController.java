@@ -39,11 +39,10 @@ public class CartController {
     /**
      * Возвращает шаблон и модель формы корзины.
      *
-     * @param model модель формы корзины
      * @return шаблон корзины
      */
     @GetMapping
-    public Mono<Rendering> getCart(Model model) {
+    public Mono<Rendering> getCart() {
         Mono<CartDto>         cartMono = cartService.getCart(DEFAULT_CART_ID);
         Flux<ItemDto> cartItemsFlux = cartService.getCartItems(DEFAULT_CART_ID);
         return Mono.just(
