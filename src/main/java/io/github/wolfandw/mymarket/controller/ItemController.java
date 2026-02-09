@@ -82,13 +82,13 @@ public class ItemController {
     @GetMapping("/{id}")
     public Mono<Rendering> getItem(@PathVariable Long id,
                           @RequestParam(value = PARAMETER_NEW_ITEM, required = false, defaultValue = "false") boolean newItem) {
-        Mono<ItemDto> itemDto = itemService.getItem(DEFAULT_CART_ID, id);
-        return Mono.just(
+        Mono<ItemDto> itemDtoMono = itemService.getItem(DEFAULT_CART_ID, id);
+        return itemDtoMono.map(itemDto ->
                 Rendering.view(TEMPLATE_ITEM)
                         .modelAttribute(ATTRIBUTE_ITEM, itemDto)
                         .modelAttribute(ATTRIBUTE_NEW_ITEM, newItem)
                         .build()
-        );
+        ).switchIfEmpty(Mono.just(Rendering.redirectTo(RedirectUrlFactory.createUrlToItems()).build()));
     }
 
     /**

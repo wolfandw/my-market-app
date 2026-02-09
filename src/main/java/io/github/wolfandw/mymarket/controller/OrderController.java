@@ -43,11 +43,10 @@ public class OrderController {
     /**
      * Возвращает страницу заказов.
      *
-     * @param model модель заказа
      * @return шаблон заказов
      */
     @GetMapping
-    public Mono<Rendering> getOrders(Model model) {
+    public Mono<Rendering> getOrders() {
         Flux<OrderDto> ordersFlux = orderService.getOrders();
         return Mono.just(Rendering.view(TEMPLATE_ORDERS)
                 .modelAttribute(ATTRIBUTE_ORDERS, ordersFlux)
@@ -66,10 +65,11 @@ public class OrderController {
                                     @RequestParam(value = PARAMETER_NEW_ORDER, required = false, defaultValue = "false") boolean newOrder) {
         Mono<OrderDto>         orderMono = orderService.getOrder(id, newOrder);
         Flux<ItemDto>         orderItemsFlux = orderService.getOrderItems(id);
-        return Mono.just(Rendering.view(TEMPLATE_ORDER)
-                        .modelAttribute(ATTRIBUTE_ORDER, orderMono)
+        return orderMono.map(orderDto -> Rendering.view(TEMPLATE_ORDER)
+                        .modelAttribute(ATTRIBUTE_ORDER, orderDto)
                         .modelAttribute(ATTRIBUTE_ITEMS, orderItemsFlux)
                         .modelAttribute(ATTRIBUTE_NEW_ORDER, newOrder)
-                        .build());
+                        .build()
+        ).switchIfEmpty(Mono.just(Rendering.redirectTo(RedirectUrlFactory.createUrlToOrders()).build()));
     }
 }

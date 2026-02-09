@@ -110,12 +110,21 @@ public class RedirectUrlFactory {
     }
 
     /**
+     * Создает адрес страницы заказов.
+     *
+     * @return адрес перехода на страницу заказов
+     */
+    public static String createUrlToOrders() {
+        return '/' + TEMPLATE_ORDERS;
+    }
+
+    /**
      * Создает редирект на адрес страницы заказов.
      *
      * @return редирект на адрес перехода на страницу заказов
      */
     public static String createRedirectUrlToOrders() {
-        return REDIRECT + '/' + TEMPLATE_ORDERS;
+        return REDIRECT + createUrlToOrders();
     }
 
     /**
