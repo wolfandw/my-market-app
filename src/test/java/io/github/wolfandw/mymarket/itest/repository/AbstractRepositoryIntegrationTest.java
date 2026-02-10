@@ -20,11 +20,11 @@ public abstract class AbstractRepositoryIntegrationTest {
     @Autowired
     protected ItemRepository itemRepository;
 
-//    /**
-//     * Репозиторий корзин.
-//     */
-//    @Autowired
-//    protected CartRepository cartRepository;
+    /**
+     * Репозиторий корзин.
+     */
+    @Autowired
+    protected CartRepository cartRepository;
 
     /**
      * Репозиторий строк корзин.
@@ -32,15 +32,15 @@ public abstract class AbstractRepositoryIntegrationTest {
     @Autowired
     protected CartItemRepository cartItemRepository;
 
-//    /**
-//     * Репозиторий заказов.
-//     */
-//    @Autowired
-//    protected OrderRepository orderRepository;
-//
-//    /**
-//     * Репозиторий строк заказа.
-//     */
-//    @Autowired
-//    protected OrderItemRepository orderItemRepository;
+    /**
+     * Репозиторий заказов.
+     */
+    @Autowired
+    protected OrderRepository orderRepository;
+
+    /**
+     * Репозиторий строк заказа.
+     */
+    @Autowired
+    protected OrderItemRepository orderItemRepository;
 }
