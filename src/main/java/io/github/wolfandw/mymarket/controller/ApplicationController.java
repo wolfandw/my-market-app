@@ -20,7 +20,7 @@ public class ApplicationController {
     /**
      * Создает контроллер приложения.
      *
-     * @param buyService  сервис корзин
+     * @param buyService сервис корзин
      */
     public ApplicationController(BuyService buyService) {
         this.buyService = buyService;
@@ -44,7 +44,7 @@ public class ApplicationController {
     @PostMapping("/buy")
     public Mono<String> buy() {
         return buyService.buy(DEFAULT_CART_ID).map(orderDto ->
-                RedirectUrlFactory.createRedirectUrlToNewOrder(orderDto.id())).
+                        RedirectUrlFactory.createRedirectUrlToNewOrder(orderDto.id())).
                 switchIfEmpty(Mono.just(RedirectUrlFactory.createRedirectUrlToOrders()));
     }
 }

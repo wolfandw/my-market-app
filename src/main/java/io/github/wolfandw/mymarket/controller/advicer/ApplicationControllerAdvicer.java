@@ -2,7 +2,6 @@ package io.github.wolfandw.mymarket.controller.advicer;
 
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.dao.DataAccessException;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.reactive.result.view.Rendering;
@@ -20,7 +19,7 @@ public class ApplicationControllerAdvicer {
     /**
      * Обрабатывает исключение MethodArgumentTypeMismatchException.
      *
-     * @param e        исключение типа IllegalArgumentException
+     * @param e исключение типа IllegalArgumentException
      * @return имя шаблона ошибки
      */
     @ExceptionHandler(IllegalArgumentException.class)
@@ -36,7 +35,7 @@ public class ApplicationControllerAdvicer {
     /**
      * Обрабатывает исключение DataAccessException.
      *
-     * @param e        исключение типа DataAccessException
+     * @param e исключение типа DataAccessException
      * @return имя шаблона ошибки
      */
     @ExceptionHandler(DataAccessException.class)
@@ -52,7 +51,7 @@ public class ApplicationControllerAdvicer {
     /**
      * Обрабатывает непредвиденные исключения.
      *
-     * @param e        исключение типа Exception
+     * @param e исключение типа Exception
      * @return имя шаблона ошибки
      */
     @ExceptionHandler(RuntimeException.class)
@@ -68,7 +67,7 @@ public class ApplicationControllerAdvicer {
     /**
      * Обрабатывает непредвиденные исключения.
      *
-     * @param e        исключение типа Exception
+     * @param e исключение типа Exception
      * @return имя шаблона ошибки
      */
     @ExceptionHandler(Exception.class)

@@ -2,7 +2,11 @@ package io.github.wolfandw.mymarket.controller;
 
 import io.github.wolfandw.mymarket.dto.*;
 import io.github.wolfandw.mymarket.service.CartService;
+import io.github.wolfandw.mymarket.service.EntityImageService;
 import io.github.wolfandw.mymarket.service.ItemService;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.result.view.Rendering;
@@ -34,16 +38,19 @@ public class ItemController {
 
     private final ItemService itemService;
     private final CartService cartService;
+    private final EntityImageService entityImageService;
 
     /**
      * Создает экземпляр контроллера товаров.
      *
-     * @param itemService сервис товаров
-     * @param cartService сервис корзин
+     * @param itemService        сервис товаров
+     * @param cartService        сервис корзин
+     * @param entityImageService сервис картинок товаров.
      */
-    public ItemController(ItemService itemService, CartService cartService) {
+    public ItemController(ItemService itemService, CartService cartService, EntityImageService entityImageService) {
         this.itemService = itemService;
         this.cartService = cartService;
+        this.entityImageService = entityImageService;
     }
 
     /**
@@ -81,14 +88,14 @@ public class ItemController {
      */
     @GetMapping("/{id}")
     public Mono<Rendering> getItem(@PathVariable Long id,
-                          @RequestParam(value = PARAMETER_NEW_ITEM, required = false, defaultValue = "false") boolean newItem) {
+                                   @RequestParam(value = PARAMETER_NEW_ITEM, required = false, defaultValue = "false") boolean newItem) {
         Mono<ItemDto> itemDtoMono = itemService.getItem(DEFAULT_CART_ID, id);
         return itemDtoMono.map(itemDto ->
                 Rendering.view(TEMPLATE_ITEM)
-                        .modelAttribute(ATTRIBUTE_ITEM, itemDto)
+                        .modelAttribute(ATTRIBUTE_ITEM, itemDtoMono)
                         .modelAttribute(ATTRIBUTE_NEW_ITEM, newItem)
                         .build()
-        ).switchIfEmpty(Mono.just(Rendering.redirectTo(RedirectUrlFactory.createUrlToItems()).build()));
+        ).defaultIfEmpty(Rendering.redirectTo(RedirectUrlFactory.createUrlToItems()).build());
     }
 
     /**
@@ -105,9 +112,9 @@ public class ItemController {
         Integer pageSizeParamValue = request.getPageSize();
         return cartService.changeItemCount(DEFAULT_CART_ID, request.getId(), request.getAction()).
                 thenReturn(RedirectUrlFactory.createRedirectUrlToItems(searchParamValue,
-                                                                        sortParamValue,
-                                                                        pageNumberParamValue,
-                                                                        pageSizeParamValue));
+                        sortParamValue,
+                        pageNumberParamValue,
+                        pageSizeParamValue));
     }
 
     /**
@@ -136,15 +143,40 @@ public class ItemController {
     /**
      * Создает новый товар и возвращает страницу товара.
      *
-     * @param request параметры формы - название, описание, цена, изображение товара
+     * @param request свойства нового товара
      * @return страница созданного товара.
      */
     @PostMapping("/new")
-    public Mono<String> saveNewItem(@ModelAttribute ItemNewFormRequest request) {
+    public Mono<Rendering> saveNewItem(@ModelAttribute ItemNewFormRequest request) {
         Mono<ItemDto> newItemDtoMono = itemService.createItem(request.getTitle(),
-                request.getDescription(),
-                BigDecimal.valueOf(request.getPrice()),
-                request.getImageFile());
-        return newItemDtoMono.map(newItemDto -> RedirectUrlFactory.createRedirectUrlToNewItem(newItemDto.id()));
+                request.getDescription(), BigDecimal.valueOf(request.getPrice()));
+        return newItemDtoMono.map(newItemDto ->
+                Rendering.redirectTo(RedirectUrlFactory.createUrlToNewItem(newItemDto.id())).build());
+    }
+
+    /**
+     * Получает изображение товара.
+     *
+     * @param id идентификатор товара
+     * @return изображение товара
+     */
+    @GetMapping(value = "/{id}/image")
+    public Mono<ResponseEntity<byte[]>> getItemImage(@PathVariable Long id) {
+        return entityImageService.getEntityImage(id).map(image ->
+                ResponseEntity.ok().contentType(image.getMediaType()).body(image.getData()));
+    }
+
+    /**
+     * Устанавливает изображение товара.
+     *
+     * @param id        идентификатор товара
+     * @param imageFile файл изображения
+     * @return редирект на страницу товара
+     */
+    @PostMapping(path = "/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Mono<Rendering> setItemImage(@PathVariable Long id,
+                                        @RequestPart("imageFile") Mono<FilePart> imageFile) {
+        return entityImageService.setEntityImage(id, imageFile).
+                thenReturn(Rendering.redirectTo(RedirectUrlFactory.createUrlToItem(id)).build());
     }
 }

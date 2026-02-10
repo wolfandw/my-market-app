@@ -31,8 +31,15 @@
     <div class="row p-2">
         <div class="col">
             <div class="card">
-                <img class="p-2" th:src="${item.imgData()}" alt="Нет изображения" width="300" height="300">
+                <img class="p-2" th:src="@{|/items/${item.id()}/image|}" alt="Нет изображения" width="200" height="200">
                 <div class="card-body">
+                    <form th:action="@{|/items/${item.id()}/image|}" method="post" enctype="multipart/form-data">
+                        <div class="hstack gap-3">
+                            <input class="form-control me-2 mw-100" type="file" accept=".jpg, .jpeg, .png" placeholder="Изображение..."
+                                   aria-label="Изображение" name="imageFile" th:value="${imageFile}"/>
+                            <button type="submit" class="btn btn-warning ms-auto" name="save">Сохранить</button>
+                        </div>
+                    </form>
                     <h5 class="card-title" th:text="${item.title()}"></h5>
                     <h5>
                         <span class="badge text-bg-success justify-content-end"

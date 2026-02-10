@@ -31,9 +31,9 @@ public class BuyServiceImpl implements BuyService {
     /**
      * Создает сервис покупок.
      *
-     * @param orderRepository репозиторий заказов.
+     * @param orderRepository     репозиторий заказов.
      * @param orderItemRepository репозиторий заказов.
-     * @param cartRepository репозиторий корзин
+     * @param cartRepository      репозиторий корзин
      */
     public BuyServiceImpl(OrderRepository orderRepository,
                           OrderItemRepository orderItemRepository,
@@ -58,9 +58,9 @@ public class BuyServiceImpl implements BuyService {
 
                     return cartRepository.save(cart).then(orderRepository.save(order)).map(newOrder ->
                                     orderItemRepository.saveAll(cartItemsFlux.map(cartItem ->
-                                    new OrderItem(newOrder.getId(), cartItem.getItemId(), cartItem.getCount()))).
-                                    then(cartItemRepository.deleteAllByCartId(cartId)).
-                                    thenReturn(new OrderDto(newOrder.getId(), List.of(), newOrder.getTotalSum().longValue())))
+                                                    new OrderItem(newOrder.getId(), cartItem.getItemId(), cartItem.getCount()))).
+                                            then(cartItemRepository.deleteAllByCartId(cartId)).
+                                            thenReturn(new OrderDto(newOrder.getId(), List.of(), newOrder.getTotalSum().longValue())))
                             .flatMap(Function.identity());
                 }).flatMap(Function.identity());
     }

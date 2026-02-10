@@ -3,7 +3,7 @@ package io.github.wolfandw.mymarket.dto;
 /**
  * Параметры запроса изменения количества из формы товаров.
  */
-public class ItemsPageChangeCountFormRequest extends  ItemsPageFormRequest {
+public class ItemsPageChangeCountFormRequest extends ItemsPageFormRequest {
     private Long id;
     private String action;
 

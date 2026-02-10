@@ -2,11 +2,8 @@ package io.github.wolfandw.mymarket.service;
 
 import io.github.wolfandw.mymarket.dto.CartDto;
 import io.github.wolfandw.mymarket.dto.ItemDto;
-import io.github.wolfandw.mymarket.model.Cart;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import java.util.Map;
 
 /**
  * Сервис для работы с корзинами.

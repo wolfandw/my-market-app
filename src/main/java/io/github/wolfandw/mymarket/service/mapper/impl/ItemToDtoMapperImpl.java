@@ -18,4 +18,9 @@ public class ItemToDtoMapperImpl implements ItemToDtoMapper {
                 item.getPrice().longValue(),
                 count);
     }
+
+    @Override
+    public ItemDto mapItem(Item item) {
+        return mapItem(item, 0);
+    }
 }

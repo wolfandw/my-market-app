@@ -27,10 +27,10 @@ public class OrderServiceImpl implements OrderService {
     /**
      * Создает сервис работы с заказами товаров.
      *
-     * @param orderRepository      репозиторий заказов
-     * @param orderItemRepository  репозиторий заказов
-     * @param itemRepository  репозиторий товаров
-     * @param itemToItemDtoMapper  маппер строк заказов
+     * @param orderRepository     репозиторий заказов
+     * @param orderItemRepository репозиторий заказов
+     * @param itemRepository      репозиторий товаров
+     * @param itemToItemDtoMapper маппер строк заказов
      */
     public OrderServiceImpl(OrderRepository orderRepository,
                             OrderItemRepository orderItemRepository,
@@ -46,8 +46,8 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     public Flux<OrderDto> getOrders() {
         return orderRepository.findAll().map(order ->
-            getOrderItems(order.getId()).collectList().
-                    map(orderItems -> new OrderDto(order.getId(), orderItems, order.getTotalSum().longValue()))).
+                        getOrderItems(order.getId()).collectList().
+                                map(orderItems -> new OrderDto(order.getId(), orderItems, order.getTotalSum().longValue()))).
                 flatMap(orderDto -> orderDto);
     }
 
@@ -55,7 +55,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     public Mono<OrderDto> getOrder(Long id, boolean newOrder) {
         return orderRepository.findById(id).map(order ->
-            new OrderDto(order.getId(), List.of(), order.getTotalSum().longValue()));
+                new OrderDto(order.getId(), List.of(), order.getTotalSum().longValue()));
     }
 
     @Override

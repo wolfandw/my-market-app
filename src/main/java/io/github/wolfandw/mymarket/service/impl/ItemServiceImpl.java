@@ -12,12 +12,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * Реализация {@link ItemService}.
@@ -44,9 +44,9 @@ public class ItemServiceImpl implements ItemService {
     /**
      * Создает сервис работы с товарами.
      *
-     * @param itemRepository  репозиторий товаров
+     * @param itemRepository     репозиторий товаров
      * @param cartItemRepository репозиторий строк корзин
-     * @param itemToDtoMapper маппер товаров на DTO-представление товаров.
+     * @param itemToDtoMapper    маппер товаров на DTO-представление товаров.
      */
     public ItemServiceImpl(ItemRepository itemRepository,
                            CartItemRepository cartItemRepository,
@@ -61,20 +61,23 @@ public class ItemServiceImpl implements ItemService {
     public Flux<ItemDto> getItems(Long cartId, String search, String sort, Integer pageNumber, Integer pageSize) {
         Flux<Item> page = getPage(search, sort, pageNumber, pageSize);
         return page.map(item -> cartItemRepository.findByCartIdAndItemId(cartId, item.getId()).
-                map(ci -> itemToItemDtoMapper.mapItem(item, ci.getCount())).
-                switchIfEmpty(Mono.just(itemToItemDtoMapper.mapItem(item, 0)))).
-                flatMap(itemDto -> itemDto);
+                        map(ci -> itemToItemDtoMapper.mapItem(item, ci.getCount())).
+                        defaultIfEmpty(itemToItemDtoMapper.mapItem(item))).
+                flatMap(Function.identity());
     }
 
     @Override
     @Transactional(readOnly = true)
     public Mono<ItemsPagingDto> getItemsPaging(String search, Integer pageNumber, Integer pageSize) {
-        Mono<Long> itemsCount = search == null || search.isEmpty() ? itemRepository.count() :
+        Mono<Long> itemsCount = search == null || search.isEmpty() ?
+                itemRepository.count() :
                 itemRepository.countByTitleContainingOrDescriptionContainingAllIgnoreCase(search, search);
         return itemsCount.map(count -> {
             int pagingPageNumber = pageNumber == null ? PAGE_NUMBER_DEFAULT : pageNumber;
             int pagingPageSize = pageSize == null ? PAGE_SIZE_DEFAULT : pageSize;
-            return new ItemsPagingDto(pagingPageSize, pagingPageNumber, pagingPageNumber > 1,
+            return new ItemsPagingDto(pagingPageSize,
+                    pagingPageNumber,
+                    pagingPageNumber > 1,
                     (long) pagingPageNumber * pagingPageSize < count);
         });
     }
@@ -82,32 +85,36 @@ public class ItemServiceImpl implements ItemService {
     @Override
     @Transactional(readOnly = true)
     public Mono<ItemDto> getItem(Long cartId, Long id) {
-        return itemRepository.findById(id).map(item -> cartItemRepository.findByCartIdAndItemId(cartId, item.getId()).
-                map(ci -> itemToItemDtoMapper.mapItem(item, ci.getCount())).
-                switchIfEmpty(Mono.just(itemToItemDtoMapper.mapItem(item, 0)))).flatMap(itemDto -> itemDto);
+        return itemRepository.findById(id).
+                map(item -> cartItemRepository.findByCartIdAndItemId(cartId, item.getId()).
+                        map(ci -> itemToItemDtoMapper.mapItem(item, ci.getCount())).
+                        defaultIfEmpty(itemToItemDtoMapper.mapItem(item))).
+                flatMap(Function.identity());
     }
 
     @Override
     @Transactional
-    public Mono<ItemDto> createItem(String title, String description, BigDecimal price, MultipartFile imageFile) {
-        //entityImageService.updateEntityImage(newItemDto.id(), imageFile);
+    public Mono<ItemDto> createItem(String title, String description, BigDecimal price) {
         Item item = new Item();
         item.setTitle(title);
         item.setDescription(description);
         item.setPrice(price);
-        return itemRepository.save(item).map(newItem -> itemToItemDtoMapper.mapItem(newItem, 0));
+        return itemRepository.save(item).map(itemToItemDtoMapper::mapItem);
     }
 
     private Flux<Item> getPage(String search, String sort, Integer pageNumber, Integer pageSize) {
         pageNumber = pageNumber == null ? PAGE_NUMBER_DEFAULT : pageNumber;
         pageSize = pageSize == null ? PAGE_SIZE_DEFAULT : pageSize;
         sort = sort == null ? SORT_DEFAULT : sort;
-        Pageable pageable = PageRequest.of(pageNumber - PAGE_NUMBER_DELTA, pageSize, SORT_BY.getOrDefault(sort, Sort.unsorted()));
+        Pageable pageable = PageRequest.of(pageNumber - PAGE_NUMBER_DELTA,
+                pageSize,
+                SORT_BY.getOrDefault(sort, Sort.unsorted()));
         return getPage(search, pageable);
     }
 
     private Flux<Item> getPage(String search, Pageable pageable) {
-        return search == null || search.isEmpty() ? itemRepository.findAllBy(pageable) :
+        return search == null || search.isEmpty() ?
+                itemRepository.findAllBy(pageable) :
                 itemRepository.findByTitleContainingOrDescriptionContainingAllIgnoreCase(search, search, pageable);
     }
 }

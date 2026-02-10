@@ -4,7 +4,6 @@ import io.github.wolfandw.mymarket.dto.ItemDto;
 import io.github.wolfandw.mymarket.dto.OrderDto;
 import io.github.wolfandw.mymarket.service.OrderService;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -56,20 +55,20 @@ public class OrderController {
     /**
      * Возвращает страницу заказа.
      *
-     * @param id  идентификатор заказа
+     * @param id       идентификатор заказа
      * @param newOrder признак нового заказа
      * @return шаблон заказа
      */
     @GetMapping("/{id}")
     public Mono<Rendering> getOrder(@PathVariable Long id,
                                     @RequestParam(value = PARAMETER_NEW_ORDER, required = false, defaultValue = "false") boolean newOrder) {
-        Mono<OrderDto>         orderMono = orderService.getOrder(id, newOrder);
-        Flux<ItemDto>         orderItemsFlux = orderService.getOrderItems(id);
+        Mono<OrderDto> orderMono = orderService.getOrder(id, newOrder);
+        Flux<ItemDto> orderItemsFlux = orderService.getOrderItems(id);
         return orderMono.map(orderDto -> Rendering.view(TEMPLATE_ORDER)
-                        .modelAttribute(ATTRIBUTE_ORDER, orderDto)
-                        .modelAttribute(ATTRIBUTE_ITEMS, orderItemsFlux)
-                        .modelAttribute(ATTRIBUTE_NEW_ORDER, newOrder)
-                        .build()
+                .modelAttribute(ATTRIBUTE_ORDER, orderDto)
+                .modelAttribute(ATTRIBUTE_ITEMS, orderItemsFlux)
+                .modelAttribute(ATTRIBUTE_NEW_ORDER, newOrder)
+                .build()
         ).switchIfEmpty(Mono.just(Rendering.redirectTo(RedirectUrlFactory.createUrlToOrders()).build()));
     }
 }

@@ -1,11 +1,20 @@
 package io.github.wolfandw.mymarket.service.impl;
 
 import io.github.wolfandw.mymarket.service.FileStorageService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.UrlResource;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.core.io.buffer.DefaultDataBufferFactory;
+import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -15,6 +24,10 @@ import java.nio.file.Paths;
  */
 @Service
 public class FileStorageServiceImpl implements FileStorageService {
+    private static final Logger LOG = LoggerFactory.getLogger(FileStorageServiceImpl.class);
+    private static final int BUFFER_SIZE = 4096;
+    private static final int MAX_BYTES = 5 * 1024 * 1024; // 5МБ
+
     private final String fileDir;
 
     /**
@@ -27,35 +40,74 @@ public class FileStorageServiceImpl implements FileStorageService {
     }
 
     @Override
-    public byte[] readFile(String fileName) throws IOException {
-        Path pathDir = Paths.get(fileDir);
-        if (Files.exists(pathDir)) {
-            Path filePath = pathDir.resolve(fileName).normalize();
-            if (Files.exists(filePath)) {
-                return Files.readAllBytes(filePath);
+    public Mono<byte[]> readFile(String fileName) {
+        return getResource(fileName).flatMap(resource -> {
+            if (resource.exists() || resource.isReadable()) {
+                Flux<DataBuffer> dataBufferFlux = DataBufferUtils.read(resource,
+                        new DefaultDataBufferFactory(), BUFFER_SIZE);
+                Mono<DataBuffer> dataBufferMono = DataBufferUtils.join(dataBufferFlux);
+                return dataBufferMono.map(dataBuffer -> {
+                    try {
+                        int readable = dataBuffer.readableByteCount();
+                        if (readable > 0 && readable <= MAX_BYTES) {
+                            byte[] content = new byte[readable];
+                            dataBuffer.read(content);
+                            return content;
+                        }
+                    } finally {
+                        DataBufferUtils.release(dataBuffer);
+                    }
+                    return new byte[0];
+                });
             }
-        }
-        return new byte[0];
+            return Mono.just(new byte[0]);
+        });
     }
 
     @Override
-    public void writeFile(String fileName, MultipartFile file) throws IOException {
+    public Mono<String> writeFile(String fileName, FilePart file) {
         Path pathDir = Paths.get(fileDir);
         if (!Files.exists(pathDir)) {
-            Files.createDirectories(pathDir);
+            try {
+                Files.createDirectories(pathDir);
+            } catch (IOException e) {
+                LOG.error("Файл не записан {}", fileName, e);
+            }
         }
         Path filePath = pathDir.resolve(fileName);
-        file.transferTo(filePath);
+        return file.transferTo(filePath).thenReturn(fileName);
     }
 
     @Override
-    public void deleteFile(String fileName) throws IOException {
+    public Mono<Void> deleteFile(String fileName) {
         Path pathDir = Paths.get(fileDir);
         if (Files.exists(pathDir)) {
             Path filePath = pathDir.resolve(fileName).normalize();
             if (Files.exists(filePath)) {
-                Files.delete(filePath);
+                return Mono.fromRunnable(() -> {
+                    try {
+                        Files.delete(filePath);
+                    } catch (IOException e) {
+                        LOG.error("Файл не удален {}", fileName, e);
+                    }
+                }).then();
             }
         }
+        return Mono.empty();
+    }
+
+    private Mono<UrlResource> getResource(String fileName) {
+        Path pathDir = Paths.get(fileDir);
+        if (Files.exists(pathDir)) {
+            Path filePath = pathDir.resolve(fileName).normalize();
+            if (Files.exists(filePath)) {
+                try {
+                    return Mono.just(new UrlResource(filePath.toUri()));
+                } catch (MalformedURLException e) {
+                    LOG.error("Путь к файлу {} некорректный", fileName, e);
+                }
+            }
+        }
+        return Mono.empty();
     }
 }

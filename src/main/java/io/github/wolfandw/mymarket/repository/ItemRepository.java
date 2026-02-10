@@ -2,7 +2,6 @@ package io.github.wolfandw.mymarket.repository;
 
 import io.github.wolfandw.mymarket.model.Item;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.r2dbc.repository.R2dbcRepository;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;

@@ -5,8 +5,10 @@ import io.github.wolfandw.mymarket.dto.ItemDto;
 import io.github.wolfandw.mymarket.dto.ItemPageChangeCountFormRequest;
 import io.github.wolfandw.mymarket.service.CartService;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.reactive.result.view.Rendering;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -43,7 +45,7 @@ public class CartController {
      */
     @GetMapping
     public Mono<Rendering> getCart() {
-        Mono<CartDto>         cartMono = cartService.getCart(DEFAULT_CART_ID);
+        Mono<CartDto> cartMono = cartService.getCart(DEFAULT_CART_ID);
         Flux<ItemDto> cartItemsFlux = cartService.getCartItems(DEFAULT_CART_ID);
         return Mono.just(
                 Rendering.view(TEMPLATE_CART)

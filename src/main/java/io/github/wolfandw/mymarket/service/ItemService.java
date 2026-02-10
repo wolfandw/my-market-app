@@ -2,13 +2,10 @@ package io.github.wolfandw.mymarket.service;
 
 import io.github.wolfandw.mymarket.dto.ItemDto;
 import io.github.wolfandw.mymarket.dto.ItemsPagingDto;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
-import java.util.Map;
 
 /**
  * Сервис для работы с товарами.
@@ -51,8 +48,7 @@ public interface ItemService {
      * @param title наименование товара
      * @param description описание товара
      * @param price цена товара
-     * @param imageFile  файл картинки
      * @return DTO-представление созданного товара
      */
-    Mono<ItemDto> createItem(String title, String description, BigDecimal price, MultipartFile imageFile);
+    Mono<ItemDto> createItem(String title, String description, BigDecimal price);
 }

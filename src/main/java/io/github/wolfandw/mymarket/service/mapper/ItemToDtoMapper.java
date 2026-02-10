@@ -15,4 +15,12 @@ public interface ItemToDtoMapper {
      * @return DTO-товар с количеством
      */
     ItemDto mapItem(Item item, int count);
+
+    /**
+     * Преобразует модельный товар в DTO-товар.
+     *
+     * @param item модельный товар
+     * @return DTO-товар
+     */
+    ItemDto mapItem(Item item);
 }
