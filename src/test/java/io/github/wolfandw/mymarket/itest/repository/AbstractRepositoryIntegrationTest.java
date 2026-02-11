@@ -1,13 +1,17 @@
 package io.github.wolfandw.mymarket.itest.repository;
 
+import io.github.wolfandw.mymarket.itest.configuration.IntegrationTestConfiguration;
+import io.github.wolfandw.mymarket.itest.configuration.TrxStepVerifier;
 import io.github.wolfandw.mymarket.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.r2dbc.test.autoconfigure.DataR2dbcTest;
+import org.springframework.context.annotation.Import;
 
 /**
  * Абстрактный интеграционный тест репозиториев.
  */
 @DataR2dbcTest
+@Import(IntegrationTestConfiguration.class)
 public abstract class AbstractRepositoryIntegrationTest {
     /**
      * Идентификатор корзины по умолчанию.
@@ -43,4 +47,7 @@ public abstract class AbstractRepositoryIntegrationTest {
      */
     @Autowired
     protected OrderItemRepository orderItemRepository;
+
+    @Autowired
+    protected TrxStepVerifier trxStepVerifier;
 }

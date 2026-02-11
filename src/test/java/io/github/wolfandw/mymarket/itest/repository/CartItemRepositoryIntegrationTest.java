@@ -14,10 +14,10 @@ public class CartItemRepositoryIntegrationTest extends AbstractRepositoryIntegra
         StepVerifier.create(cartItemRepository.findAllByCartId(DEFAULT_CART_ID).collectList()).
                 assertNext(cartItemsCount -> {
                     assertThat(cartItemsCount).size().isEqualTo(12);
-                    assertThat(cartItemsCount.getFirst().getItemId()).isEqualTo(2L);
-                    assertThat(cartItemsCount.getFirst().getCount()).isEqualTo(60);
-                    assertThat(cartItemsCount.getLast().getItemId()).isEqualTo(13L);
-                    assertThat(cartItemsCount.getLast().getCount()).isEqualTo(80);
+                    assertThat(cartItemsCount.get(0).getItemId()).isEqualTo(2L);
+                    assertThat(cartItemsCount.get(0).getCount()).isEqualTo(60);
+                    assertThat(cartItemsCount.get(11).getItemId()).isEqualTo(13L);
+                    assertThat(cartItemsCount.get(11).getCount()).isEqualTo(80);
                 }).verifyComplete();
     }
 
@@ -30,9 +30,9 @@ public class CartItemRepositoryIntegrationTest extends AbstractRepositoryIntegra
         }).verifyComplete();
     }
 
-    //@Test
+    @Test
     void deleteAllByCartIdTest() {
-        StepVerifier.create(cartItemRepository.deleteAllByCartId(DEFAULT_CART_ID)).
+        trxStepVerifier.create(cartItemRepository.deleteAllByCartId(DEFAULT_CART_ID)).
                 expectNextCount(0).verifyComplete();
     }
 }

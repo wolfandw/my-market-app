@@ -4,7 +4,6 @@ import io.github.wolfandw.mymarket.service.FileStorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.UrlResource;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.core.io.buffer.DefaultDataBufferFactory;
@@ -14,7 +13,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -41,10 +39,11 @@ public class FileStorageServiceImpl implements FileStorageService {
 
     @Override
     public Mono<byte[]> readFile(String fileName) {
-        return getResource(fileName).flatMap(resource -> {
-            if (resource.exists() || resource.isReadable()) {
-                Flux<DataBuffer> dataBufferFlux = DataBufferUtils.read(resource,
-                        new DefaultDataBufferFactory(), BUFFER_SIZE);
+        Path pathDir = Paths.get(fileDir);
+        if (Files.exists(pathDir)) {
+            Path filePath = pathDir.resolve(fileName).normalize();
+            if (Files.exists(filePath)) {
+                Flux<DataBuffer> dataBufferFlux = DataBufferUtils.read(filePath, new DefaultDataBufferFactory(), BUFFER_SIZE);
                 Mono<DataBuffer> dataBufferMono = DataBufferUtils.join(dataBufferFlux);
                 return dataBufferMono.map(dataBuffer -> {
                     try {
@@ -61,7 +60,8 @@ public class FileStorageServiceImpl implements FileStorageService {
                 });
             }
             return Mono.just(new byte[0]);
-        });
+        }
+        return Mono.empty();
     }
 
     @Override
@@ -91,21 +91,6 @@ public class FileStorageServiceImpl implements FileStorageService {
                         LOG.error("Файл не удален {}", fileName, e);
                     }
                 }).then();
-            }
-        }
-        return Mono.empty();
-    }
-
-    private Mono<UrlResource> getResource(String fileName) {
-        Path pathDir = Paths.get(fileDir);
-        if (Files.exists(pathDir)) {
-            Path filePath = pathDir.resolve(fileName).normalize();
-            if (Files.exists(filePath)) {
-                try {
-                    return Mono.just(new UrlResource(filePath.toUri()));
-                } catch (MalformedURLException e) {
-                    LOG.error("Путь к файлу {} некорректный", fileName, e);
-                }
             }
         }
         return Mono.empty();
