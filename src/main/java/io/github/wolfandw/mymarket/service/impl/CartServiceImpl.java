@@ -5,10 +5,9 @@ import io.github.wolfandw.mymarket.dto.ItemDto;
 import io.github.wolfandw.mymarket.model.Cart;
 import io.github.wolfandw.mymarket.model.CartItem;
 import io.github.wolfandw.mymarket.model.Item;
-import io.github.wolfandw.mymarket.repository.CartItemRepository;
-import io.github.wolfandw.mymarket.repository.CartRepository;
-import io.github.wolfandw.mymarket.repository.ItemRepository;
+import io.github.wolfandw.mymarket.repository.*;
 import io.github.wolfandw.mymarket.service.CartService;
+import io.github.wolfandw.mymarket.service.EntityImageService;
 import io.github.wolfandw.mymarket.service.mapper.ItemToDtoMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +30,7 @@ public class CartServiceImpl implements CartService {
     private final CartItemRepository cartItemRepository;
     private final ItemRepository itemRepository;
     private final ItemToDtoMapper itemToItemDtoMapper;
+    private final EntityImageService entityImageService;
 
     /**
      * Создает сервис работы с корзинами.
@@ -39,16 +39,19 @@ public class CartServiceImpl implements CartService {
      * @param cartItemRepository репозиторий строк корзин
      * @param itemRepository     репозиторий товаров
      * @param itemToItemDtoMapper    маппер товаров
+     * @param entityImageService сервис картинок товаров.
      */
     public CartServiceImpl(CartRepository cartRepository,
                            CartItemRepository cartItemRepository,
                            ItemRepository itemRepository,
-                           ItemToDtoMapper itemToItemDtoMapper
+                           ItemToDtoMapper itemToItemDtoMapper,
+                           EntityImageService entityImageService
     ) {
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
         this.itemRepository = itemRepository;
         this.itemToItemDtoMapper = itemToItemDtoMapper;
+        this.entityImageService = entityImageService;
     }
 
     @Override
@@ -71,7 +74,7 @@ public class CartServiceImpl implements CartService {
     @Transactional
     public Mono<Void> changeItemCount(Long cartId, Long itemId, String action) {
         Mono<Item> itemMono = itemRepository.findById(itemId);
-        Mono<Cart> cartMono = cartRepository.findById(cartId).switchIfEmpty(cartRepository.save(new Cart(cartId)));
+        Mono<Cart> cartMono = cartRepository.findById(cartId).switchIfEmpty(Mono.defer(() -> cartRepository.save(new Cart(cartId))));
         Mono<CartItem> cartItemMono = cartItemRepository.findByCartIdAndItemId(cartId, itemId).
                 defaultIfEmpty(createCartItem(cartId, itemId));
 

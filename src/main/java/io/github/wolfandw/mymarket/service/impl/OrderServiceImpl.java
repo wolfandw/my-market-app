@@ -59,6 +59,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Flux<ItemDto> getOrderItems(Long orderId) {
         return orderItemRepository.findAllByOrderId(orderId).map(orderItem ->
                         itemRepository.findById(orderItem.getItemId()).
