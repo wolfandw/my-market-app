@@ -22,6 +22,7 @@ public class OrderServiceIntegrationTest extends AbstractIntegrationTest {
                     assertThat(actualOrder.items().size()).isEqualTo(12);
                 }).verifyComplete();
     }
+
     @Test
     void getOrderItemsTest() {
         Long orderId = 1L;

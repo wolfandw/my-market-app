@@ -109,9 +109,7 @@ public class ItemControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void addNewItemTest() {
-        webTestClient.get().uri(uriBuilder -> uriBuilder
-                        .path("/items/new")
-                        .build())
+        webTestClient.get().uri("/items/new")
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody(String.class)
@@ -124,9 +122,7 @@ public class ItemControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void saveNewItemTest() {
-        webTestClient.post().uri(uriBuilder -> uriBuilder
-                        .path("/items/new")
-                        .build())
+        webTestClient.post().uri("/items/new")
                 .contentType(MediaType.TEXT_HTML)
                 .body(fromFormData(PARAMETER_TITLE, "Item").
                         with(PARAMETER_DESCRIPTION, "Item description").

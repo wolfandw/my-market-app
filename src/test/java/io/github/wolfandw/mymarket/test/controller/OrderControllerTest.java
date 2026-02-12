@@ -1,63 +1,62 @@
-//package io.github.wolfandw.mymarket.test.controller;
-//
-//import io.github.wolfandw.mymarket.controller.OrderController;
-//import io.github.wolfandw.mymarket.dto.ItemDto;
-//import io.github.wolfandw.mymarket.dto.OrderDto;
-//import io.github.wolfandw.mymarket.model.Order;
-//import org.hamcrest.beans.HasProperty;
-//import org.hamcrest.beans.HasPropertyWithValue;
-//import org.hamcrest.collection.IsCollectionWithSize;
-//import org.hamcrest.core.IsNull;
-//import org.junit.jupiter.api.Test;
-//import org.mockito.Mockito;
-//import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-//
-//import java.util.List;
-//import java.util.Optional;
-//
-//import static org.hamcrest.core.IsEqual.equalTo;
-//import static org.mockito.Mockito.when;
-//import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-//import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-//
-///**
-// * Модульный тест контроллера заказов.
-// */
-//@WebMvcTest(OrderController.class)
-//public class OrderControllerTest extends AbstractControllerTest {
-//    private static final String TEMPLATE_ORDERS = "orders";
-//    private static final String TEMPLATE_ORDER = "order";
-//
-//    private static final String ATTRIBUTE_ITEMS = "items";
-//    private static final String ATTRIBUTE_ORDERS = "orders";
-//    private static final String ATTRIBUTE_ORDER = "order";
-//    private static final String ATTRIBUTE_TOTAL_SUM = "totalSum";
-//
-//    @Test
-//    void getOrdersTest() throws Exception {
-//        List<OrderDto> orders = ORDERS.values().stream().map(this::mapOrder).toList();
-//        when(orderService.getOrders()).thenReturn(orders);
-//        when(entityImageService.getEntityImageBase64(Mockito.any(Long.class))).thenReturn("");
-//        mockMvc.perform(get("/orders"))
-//                .andExpect(status().isOk())
-//                .andExpect(model().attributeExists(ATTRIBUTE_ORDERS))
-//                .andExpect(model().attribute(ATTRIBUTE_ORDERS, IsCollectionWithSize.<List<OrderDto>>hasSize(1)))
-//                .andExpect(view().name(TEMPLATE_ORDERS));
-//    }
-//
-//    @Test
-//    void getOrderTest() throws Exception {
-//        Long orderId = 1L;
-//        Order order = ORDERS.get(orderId);
-//        when( orderService.getOrder(orderId, false)).thenReturn(Optional.of(mapOrder(order)));
-//        mockMvc.perform(get("/orders/1"))
-//                .andExpect(status().isOk())
-//                .andExpect(model().attributeExists(ATTRIBUTE_ORDER))
-//                .andExpect(model().attribute(ATTRIBUTE_ORDER, IsNull.notNullValue(OrderDto.class)))
-//                .andExpect(model().attribute(ATTRIBUTE_ORDER, HasProperty.hasProperty(ATTRIBUTE_ITEMS)))
-//                .andExpect(model().attribute(ATTRIBUTE_ORDER, HasPropertyWithValue.hasProperty(ATTRIBUTE_ITEMS, IsCollectionWithSize.<List<ItemDto>>hasSize(12))))
-//                .andExpect(model().attribute(ATTRIBUTE_ORDER, HasProperty.hasProperty(ATTRIBUTE_TOTAL_SUM)))
-//                .andExpect(model().attribute(ATTRIBUTE_ORDER, HasPropertyWithValue.hasProperty(ATTRIBUTE_TOTAL_SUM, equalTo(8120L))))
-//                .andExpect(view().name(TEMPLATE_ORDER));
-//    }
-//}
+package io.github.wolfandw.mymarket.test.controller;
+
+import io.github.wolfandw.mymarket.controller.OrderController;
+import io.github.wolfandw.mymarket.dto.ItemDto;
+import io.github.wolfandw.mymarket.dto.OrderDto;
+import io.github.wolfandw.mymarket.model.Order;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.webflux.test.autoconfigure.WebFluxTest;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
+
+/**
+ * Модульный тест контроллера заказов.
+ */
+@WebFluxTest(OrderController.class)
+public class OrderControllerTest extends AbstractControllerTest {
+    private static final String TEMPLATE_ORDERS = "orders";
+    private static final String TEMPLATE_ORDER = "order";
+
+    @Test
+    void getOrdersTest() {
+        List<OrderDto> orders = ORDERS.values().stream().map(this::mapOrder).toList();
+        when(orderService.getOrders()).thenReturn(Flux.fromIterable(orders));
+        webTestClient.get().uri("/orders")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(String.class)
+                .consumeWith(res -> {
+                    String body = res.getResponseBody();
+                    assertNotNull(body);
+                    assertTrue(body.contains("Item 08"));
+                    assertTrue(body.contains("8129"));
+                    assertTrue(body.contains(TEMPLATE_ORDERS));
+                });
+    }
+
+    @Test
+    void getOrderTest() {
+        Long orderId = 1L;
+        Order order = ORDERS.get(orderId);
+        List<ItemDto> orderItems = mapOrderItems(ORDER_ITEMS.get(orderId).values().stream().toList());
+        when( orderService.getOrder(orderId, false)).thenReturn(Mono.just(mapOrder(order)));
+        when( orderService.getOrderItems(orderId)).thenReturn(Flux.fromIterable(orderItems));
+        webTestClient.get().uri("/orders/1")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(String.class)
+                .consumeWith(res -> {
+                    String body = res.getResponseBody();
+                    assertNotNull(body);
+                    assertTrue(body.contains("Item 08"));
+                    assertTrue(body.contains("8129"));
+                    assertTrue(body.contains(TEMPLATE_ORDER));
+                });
+    }
+}

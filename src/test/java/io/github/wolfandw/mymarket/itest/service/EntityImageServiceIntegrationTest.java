@@ -62,7 +62,7 @@ public class EntityImageServiceIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void updateEntityImageTest() {
+    void setEntityImageTest() {
         Long entityId = 5L;
         String imageName = "14.jpg";
 
