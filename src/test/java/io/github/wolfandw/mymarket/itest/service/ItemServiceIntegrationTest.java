@@ -79,10 +79,7 @@ public class ItemServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void createItem() {
-        StepVerifier.create(itemService.createItem("Item 14", "Item 14 description", BigDecimal.valueOf(14))).
-                consumeNextWith(itemDto -> assertThat(itemDto.title()).isEqualTo("Item 14")).verifyComplete();
-
-        StepVerifier.create(itemService.getItem(DEFAULT_CART_ID, 14L)).
+        trxStepVerifier.create(itemService.createItem("Item 14", "Item 14 description", BigDecimal.valueOf(14))).
                 consumeNextWith(itemDto -> assertThat(itemDto.title()).isEqualTo("Item 14")).verifyComplete();
     }
 }

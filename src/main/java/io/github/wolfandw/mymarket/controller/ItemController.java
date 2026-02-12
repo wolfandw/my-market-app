@@ -35,6 +35,7 @@ public class ItemController {
     private static final String ATTRIBUTE_NEW_ITEM = "newItem";
 
     private static final String PARAMETER_NEW_ITEM = "newItem";
+    private static final String PARAMETER_IMAGE_FILE = "imageFile";
 
     private final ItemService itemService;
     private final CartService cartService;
@@ -175,7 +176,7 @@ public class ItemController {
      */
     @PostMapping(path = "/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Mono<Rendering> setItemImage(@PathVariable Long id,
-                                        @RequestPart("imageFile") Mono<FilePart> imageFile) {
+                                        @RequestPart(PARAMETER_IMAGE_FILE) Mono<FilePart> imageFile) {
         return entityImageService.setEntityImage(id, imageFile).
                 thenReturn(Rendering.redirectTo(RedirectUrlFactory.createUrlToItem(id)).build());
     }
