@@ -1,6 +1,8 @@
 package io.github.wolfandw.mymarket.model;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.domain.Persistable;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
@@ -10,13 +12,15 @@ import java.math.BigDecimal;
  * Класс модели корзины.
  */
 @Table("CARTS")
-public class Cart {
+public class Cart implements Persistable<Long> {
     @Id
     private Long id;
 
     @Column
     private BigDecimal total = BigDecimal.ZERO;
 
+    @Transient
+    private boolean isNew = false;
     /**
      * Создает корзину.
      */
@@ -31,6 +35,7 @@ public class Cart {
      */
     public Cart(Long id) {
         this.id = id;
+        this.isNew = true;
     }
 
     /**
@@ -40,6 +45,21 @@ public class Cart {
      */
     public Long getId() {
         return id;
+    }
+
+    /**
+     * Обход особенности Spring Data.
+     *
+     * @see <a href="https://github.com/spring-projects/spring-data-r2dbc/issues/49?ysclid=mlk19qb7kw351871225">Spring Projects issue</a>
+     * @return true если сохраняется новый объект с указанным явно id
+     */
+    @Override
+    public boolean isNew() {
+        if (isNew) {
+            isNew = false;
+            return true;
+        }
+        return id == null;
     }
 
     /**
