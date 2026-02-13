@@ -1,6 +1,9 @@
 package io.github.wolfandw.mymarket.service;
 
 import io.github.wolfandw.mymarket.dto.CartDto;
+import io.github.wolfandw.mymarket.dto.ItemDto;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * Сервис для работы с корзинами.
@@ -12,7 +15,15 @@ public interface CartService {
      * @param id идентификатор корзины
      * @return DTO-представление корзины.
      */
-    CartDto getCart(Long id);
+    Flux<ItemDto> getCartItems(Long id);
+
+    /**
+     * Возвращает DTO-представление корзины.
+     *
+     * @param id идентификатор корзины
+     * @return DTO-представление корзины.
+     */
+    Mono<CartDto> getCart(Long id);
 
     /**
      * Изменяет количество товара в корзине со страницы товаров.
@@ -21,5 +32,5 @@ public interface CartService {
      * @param itemId идентификатор товара
      * @param action увеличить (уменьшить) количество товара в корзине
      */
-    void changeItemCount(Long cartId, Long itemId, String action);
+    Mono<Void> changeItemCount(Long cartId, Long itemId, String action);
 }

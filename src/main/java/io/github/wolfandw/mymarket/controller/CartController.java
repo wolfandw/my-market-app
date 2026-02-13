@@ -1,14 +1,17 @@
 package io.github.wolfandw.mymarket.controller;
 
 import io.github.wolfandw.mymarket.dto.CartDto;
+import io.github.wolfandw.mymarket.dto.ItemDto;
+import io.github.wolfandw.mymarket.dto.ItemPageChangeCountFormRequest;
 import io.github.wolfandw.mymarket.service.CartService;
-import io.github.wolfandw.mymarket.service.EntityImageService;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.reactive.result.view.Rendering;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * Контроллер для работы с корзиной товаров.
@@ -20,58 +23,47 @@ public class CartController {
 
     private static final String TEMPLATE_CART = "cart";
 
+    private static final String ATTRIBUTE_CART = "cart";
     private static final String ATTRIBUTE_ITEMS = "items";
-    private static final String ATTRIBUTE_TOTAL = "total";
-
-    private static final String PARAMETER_ID = "id";
-    private static final String PARAMETER_ACTION = "action";
-
-    private static final String ACTION_PLUS = "PLUS";
 
     private final CartService cartService;
-    private final EntityImageService entityImageService;
 
     /**
      * Создает контроллер корзины.
      *
      * @param cartService сервис корзины
-     * @param entityImageService сервис картинок
      */
-    public CartController(CartService cartService, EntityImageService entityImageService) {
+    public CartController(CartService cartService
+    ) {
         this.cartService = cartService;
-        this.entityImageService = entityImageService;
     }
 
     /**
      * Возвращает шаблон и модель формы корзины.
      *
-     * @param model модель формы корзины
      * @return шаблон корзины
      */
     @GetMapping
-    public String getCart(Model model) {
-        CartDto cart = cartService.getCart(DEFAULT_CART_ID);
-        cart.items().forEach(item ->
-                item.setImgData(entityImageService.getEntityImageBase64(item.id())));
-        model.addAttribute(ATTRIBUTE_ITEMS, cart.items());
-        model.addAttribute(ATTRIBUTE_TOTAL, cart.total());
-        return TEMPLATE_CART;
+    public Mono<Rendering> getCart() {
+        Mono<CartDto> cartMono = cartService.getCart(DEFAULT_CART_ID);
+        Flux<ItemDto> cartItemsFlux = cartService.getCartItems(DEFAULT_CART_ID);
+        return Mono.just(
+                Rendering.view(TEMPLATE_CART)
+                        .modelAttribute(ATTRIBUTE_CART, cartMono)
+                        .modelAttribute(ATTRIBUTE_ITEMS, cartItemsFlux)
+                        .build()
+        );
     }
 
     /**
      * Изменяет количество товара в корзине.
      *
-     * @param id идентификатор товара
-     * @param action действие
-     * @param model модель
+     * @param request запрос с идентификатором товара и действием
      * @return шаблон корзины
      */
     @PostMapping
-    public String changeChartItemCount(
-            @RequestParam(value = PARAMETER_ID, defaultValue = "0") Long id,
-            @RequestParam(value = PARAMETER_ACTION, defaultValue = ACTION_PLUS)  String action,
-            Model model) {
-        cartService.changeItemCount(DEFAULT_CART_ID, id, action);
-        return getCart(model);
+    public Mono<String> changeChartItemCount(@ModelAttribute ItemPageChangeCountFormRequest request) {
+        return cartService.changeItemCount(DEFAULT_CART_ID, request.getId(), request.getAction()).
+                thenReturn(RedirectUrlFactory.createRedirectUrlToCart(DEFAULT_CART_ID));
     }
 }

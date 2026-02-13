@@ -5,6 +5,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import reactor.core.publisher.Mono;
 
 /**
  * Контроллер приложения.
@@ -19,7 +20,7 @@ public class ApplicationController {
     /**
      * Создает контроллер приложения.
      *
-     * @param buyService  сервис корзин
+     * @param buyService сервис корзин
      */
     public ApplicationController(BuyService buyService) {
         this.buyService = buyService;
@@ -31,8 +32,8 @@ public class ApplicationController {
      * @return строка редиректа на витрину
      */
     @GetMapping
-    public String redirectToItems() {
-        return RedirectUrlFactory.createRedirectUrlToItems();
+    public Mono<String> redirectToItems() {
+        return Mono.just(RedirectUrlFactory.createRedirectUrlToItems());
     }
 
     /**
@@ -41,9 +42,9 @@ public class ApplicationController {
      * @return строка редиректа на заказ
      */
     @PostMapping("/buy")
-    public String buy() {
-        return buyService.buy(DEFAULT_CART_ID).map(dto ->
-                RedirectUrlFactory.createRedirectUrlToNewOrder(dto.id())).
-                orElseGet(RedirectUrlFactory::createRedirectUrlToOrders);
+    public Mono<String> buy() {
+        return buyService.buy(DEFAULT_CART_ID).map(orderDto ->
+                        RedirectUrlFactory.createRedirectUrlToNewOrder(orderDto.id())).
+                switchIfEmpty(Mono.just(RedirectUrlFactory.createRedirectUrlToOrders()));
     }
 }

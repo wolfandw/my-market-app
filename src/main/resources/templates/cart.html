@@ -24,7 +24,7 @@
         <div class="row p-2" th:each="item : ${items}">
             <div class="col">
                 <div class="card">
-                    <img class="p-2" th:src="${item.imgData()}" alt="Нет изображения" width="300" height="300">
+                    <img class="p-2" th:src="@{|/items/${item.id()}/image|}" alt="Нет изображения" width="200" height="200">
                     <div class="card-body">
                         <h5 class="card-title" th:text="${item.title()}"></h5>
                         <h5>
@@ -48,7 +48,7 @@
             <div class="col">
                 <form action="/buy" method="post" th:if="${!items.isEmpty()}">
                     <div class="hstack gap-3">
-                        <h2 th:text="'Итого: '+${total}+' руб.'"/>
+                        <h2 th:text="'Итого: '+${cart.total()}+' руб.'"/>
                         <button class="btn btn-warning ms-auto">Купить</button>
                     </div>
                 </form>

@@ -1,53 +1,51 @@
 package io.github.wolfandw.mymarket.model;
 
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Table;
+import org.springframework.data.relational.core.mapping.Column;
 
 /**
  * Класс строки заказа.
  */
-@Entity
-@Table(name = "order_items")
+@Table("ORDER_ITEMS")
 public class OrderItem {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "order_id", nullable = false)
-    private Order order;
+    @Column("ORDER_ID")
+    private Long orderId;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "item_id", nullable = false)
-    private Item item;
+    @Column("ITEM_ID")
+    private Long itemId;
 
-    @Column(nullable = false)
+    @Column
     private Integer count = 1;
 
     /**
      * Создает элемент заказа.
      *
      * @param id идентификатор строки заказа
-     * @param order заказ
-     * @param item товар
+     * @param orderId заказ
+     * @param itemId товар
      * @param count количество
      */
-    public OrderItem(Long id, Order order, Item item, Integer count ) {
+    public OrderItem(Long id, Long orderId, Long itemId, Integer count ) {
         this.id = id;
-        this.order = order;
-        this.item = item;
+        this.orderId = orderId;
+        this.itemId = itemId;
         this.count = count;
     }
 
     /**
      * Создает элемент заказа.
      *
-     * @param order заказ
-     * @param item товар
+     * @param orderId заказ
+     * @param itemId товар
      * @param count количество
      */
-    public OrderItem(Order order, Item item, Integer count ) {
-        this.order = order;
-        this.item = item;
+    public OrderItem(Long orderId, Long itemId, Integer count ) {
+        this.orderId = orderId;
+        this.itemId = itemId;
         this.count = count;
     }
 
@@ -80,17 +78,17 @@ public class OrderItem {
      *
      * @return родительский заказ
      */
-    public Order getOrder() {
-        return order;
+    public Long getOrderId() {
+        return orderId;
     }
 
     /**
      * Устанавливает родительский заказ.
      *
-     * @param order родительский заказ
+     * @param orderId родительский заказ
      */
-    public void setOrder(Order order) {
-        this.order = order;
+    public void setOrderId(Long orderId) {
+        this.orderId = orderId;
     }
 
     /**
@@ -98,17 +96,17 @@ public class OrderItem {
      *
      * @return товар
      */
-    public Item getItem() {
-        return item;
+    public Long getItemId() {
+        return itemId;
     }
 
     /**
      * Устанавливает товар.
      *
-     * @param item товар
+     * @param itemId товар
      */
-    public void setItem(Item item) {
-        this.item = item;
+    public void setItemId(Long itemId) {
+        this.itemId = itemId;
     }
 
     /**

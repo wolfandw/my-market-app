@@ -7,28 +7,27 @@ import io.github.wolfandw.mymarket.model.Cart;
 import io.github.wolfandw.mymarket.model.Order;
 import io.github.wolfandw.mymarket.model.OrderItem;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.boot.webflux.test.autoconfigure.WebFluxTest;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * Модульный тест контроллера приложения.
  */
-@WebMvcTest(ApplicationController.class)
+@WebFluxTest(ApplicationController.class)
 public class ApplicationControllerTest extends AbstractControllerTest {
     @Test
     void redirectToItemsTest() throws Exception {
-        mockMvc.perform(get("/"))
-                .andExpect(status().isFound())
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl(RedirectUrlFactory.createUrlToItems()));
+        webTestClient.get().uri("/")
+                .exchange()
+                .expectStatus().is3xxRedirection()
+                .expectHeader().valueEquals(
+                        "Location",
+                        RedirectUrlFactory.createUrlToItems()
+                );
     }
 
     @Test
@@ -38,17 +37,19 @@ public class ApplicationControllerTest extends AbstractControllerTest {
         Cart cart = CARTS.get(DEFAULT_CART_ID);
 
         Order order = new Order(orderId);
-        List<OrderItem> orderItems = cart.getItems().stream().map(cartItem ->
-                new OrderItem(order, cartItem.getItem(), cartItem.getCount())).toList();
-        order.setItems(orderItems);
+        List<OrderItem> orderItems = CART_ITEMS.get(DEFAULT_CART_ID).values().stream().map(cartItem ->
+                new OrderItem(order.getId(), cartItem.getItemId(), cartItem.getCount())).toList();
         order.setTotalSum(cart.getTotal());
 
-        Optional<OrderDto> orderDto = Optional.of(mapOrder(order));
-        when(buyService.buy(DEFAULT_CART_ID)).thenReturn(orderDto);
+        OrderDto orderDto = new OrderDto(orderId, mapOrderItems(orderItems), cart.getTotal().longValue());
+        when(buyService.buy(DEFAULT_CART_ID)).thenReturn(Mono.just(orderDto));
 
-        mockMvc.perform(post("/buy"))
-                .andExpect(status().isFound())
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl(RedirectUrlFactory.createUrlToNewOrder(2L)));
+        webTestClient.post().uri("/buy")
+                .exchange()
+                .expectStatus().is3xxRedirection()
+                .expectHeader().valueMatches(
+                        "Location",
+                        "\\/orders\\/\\d+\\?newOrder\\=true"
+                );
     }
 }

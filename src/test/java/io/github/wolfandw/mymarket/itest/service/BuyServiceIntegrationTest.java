@@ -1,15 +1,9 @@
 package io.github.wolfandw.mymarket.itest.service;
 
-import io.github.wolfandw.mymarket.dto.CartDto;
-import io.github.wolfandw.mymarket.dto.ItemDto;
-import io.github.wolfandw.mymarket.dto.OrderDto;
 import io.github.wolfandw.mymarket.itest.AbstractIntegrationTest;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.Optional;
+import reactor.test.StepVerifier;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
@@ -18,29 +12,49 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
  */
 public class BuyServiceIntegrationTest extends AbstractIntegrationTest {
     @Test
-    @Transactional
-    void createOrderTest() {
-        Long cartId = DEFAULT_CART_ID;
-        CartDto cartBefore = cartService.getCart(cartId);
-        Assertions.assertThat(cartBefore).isNotNull();
+    void buyOrderTest() {
+        trxStepVerifier.create(buyService.buy(DEFAULT_CART_ID)).
+                consumeNextWith(newOrderDto -> {
+                    assertThat(newOrderDto.totalSum()).isEqualTo(7808L);
+                }).verifyComplete();
+    }
 
-        Long totalBefore = cartBefore.total();
-        Assertions.assertThat(totalBefore).isEqualTo(7700);
+    @Test
+    void buyOrderItemsTest() {
+        trxStepVerifier.create(buyService.buy(DEFAULT_CART_ID).flatMapMany(orderDto ->
+                        orderService.getOrderItems(orderDto.id()).collectList())).
+                assertNext(newOrderItems -> {
+                    Assertions.assertThat(newOrderItems).isNotEmpty();
+                    Assertions.assertThat(newOrderItems.size()).isEqualTo(12);
+                }).verifyComplete();
+    }
 
-        List<ItemDto> cartItemsBefore = cartBefore.items();
-        Assertions.assertThat(cartItemsBefore).isNotEmpty();
+    @Test
+    void buyCartTest() {
+        StepVerifier.create(cartService.getCart(DEFAULT_CART_ID)).
+                consumeNextWith(actualCartBefore -> {
+                    Assertions.assertThat(actualCartBefore.total()).isEqualTo(7808L);
+                }).verifyComplete();
 
-        int sizeBefore = cartItemsBefore.size();
-        Assertions.assertThat(sizeBefore).isEqualTo(12);
+        trxStepVerifier.create(buyService.buy(DEFAULT_CART_ID).flatMap(orderDto ->
+                        cartService.getCart(DEFAULT_CART_ID))).
+                consumeNextWith(actualCartAfter -> {
+                    Assertions.assertThat(actualCartAfter.total()).isEqualTo(0L);
+                }).verifyComplete();
+    }
 
-        Optional<OrderDto> newOrderDto = buyService.buy(cartId);
-        assertThat(newOrderDto).isPresent();
-        assertThat(newOrderDto.get().totalSum()).isEqualTo(totalBefore);
-        assertThat(newOrderDto.get().items().size()).isEqualTo(sizeBefore);
+    @Test
+    void buyCartItemsTest() {
+        StepVerifier.create(cartService.getCartItems(DEFAULT_CART_ID).collectList()).
+                assertNext(actualCartItemsAfter -> {
+                    Assertions.assertThat(actualCartItemsAfter).isNotEmpty();
+                    Assertions.assertThat(actualCartItemsAfter.size()).isEqualTo(12);
+                }).verifyComplete();
 
-        CartDto cartAfter = cartService.getCart(cartId);
-        Assertions.assertThat(cartAfter).isNotNull();
-        Assertions.assertThat(cartAfter.total()).isEqualTo(0);
-        Assertions.assertThat(cartAfter.items()).isEmpty();
+        trxStepVerifier.create(buyService.buy(DEFAULT_CART_ID).flatMapMany(orderDto ->
+                        cartService.getCartItems(DEFAULT_CART_ID).collectList())).
+                assertNext(actualCartItemsAfter -> {
+                    Assertions.assertThat(actualCartItemsAfter).isEmpty();
+                }).verifyComplete();
     }
 }

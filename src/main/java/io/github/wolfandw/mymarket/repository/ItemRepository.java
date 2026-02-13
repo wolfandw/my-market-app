@@ -1,24 +1,42 @@
 package io.github.wolfandw.mymarket.repository;
 
 import io.github.wolfandw.mymarket.model.Item;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.r2dbc.repository.R2dbcRepository;
 import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * Репозиторий для работы с товарами.
  */
 @Repository
-public interface ItemRepository extends JpaRepository<Item, Long> {
+public interface ItemRepository extends R2dbcRepository<Item, Long> {
     /**
-     * Возвращает страницу товаров отобранных по названию или описанию.
-     * Список может быть отсортирован по названию, цене и не отсортирован.
+     * Возвращает поток товаров на страницу.
+     *
+     * @param pageable параметры страницы и сортировки
+     * @return поток товаров на страницу
+     */
+    Flux<Item> findAllBy(Pageable pageable);
+
+    /**
+     * Возвращает поток товаров на страницу, отобранных по названию или описанию.
+     * Поток может быть отсортирован по названию, цене и не отсортирован.
      *
      * @param title подстрока поиска в наименовании
      * @param description подстрока поиска в описании
      * @param pageable параметры страницы и сортировки
-     * @return страницу товаров отобранных по названию или описанию и сортировкой (опционально)
+     * @return поток товаров на страницу, отобранных по названию или описанию и сортировкой (опционально)
      */
-    Page<Item> findByTitleContainingOrDescriptionContainingAllIgnoreCase(String title, String description, Pageable pageable);
+    Flux<Item> findByTitleContainingOrDescriptionContainingAllIgnoreCase(String title, String description, Pageable pageable);
+
+    /**
+     * Возвращает общее количество товаров, отобранных по названию или описанию.
+     *
+     * @param title подстрока поиска в наименовании
+     * @param description подстрока поиска в описании
+     * @return общее количество товаров, отобранных по названию или описанию и сортировкой (опционально)
+     */
+    Mono<Long> countByTitleContainingOrDescriptionContainingAllIgnoreCase(String title, String description);
 }

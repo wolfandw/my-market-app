@@ -1,40 +1,38 @@
 package io.github.wolfandw.mymarket.model;
 
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
 
 /**
  * Класс модели строки корзины.
  */
-@Entity
-@Table(name = "cart_items")
+@Table("CART_ITEMS")
 public class CartItem {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "cart_id", nullable = false)
-    private Cart cart;
+    @Column("CART_ID")
+    private Long cartId;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "item_id", nullable = false)
-    private Item item;
+    @Column("ITEM_ID")
+    private Long itemId;
 
-    @Column(nullable = false)
+    @Column
     private Integer count = 0;
 
     /**
      * Создает элемент корзины.
      *
      * @param id идентификатор строки корзины
-     * @param cart корзина
-     * @param item товар
+     * @param cartId корзина
+     * @param itemId товар
      * @param count количество
      */
-    public CartItem(Long id, Cart cart, Item item, Integer count ) {
+    public CartItem(Long id, Long cartId, Long itemId, Integer count ) {
         this.id = id;
-        this.cart = cart;
-        this.item = item;
+        this.cartId = cartId;
+        this.itemId = itemId;
         this.count = count;
     }
 
@@ -68,17 +66,17 @@ public class CartItem {
      *
      * @return родительская корзина
      */
-    public Cart getCart() {
-        return cart;
+    public Long getCartId() {
+        return cartId;
     }
 
     /**
      * Устанавливает родительскую корзину.
      *
-     * @param cart родительская корзина
+     * @param cartId родительская корзина
      */
-    public void setCart(Cart cart) {
-        this.cart = cart;
+    public void setCartId(Long cartId) {
+        this.cartId = cartId;
     }
 
     /**
@@ -86,17 +84,17 @@ public class CartItem {
      *
      * @return товар
      */
-    public Item getItem() {
-        return item;
+    public Long getItemId() {
+        return itemId;
     }
 
     /**
      * Устанавливает товар.
      *
-     * @param item товар
+     * @param itemId товар
      */
-    public void setItem(Item item) {
-        this.item = item;
+    public void setItemId(Long itemId) {
+        this.itemId = itemId;
     }
 
     /**

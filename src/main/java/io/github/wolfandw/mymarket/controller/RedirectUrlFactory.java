@@ -10,6 +10,7 @@ public class RedirectUrlFactory {
 
     private static final String TEMPLATE_ITEMS = "items";
     private static final String TEMPLATE_ORDERS = "orders";
+    private static final String TEMPLATE_CART = "cart/items";
 
     private static final String PARAMETER_SEARCH = "search";
     private static final String PARAMETER_SORT = "sort";
@@ -109,12 +110,21 @@ public class RedirectUrlFactory {
     }
 
     /**
+     * Создает адрес страницы заказов.
+     *
+     * @return адрес перехода на страницу заказов
+     */
+    public static String createUrlToOrders() {
+        return '/' + TEMPLATE_ORDERS;
+    }
+
+    /**
      * Создает редирект на адрес страницы заказов.
      *
      * @return редирект на адрес перехода на страницу заказов
      */
-    public static @NonNull String createRedirectUrlToOrders() {
-        return REDIRECT + '/' + TEMPLATE_ORDERS;
+    public static String createRedirectUrlToOrders() {
+        return REDIRECT + createUrlToOrders();
     }
 
     /**
@@ -134,5 +144,45 @@ public class RedirectUrlFactory {
      */
     public static @NonNull String createRedirectUrlToNewOrder(Long newOrderId) {
         return REDIRECT + createUrlToNewOrder(newOrderId);
+    }
+
+    /**
+     * Создает адрес перехода на страницу товара.
+     *
+     * @param itemId идентификатор товара
+     * @return адрес перехода на страницу товара
+     */
+    public static @NonNull String createUrlToItem(Long itemId) {
+        return '/' + TEMPLATE_ITEMS + '/' +  itemId;
+    }
+
+    /**
+     * Создает редирект на адрес перехода на страницу товара.
+     *
+     * @param itemId идентификатор товара
+     * @return редирект на адрес перехода на страницу товара
+     */
+    public static @NonNull String createRedirectUrlToItem(Long itemId) {
+        return REDIRECT + createUrlToItem(itemId);
+    }
+
+    /**
+     * Создает адрес перехода на страницу корзины.
+     *
+     * @param cartId идентификатор корзины
+     * @return адрес перехода на страницу корзины
+     */
+    public static @NonNull String createUrlToCart(Long cartId) {
+        return '/' + TEMPLATE_CART;
+    }
+
+    /**
+     * Создает редирект на адрес перехода на страницу корзины.
+     *
+     * @param cartId идентификатор корзины
+     * @return редирект на адрес перехода на страницу корзины
+     */
+    public static @NonNull String createRedirectUrlToCart(Long cartId) {
+        return REDIRECT + createUrlToCart(cartId);
     }
 }

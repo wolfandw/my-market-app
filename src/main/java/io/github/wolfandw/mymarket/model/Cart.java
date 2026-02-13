@@ -1,25 +1,21 @@
 package io.github.wolfandw.mymarket.model;
 
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Класс модели корзины.
  */
-@Entity
-@Table(name = "carts")
+@Table("CARTS")
 public class Cart {
     @Id
     private Long id;
 
-    @Column(nullable = false)
+    @Column
     private BigDecimal total = BigDecimal.ZERO;
-
-    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<CartItem> items = new ArrayList<>();
 
     /**
      * Создает корзину.
@@ -71,23 +67,5 @@ public class Cart {
      */
     public void setTotal(BigDecimal total) {
         this.total = total;
-    }
-
-    /**
-     * Возвращает строки корзины.
-     *
-     * @return строки корзины
-     */
-    public List<CartItem> getItems() {
-        return items;
-    }
-
-    /**
-     * Устанавливает строки корзины.
-     *
-     * @param items строки корзины
-     */
-    public void setItems(List<CartItem> items) {
-        this.items = items;
     }
 }

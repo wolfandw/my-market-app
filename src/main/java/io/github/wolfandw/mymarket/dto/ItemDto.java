@@ -34,6 +34,21 @@ public class ItemDto {
     }
 
     /**
+     * DTO-описание товара.
+     *
+     * @param id          идентификатор товара
+     * @param title       название товара
+     * @param description описание товара
+     * @param price       цена товара
+     */
+    public ItemDto(Long id,
+                   String title,
+                   String description,
+                   long price) {
+        this(id, title, description, price, 0);
+    }
+
+    /**
      * Возвращает идентификатор товара.
      *
      * @return идентификатор товара

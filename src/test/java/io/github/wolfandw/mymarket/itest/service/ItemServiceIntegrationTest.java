@@ -1,14 +1,10 @@
 package io.github.wolfandw.mymarket.itest.service;
 
-import io.github.wolfandw.mymarket.dto.ItemDto;
-import io.github.wolfandw.mymarket.dto.ItemsPageDto;
-import io.github.wolfandw.mymarket.dto.ItemsPagingDto;
 import io.github.wolfandw.mymarket.itest.AbstractIntegrationTest;
 import org.junit.jupiter.api.Test;
-import org.springframework.transaction.annotation.Transactional;
+import reactor.test.StepVerifier;
 
 import java.math.BigDecimal;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -18,70 +14,72 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ItemServiceIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void getItemsTest() {
-        ItemsPageDto itemsPageDto = itemService.getItems(DEFAULT_CART_ID, null, "NO", 1, 5);
+        StepVerifier.create(itemService.getItems(DEFAULT_CART_ID, null, "NO", 1, 5).collectList()).
+                assertNext(itemsPage -> {
+                    assertThat(itemsPage).size().isEqualTo(5);
+                    assertThat(itemsPage.get(4).title()).isEqualTo("Item 11");
+                }).verifyComplete();
 
-        assertThat(itemsPageDto.search()).isNull();
-        assertThat(itemsPageDto.sort()).isEqualTo("NO");
-
-        ItemsPagingDto actualPaging = itemsPageDto.paging();
-        assertThat(actualPaging).isNotNull();
-        assertThat(actualPaging.pageSize()).isEqualTo(5);
-        assertThat(actualPaging.pageNumber()).isEqualTo(1);
-        assertThat(actualPaging.hasPrevious()).isFalse();
-        assertThat(actualPaging.hasNext()).isTrue();
-
-        assertThat(itemsPageDto.items()).size().isEqualTo(5);
-        assertThat(itemsPageDto.items().get(4).title()).isEqualTo("Item 11");
+        StepVerifier.create(itemService.getItemsPaging(null, 1, 5)).
+                consumeNextWith(actualPaging -> {
+                    assertThat(actualPaging.pageSize()).isEqualTo(5);
+                    assertThat(actualPaging.pageNumber()).isEqualTo(1);
+                    assertThat(actualPaging.hasPrevious()).isFalse();
+                    assertThat(actualPaging.hasNext()).isTrue();
+                }).verifyComplete();
     }
 
     @Test
     public void getItemsSearchTest() {
-        ItemsPageDto itemsPageDto = itemService.getItems(DEFAULT_CART_ID, "searchtag", "NO", 1, 5);
-        assertThat(itemsPageDto.items()).size().isEqualTo(4);
-        assertThat(itemsPageDto.items().get(3).title()).isEqualTo("Item 06");
+        StepVerifier.create(itemService.getItems(DEFAULT_CART_ID, "searchtag", "NO", 1, 5).collectList()).
+                assertNext(itemsPage -> {
+                    assertThat(itemsPage).size().isEqualTo(4);
+                    assertThat(itemsPage.get(3).title()).isEqualTo("Item 06");
+                }).verifyComplete();
     }
 
     @Test
     public void getItemsSearchOrderByTitleTest() {
-        ItemsPageDto itemsPageDto = itemService.getItems(DEFAULT_CART_ID, "searchtag", "ALPHA", 1, 5);
-        assertThat(itemsPageDto.items()).size().isEqualTo(4);
-        assertThat(itemsPageDto.items().get(3).title()).isEqualTo("Item 10");
+        StepVerifier.create(itemService.getItems(DEFAULT_CART_ID, "searchtag", "ALPHA", 1, 5).collectList()).
+                assertNext(itemsPage -> {
+                    assertThat(itemsPage).size().isEqualTo(4);
+                    assertThat(itemsPage.get(3).title()).isEqualTo("Item 10");
+                }).verifyComplete();
     }
 
     @Test
     public void getItemsSearchOrderByPriceTest() {
-        ItemsPageDto itemsPageDto = itemService.getItems(DEFAULT_CART_ID, "SEARCHTAG", "PRICE", 1, 5);
-        assertThat(itemsPageDto.items()).size().isEqualTo(4);
-        assertThat(itemsPageDto.items().get(3).title()).isEqualTo("Item 01 searchtag");
+        StepVerifier.create(itemService.getItems(DEFAULT_CART_ID, "SEARCHTAG", "PRICE", 1, 5).collectList()).
+                assertNext(itemsPage -> {
+                    assertThat(itemsPage).size().isEqualTo(4);
+                    assertThat(itemsPage.get(3).title()).isEqualTo("Item 01 searchtag");
+                }).verifyComplete();
     }
 
     @Test
     public void getItemsDefaultTest() {
-        ItemsPageDto itemsPageDto = itemService.getItems(DEFAULT_CART_ID, null, null, null, null);
-        assertThat(itemsPageDto.items()).size().isEqualTo(5);
-        assertThat(itemsPageDto.items().get(4).title()).isEqualTo("Item 11");
+        StepVerifier.create(itemService.getItems(DEFAULT_CART_ID, null, null, null, null).collectList()).
+                assertNext(itemsPage -> {
+                    assertThat(itemsPage).size().isEqualTo(5);
+                    assertThat(itemsPage.get(4).title()).isEqualTo("Item 11");
+                }).verifyComplete();
     }
 
     @Test
     void getItemTest() {
-        Optional<ItemDto> itemDto = itemService.getItem(DEFAULT_CART_ID, 1L);
-        assertThat(itemDto).isPresent();
-        assertThat(itemDto.get().title()).isEqualTo("Item 07 SearchTag");
+        StepVerifier.create(itemService.getItem(DEFAULT_CART_ID, 1L)).
+                consumeNextWith(itemDto -> assertThat(itemDto.title()).isEqualTo("Item 07 SearchTag")).verifyComplete();
     }
 
     @Test
     void getItemEmptyTest() {
-        Optional<ItemDto> itemDto = itemService.getItem(DEFAULT_CART_ID, 14L);
-        assertThat(itemDto).isEmpty();
+        StepVerifier.create(itemService.getItem(DEFAULT_CART_ID, 14L)).
+                expectNextCount(0).verifyComplete();
     }
 
     @Test
-    @Transactional
     void createItem() {
-        ItemDto itemDto = itemService.createItem("Item 14", "Item 14 description", BigDecimal.valueOf(14));
-        assertThat(itemDto.title()).isEqualTo("Item 14");
-
-        Optional<ItemDto> itemDto14 = itemService.getItem(DEFAULT_CART_ID, 14L);
-        assertThat(itemDto14).isPresent();
+        trxStepVerifier.create(itemService.createItem("Item 14", "Item 14 description", BigDecimal.valueOf(14))).
+                consumeNextWith(itemDto -> assertThat(itemDto.title()).isEqualTo("Item 14")).verifyComplete();
     }
 }

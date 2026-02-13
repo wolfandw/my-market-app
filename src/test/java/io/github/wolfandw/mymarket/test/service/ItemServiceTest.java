@@ -1,16 +1,18 @@
 package io.github.wolfandw.mymarket.test.service;
 
-import io.github.wolfandw.mymarket.dto.ItemDto;
-import io.github.wolfandw.mymarket.dto.ItemsPageDto;
-import io.github.wolfandw.mymarket.model.Cart;
 import io.github.wolfandw.mymarket.model.Item;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -23,47 +25,49 @@ public class ItemServiceTest extends AbstractServiceTest {
     public void getItemsDefaultTest() {
         Pageable pageable = PageRequest.of(0, 5, Sort.unsorted());
         List<Item> content = ITEMS.values().stream().limit(5).toList();
-        Page<Item> page = new PageImpl<>(content, pageable, content.size());
-        when(itemRepository.findAll(pageable)).thenReturn(page);
+        Flux<Item> page = Flux.fromIterable(content);
+        Mono<Long> count = Mono.just((long)ITEMS.size());
+        when(itemRepository.findAllBy(pageable)).thenReturn(page);
+        when(itemRepository.count()).thenReturn(count);
 
-        Cart cart = CARTS.get(DEFAULT_CART_ID);
-        when(cartRepository.findById(DEFAULT_CART_ID)).thenReturn(Optional.ofNullable(cart));
-        assert cart != null;
-        when(cartItemRepository.findAllByCartAndItemIn(cart, page.getContent())).thenReturn(cart.getItems());
+        mockCartItem();
 
-        ItemsPageDto itemsPageDto = itemService.getItems(DEFAULT_CART_ID, null, null, null, null);
-        assertThat(itemsPageDto.items()).size().isEqualTo(5);
-        assertThat(itemsPageDto.items().get(4).title()).isEqualTo("Item 11");
+        StepVerifier.create(itemService.getItems(DEFAULT_CART_ID, null, "NO", 1, 5).collectList()).
+                assertNext(itemsPage -> {
+                    Assertions.assertThat(itemsPage).size().isEqualTo(5);
+                    Assertions.assertThat(itemsPage.get(4).title()).isEqualTo("Item 11");
+                }).verifyComplete();
+
+        StepVerifier.create(itemService.getItemsPaging(null, 1, 5)).
+                consumeNextWith(actualPaging -> {
+                    Assertions.assertThat(actualPaging.pageSize()).isEqualTo(5);
+                    Assertions.assertThat(actualPaging.pageNumber()).isEqualTo(1);
+                    Assertions.assertThat(actualPaging.hasPrevious()).isFalse();
+                    Assertions.assertThat(actualPaging.hasNext()).isTrue();
+                }).verifyComplete();
     }
 
     @Test
     void getItemTest() {
-        Long itemId = 2L;
+        Long itemId = 1L;
         Item item = ITEMS.get(itemId);
-        when(itemRepository.findById(itemId)).thenReturn(Optional.ofNullable(item));
+        when(itemRepository.findById(itemId)).thenReturn(Mono.just(item));
 
-        Cart cart = CARTS.get(DEFAULT_CART_ID);
-        when(cartRepository.findById(DEFAULT_CART_ID)).thenReturn(Optional.ofNullable(cart));
-        assert cart != null;
-        when(cartItemRepository.findByCartAndItemId(cart, itemId)).thenReturn(Optional.ofNullable(cart.getItems().getFirst()));
+        mockCartItem();
 
-        Optional<ItemDto> itemDto = itemService.getItem(DEFAULT_CART_ID, itemId);
-        assertThat(itemDto).isPresent();
-        assertThat(itemDto.get().title()).isEqualTo("Item 08");
+        StepVerifier.create(itemService.getItem(DEFAULT_CART_ID, 1L)).
+                consumeNextWith(itemDto -> assertThat(itemDto.title()).isEqualTo("Item 07 SearchTag")).verifyComplete();
     }
 
     @Test
     void getItemEmptyTest() {
         Long itemId = 14L;
-        when(itemRepository.findById(itemId)).thenReturn(Optional.empty());
+        Item item = ITEMS.get(itemId);
+        when(itemRepository.findById(itemId)).thenReturn(Mono.empty());
 
-        Cart cart = CARTS.get(DEFAULT_CART_ID);
-        when(cartRepository.findById(DEFAULT_CART_ID)).thenReturn(Optional.empty());
-        assert cart != null;
-        when(cartItemRepository.findByCartAndItemId(cart, itemId)).thenReturn(Optional.empty());
+        mockCartItem();
 
-        Optional<ItemDto> itemDto = itemService.getItem(DEFAULT_CART_ID, 14L);
-        assertThat(itemDto).isEmpty();
+        StepVerifier.create(itemService.getItem(DEFAULT_CART_ID, itemId)).expectNextCount(0).verifyComplete();
     }
 
     @Test
@@ -74,9 +78,11 @@ public class ItemServiceTest extends AbstractServiceTest {
         BigDecimal price = BigDecimal.valueOf(14);
 
         Item item = new Item(itemId, title, description, null, price);
-        when(itemRepository.save(Mockito.any(Item.class))).thenReturn(item);
+        when(itemRepository.save(Mockito.any(Item.class))).thenReturn(Mono.just(item));
 
-        ItemDto itemDto = itemService.createItem(title, description, price);
-        assertThat(itemDto.title()).isEqualTo(title);
+        trxStepVerifier.create(itemService.createItem("Item 14", "Item 14 description", BigDecimal.valueOf(14))).
+                consumeNextWith(itemDto -> assertThat(itemDto.title()).isEqualTo("Item 14")).verifyComplete();
     }
+
+
 }

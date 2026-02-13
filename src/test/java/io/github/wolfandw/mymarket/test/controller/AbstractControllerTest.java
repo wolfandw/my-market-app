@@ -10,6 +10,7 @@ import io.github.wolfandw.mymarket.service.mapper.ItemToDtoMapper;
 import io.github.wolfandw.mymarket.test.AbstractTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
@@ -19,7 +20,7 @@ import java.util.List;
  */
 public class AbstractControllerTest extends AbstractTest {
     @Autowired
-    protected MockMvc mockMvc;
+    protected WebTestClient webTestClient;
 
     @MockitoBean
     protected ItemToDtoMapper itemToDtoMapper;
@@ -59,11 +60,11 @@ public class AbstractControllerTest extends AbstractTest {
      * @return DTO-представление заказа
      */
     protected OrderDto mapOrder(Order order) {
-        return new OrderDto(order.getId(), mapOrderItems(order.getItems()), order.getTotalSum().longValue());
+        return new OrderDto(order.getId(), mapOrderItems(ORDER_ITEMS.get(order.getId()).values().stream().toList()), order.getTotalSum().longValue());
     }
 
-    private List<ItemDto> mapOrderItems(List<OrderItem> orderItems) {
-        return orderItems.stream().map(orderItem -> mapItem(orderItem.getItem(),
+    List<ItemDto> mapOrderItems(List<OrderItem> orderItems) {
+        return orderItems.stream().map(orderItem -> mapItem(ITEMS.get(orderItem.getItemId()),
                 orderItem.getCount())).toList();
     }
 }

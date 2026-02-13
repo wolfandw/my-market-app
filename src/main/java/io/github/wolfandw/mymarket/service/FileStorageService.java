@@ -1,8 +1,7 @@
 package io.github.wolfandw.mymarket.service;
 
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
+import org.springframework.http.codec.multipart.FilePart;
+import reactor.core.publisher.Mono;
 
 /**
  * Сервис работы с файлами.
@@ -13,24 +12,22 @@ public interface FileStorageService {
      *
      * @param fileName имя файла
      * @return содержимое файла
-     * @throws IOException I/O exception
      */
-    byte[] readFile(String fileName) throws IOException;
+    Mono<byte[]> readFile(String fileName);
 
     /**
      * Сохраняет файл.
      *
      * @param fileName имя файла
      * @param file     сохраняемый файл
-     * @throws IOException I/O exception
+     * @return имя файла
      */
-    void writeFile(String fileName, MultipartFile file) throws IOException;
+    Mono<String> writeFile(String fileName, FilePart file);
 
     /**
      * Удаляет файл.
      *
      * @param fileName имя файла
-     * @throws IOException I/O exception
      */
-    void deleteFile(String fileName) throws IOException;
+    Mono<Void> deleteFile(String fileName);
 }

@@ -1,9 +1,9 @@
 package io.github.wolfandw.mymarket.service;
 
+import io.github.wolfandw.mymarket.dto.ItemDto;
 import io.github.wolfandw.mymarket.dto.OrderDto;
-
-import java.util.List;
-import java.util.Optional;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * Сервис для работы с заказами.
@@ -14,14 +14,22 @@ public interface OrderService {
      *
      * @return DTO-представление списка заказов.
      */
-    List<OrderDto> getOrders();
+    Flux<OrderDto> getOrders();
 
     /**
      * Возвращает DTO-представление заказа.
      *
-     * @param id       идентификатор заказа
+     * @param orderId       идентификатор заказа
      * @param newOrder новый заказ
      * @return DTO-представление заказа.
      */
-    Optional<OrderDto> getOrder(Long id, boolean newOrder);
+    Mono<OrderDto> getOrder(Long orderId, boolean newOrder);
+
+    /**
+     * Возвращает DTO-представление списка товаров заказа.
+     *
+     * @param orderId       идентификатор заказа
+     * @return DTO-представление списка заказов.
+     */
+    Flux<ItemDto> getOrderItems(Long orderId);
 }

@@ -13,7 +13,7 @@ public class EntityImageDto {
     /**
      * Создает картинку сущности.
      *
-     * @param entityId        идентификатор сущности
+     * @param entityId  идентификатор сущности
      * @param data      данные картинки
      * @param mediaType тип данных картинки
      */

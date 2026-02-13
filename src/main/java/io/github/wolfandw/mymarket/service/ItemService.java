@@ -1,35 +1,46 @@
 package io.github.wolfandw.mymarket.service;
 
 import io.github.wolfandw.mymarket.dto.ItemDto;
-import io.github.wolfandw.mymarket.dto.ItemsPageDto;
+import io.github.wolfandw.mymarket.dto.ItemsPagingDto;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
-import java.util.Optional;
 
 /**
  * Сервис для работы с товарами.
  */
 public interface ItemService {
     /**
-     * Возвращает DTO-страницу товаров.
+     * Возвращает список DTO-товаров по размеру страницы.
      *
      * @param cartId идентификатор корзины
      * @param search строка поиска
      * @param sort направление сортировки
      * @param pageNumber номер страницы
      * @param pageSize размер страницы
-     * @return DTO-описание страницы товаров
+     * @return список DTO-товаров по размеру страницы
      */
-    ItemsPageDto getItems(Long cartId, String search, String sort, Integer pageNumber, Integer pageSize);
+    Flux<ItemDto> getItems(Long cartId, String search, String sort, Integer pageNumber, Integer pageSize);
+
+    /**
+     * Возвращает пейджинг товаров витрины.
+     *
+     * @param search строка поиска
+     * @param pageNumber номер страницы
+     * @param pageSize размер страницы
+     * @return пейджинг товаров витрины
+     */
+    Mono<ItemsPagingDto> getItemsPaging(String search, Integer pageNumber, Integer pageSize);
 
     /**
      * Возвращает DTO-товар.
      *
      * @param cartId идентификатор корзины
-     * @param id     идентификатор товара.
+     * @param itemId идентификатор товара.
      * @return DTO-описание товара
      */
-    Optional<ItemDto> getItem(Long cartId, Long id);
+    Mono<ItemDto> getItem(Long cartId, Long itemId);
 
     /**
      * Создает новый товар и возвращает его DTO-представление.
@@ -39,5 +50,5 @@ public interface ItemService {
      * @param price цена товара
      * @return DTO-представление созданного товара
      */
-    ItemDto createItem(String title, String description, BigDecimal price);
+    Mono<ItemDto> createItem(String title, String description, BigDecimal price);
 }

@@ -1,30 +1,25 @@
 package io.github.wolfandw.mymarket.model;
 
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Класс модели заказа.
  */
-@Entity
-@Table(name = "orders")
+@Table("ORDERS")
 public class Order {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column
     private BigDecimal totalSum = BigDecimal.ZERO;
 
-    @Column(nullable = false)
+    @Column
     private LocalDateTime createdAt = LocalDateTime.now();
-
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<OrderItem> items = new ArrayList<>();
 
     /**
      * Создает заказ с идентификатором.
@@ -94,23 +89,5 @@ public class Order {
      */
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
-    }
-
-    /**
-     * Возвращает строки заказа.
-     *
-     * @return строки заказа
-     */
-    public List<OrderItem> getItems() {
-        return items;
-    }
-
-    /**
-     * Устанавливает строки заказа.
-     *
-     * @param items строки заказа
-     */
-    public void setItems(List<OrderItem> items) {
-        this.items = items;
     }
 }

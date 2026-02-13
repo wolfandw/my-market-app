@@ -2,10 +2,10 @@ package io.github.wolfandw.mymarket.controller.advicer;
 
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.dao.DataAccessException;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.reactive.result.view.Rendering;
+import reactor.core.publisher.Mono;
 
 /**
  * Обработчик исключений контроллеров.
@@ -19,64 +19,64 @@ public class ApplicationControllerAdvicer {
     /**
      * Обрабатывает исключение MethodArgumentTypeMismatchException.
      *
-     * @param e        исключение типа IllegalArgumentException
-     * @param model    модель
-     * @param response ответ
+     * @param e исключение типа IllegalArgumentException
      * @return имя шаблона ошибки
      */
     @ExceptionHandler(IllegalArgumentException.class)
-    public String handleBadRequest(IllegalArgumentException e, Model model, HttpServletResponse response) {
-        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        model.addAttribute(ATTRIBUTE_ERROR, e.getMessage());
-        model.addAttribute(ATTRIBUTE_STATUS, HttpServletResponse.SC_BAD_REQUEST);
-        return TEMPLATE_ERROR;
+    public Mono<Rendering> handleBadRequest(IllegalArgumentException e) {
+        return Mono.just(
+                Rendering.view(TEMPLATE_ERROR)
+                        .modelAttribute(ATTRIBUTE_ERROR, e.getMessage())
+                        .modelAttribute(ATTRIBUTE_STATUS, HttpServletResponse.SC_BAD_REQUEST)
+                        .build()
+        );
     }
 
     /**
      * Обрабатывает исключение DataAccessException.
      *
-     * @param e        исключение типа DataAccessException
-     * @param model    модель
-     * @param response ответ
+     * @param e исключение типа DataAccessException
      * @return имя шаблона ошибки
      */
     @ExceptionHandler(DataAccessException.class)
-    public String handleDatabaseError(Exception e, Model model, HttpServletResponse response) {
-        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        model.addAttribute(ATTRIBUTE_ERROR, e.getMessage());
-        model.addAttribute(ATTRIBUTE_STATUS, HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        return TEMPLATE_ERROR;
-    }
-
-    /**
-     * Обрабатывает исключение NoHandlerFoundException.
-     *
-     * @param e        исключение типа NoHandlerFoundException
-     * @param model    модель
-     * @param response ответ
-     * @return имя шаблона ошибки
-     */
-    @ExceptionHandler(NoHandlerFoundException.class)
-    public String handleNotFound(Exception e, Model model, HttpServletResponse response) {
-        response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-        model.addAttribute(ATTRIBUTE_ERROR, e.getMessage());
-        model.addAttribute(ATTRIBUTE_STATUS, HttpServletResponse.SC_NOT_FOUND);
-        return TEMPLATE_ERROR;
+    public Mono<Rendering> handleDatabaseError(DataAccessException e) {
+        return Mono.just(
+                Rendering.view(TEMPLATE_ERROR)
+                        .modelAttribute(ATTRIBUTE_ERROR, e.getMessage())
+                        .modelAttribute(ATTRIBUTE_STATUS, HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
+                        .build()
+        );
     }
 
     /**
      * Обрабатывает непредвиденные исключения.
      *
-     * @param e        исключение типа Exception
-     * @param model    модель
-     * @param response ответ
+     * @param e исключение типа Exception
+     * @return имя шаблона ошибки
+     */
+    @ExceptionHandler(RuntimeException.class)
+    public Mono<Rendering> handleGenericException(RuntimeException e) {
+        return Mono.just(
+                Rendering.view(TEMPLATE_ERROR)
+                        .modelAttribute(ATTRIBUTE_ERROR, e.getMessage())
+                        .modelAttribute(ATTRIBUTE_STATUS, HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
+                        .build()
+        );
+    }
+
+    /**
+     * Обрабатывает непредвиденные исключения.
+     *
+     * @param e исключение типа Exception
      * @return имя шаблона ошибки
      */
     @ExceptionHandler(Exception.class)
-    public String handleGenericException(Exception e, Model model, HttpServletResponse response) {
-        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        model.addAttribute(ATTRIBUTE_ERROR, e.getMessage());
-        model.addAttribute(ATTRIBUTE_STATUS, HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        return TEMPLATE_ERROR;
+    public Mono<Rendering> handleGenericException(Exception e) {
+        return Mono.just(
+                Rendering.view(TEMPLATE_ERROR)
+                        .modelAttribute(ATTRIBUTE_ERROR, e.getMessage())
+                        .modelAttribute(ATTRIBUTE_STATUS, HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
+                        .build()
+        );
     }
 }

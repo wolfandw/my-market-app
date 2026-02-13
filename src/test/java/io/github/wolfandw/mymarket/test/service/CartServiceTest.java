@@ -1,17 +1,21 @@
 package io.github.wolfandw.mymarket.test.service;
 
-import io.github.wolfandw.mymarket.dto.CartDto;
-import io.github.wolfandw.mymarket.dto.ItemDto;
 import io.github.wolfandw.mymarket.model.Cart;
 import io.github.wolfandw.mymarket.model.CartItem;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 /**
  * Модульные тесты сервиса корзины.
@@ -25,63 +29,62 @@ public class CartServiceTest extends AbstractServiceTest {
         Long cartId = DEFAULT_CART_ID;
 
         Cart cart = CARTS.get(cartId);
-        when(cartRepository.findById(cartId)).thenReturn(Optional.ofNullable(cart));
+        when(cartRepository.findById(cartId)).thenReturn(Mono.just(cart));
 
-        CartDto actualCart = cartService.getCart(cartId);
-        assertThat(actualCart).isNotNull();
-
-        Long actualCartTotal = actualCart.total();
-        assertThat(actualCartTotal).isEqualTo(7700);
-
-        List<ItemDto> actualCartItems = actualCart.items();
-        assertThat(actualCartItems).isNotNull();
-        assertThat(actualCartItems.size()).isEqualTo(12);
-        assertThat(actualCartItems.getFirst().title()).isEqualTo("Item 08");
-        assertThat(actualCartItems.getFirst().count()).isEqualTo(60);
+        StepVerifier.create(cartService.getCart(DEFAULT_CART_ID)).
+                consumeNextWith(actualCart -> {
+                    assertThat(actualCart.total()).isEqualTo(7815L);
+                }).verifyComplete();
     }
 
     @Test
-    void changeItemCountPlus() {
+    void getCartItemsTest() {
         Long cartId = DEFAULT_CART_ID;
-        Long entityId = 2L;
-
-        when(itemRepository.findById(entityId)).thenReturn(Optional.ofNullable(ITEMS.get(entityId)));
 
         Cart cart = CARTS.get(cartId);
-        when(cartRepository.findById(cartId)).thenReturn(Optional.ofNullable(cart));
-        assert cart != null;
-        CartItem cartItem = cart.getItems().getFirst();
-        int countBefore = cartItem.getCount();
-        when(cartItemRepository.findByCartAndItemId(cart, entityId)).thenReturn(Optional.of(cartItem));
+        List<CartItem> cartItems = CART_ITEMS.get(DEFAULT_CART_ID).values().stream().toList();
+        when(cartItemRepository.findAllByCartId(cartId)).thenReturn(Flux.fromIterable(cartItems));
+        mockItem();
 
-        cartService.changeItemCount(cartId, entityId, ACTION_PLUS);
-
-        int countAfter = cartItem.getCount();
-        assertThat(countAfter - countBefore).isEqualTo(1);
-
-        verify(cartItemRepository).save(cartItem);
-        verify(cartRepository).save(cart);
+        StepVerifier.create(cartService.getCartItems(DEFAULT_CART_ID).collectList()).
+                assertNext(actualCartItems -> {
+                    assertThat(actualCartItems).isNotEmpty();
+                    assertThat(actualCartItems.size()).isEqualTo(12);
+                    assertThat(actualCartItems.getFirst().title()).isEqualTo("Item 08");
+                    assertThat(actualCartItems.getFirst().count()).isEqualTo(60);
+                }).verifyComplete();
     }
-    @Test
-    void changeItemCountMinus() {
+
+    @ParameterizedTest
+    @MethodSource("provideChangeItemCountArgs")
+    void changeItemCount(String action, long countBefore, long countAfter) {
         Long cartId = DEFAULT_CART_ID;
         Long entityId = 2L;
 
-        when(itemRepository.findById(entityId)).thenReturn(Optional.ofNullable(ITEMS.get(entityId)));
+        when(cartRepository.save(any(Cart.class))).thenReturn(Mono.just(CARTS.get(DEFAULT_CART_ID)));
+        CartItem savedCartItem = CART_ITEMS.get(DEFAULT_CART_ID).get(entityId);
+        when(cartItemRepository.save(any(CartItem.class))).thenReturn(Mono.just(savedCartItem));
+        mockCart();
+        mockItem();
+        mockCartItem();
 
-        Cart cart = CARTS.get(cartId);
-        when(cartRepository.findById(cartId)).thenReturn(Optional.ofNullable(cart));
-        assert cart != null;
-        CartItem cartItem = cart.getItems().getFirst();
-        int countBefore = cartItem.getCount();
-        when(cartItemRepository.findByCartAndItemId(cart, entityId)).thenReturn(Optional.of(cartItem));
+        StepVerifier.create(itemService.getItem(cartId, entityId)).
+                consumeNextWith(entity -> {
+                    assertThat(entity.count()).isEqualTo(countBefore);
+                }).verifyComplete();
 
-        cartService.changeItemCount(cartId, entityId, ACTION_MINUS);
+        trxStepVerifier.create(cartService.changeItemCount(cartId, entityId, action).then(itemService.getItem(cartId, entityId))).
+                consumeNextWith(entity -> {
+                    assertThat(entity.count()).isEqualTo(countAfter);
+                }).verifyComplete();
 
-        int countAfter = cartItem.getCount();
-        assertThat(countBefore- countAfter).isEqualTo(1);
+        verify(cartItemRepository).save(any(CartItem.class));
+    }
 
-        verify(cartItemRepository).save(cartItem);
-        verify(cartRepository).save(cart);
+    private static Stream<Arguments> provideChangeItemCountArgs() {
+        return Stream.of(
+                Arguments.of(ACTION_MINUS, 60, 59),
+                Arguments.of(ACTION_PLUS, 60, 61)
+        );
     }
 }

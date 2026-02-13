@@ -1,29 +1,23 @@
 package io.github.wolfandw.mymarket.service.impl;
 
 import io.github.wolfandw.mymarket.dto.ItemDto;
-import io.github.wolfandw.mymarket.dto.ItemsPageDto;
 import io.github.wolfandw.mymarket.dto.ItemsPagingDto;
-import io.github.wolfandw.mymarket.model.CartItem;
 import io.github.wolfandw.mymarket.model.Item;
 import io.github.wolfandw.mymarket.repository.CartItemRepository;
-import io.github.wolfandw.mymarket.repository.CartRepository;
 import io.github.wolfandw.mymarket.repository.ItemRepository;
 import io.github.wolfandw.mymarket.service.ItemService;
 import io.github.wolfandw.mymarket.service.mapper.ItemToDtoMapper;
-import org.jspecify.annotations.NonNull;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.function.Function;
 
 /**
  * Реализация {@link ItemService}.
@@ -46,7 +40,6 @@ public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final CartItemRepository cartItemRepository;
     private final ItemToDtoMapper itemToItemDtoMapper;
-    private final CartRepository cartRepository;
 
     /**
      * Создает сервис работы с товарами.
@@ -54,70 +47,74 @@ public class ItemServiceImpl implements ItemService {
      * @param itemRepository     репозиторий товаров
      * @param cartItemRepository репозиторий строк корзин
      * @param itemToDtoMapper    маппер товаров на DTO-представление товаров.
-     * @param cartRepository     репозиторий корзин
      */
     public ItemServiceImpl(ItemRepository itemRepository,
                            CartItemRepository cartItemRepository,
-                           ItemToDtoMapper itemToDtoMapper,
-                           CartRepository cartRepository) {
+                           ItemToDtoMapper itemToDtoMapper) {
         this.itemRepository = itemRepository;
-        this.itemToItemDtoMapper = itemToDtoMapper;
         this.cartItemRepository = cartItemRepository;
-        this.cartRepository = cartRepository;
+        this.itemToItemDtoMapper = itemToDtoMapper;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public ItemsPageDto getItems(Long cartId, String search, String sort, Integer pageNumber, Integer pageSize) {
-        pageNumber = pageNumber == null ? PAGE_NUMBER_DEFAULT : pageNumber;
-        pageSize = pageSize == null ? PAGE_SIZE_DEFAULT : pageSize;
-        sort = sort == null ? SORT_DEFAULT : sort;
-
-        Page<Item> page = getPage(search, sort, pageNumber, pageSize);
-        ItemsPagingDto paging = new ItemsPagingDto(pageSize, pageNumber, page.hasPrevious(), page.hasNext());
-
-        Map<Long, Integer> itemsCartCount = getItemsCartCount(cartId, page.getContent());
-        List<ItemDto> itemsDto = page.getContent().stream().map(item -> itemToItemDtoMapper.mapItem(item,
-                itemsCartCount.getOrDefault(item.getId(),0))).toList();
-
-        return new ItemsPageDto(itemsDto, search, sort, paging);
+    public Flux<ItemDto> getItems(Long cartId, String search, String sort, Integer pageNumber, Integer pageSize) {
+        Flux<Item> page = getPage(search, sort, pageNumber, pageSize);
+        return page.map(item -> cartItemRepository.findByCartIdAndItemId(cartId, item.getId()).
+                        map(ci -> itemToItemDtoMapper.mapItem(item, ci.getCount())).
+                        defaultIfEmpty(itemToItemDtoMapper.mapItem(item))).
+                flatMap(Function.identity());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<ItemDto> getItem(Long cartId, Long id) {
-        return itemRepository.findById(id).map(item -> {
-            Integer count = cartRepository.findById(cartId).
-                    map(c -> cartItemRepository.findByCartAndItemId(c, id).
-                            map(CartItem::getCount).orElse(0)).orElse(0);
-            return itemToItemDtoMapper.mapItem(item, count);
+    public Mono<ItemsPagingDto> getItemsPaging(String search, Integer pageNumber, Integer pageSize) {
+        Mono<Long> itemsCount = search == null || search.isEmpty() ?
+                itemRepository.count() :
+                itemRepository.countByTitleContainingOrDescriptionContainingAllIgnoreCase(search, search);
+        return itemsCount.map(count -> {
+            int pagingPageNumber = pageNumber == null ? PAGE_NUMBER_DEFAULT : pageNumber;
+            int pagingPageSize = pageSize == null ? PAGE_SIZE_DEFAULT : pageSize;
+            return new ItemsPagingDto(pagingPageSize,
+                    pagingPageNumber,
+                    pagingPageNumber > 1,
+                    (long) pagingPageNumber * pagingPageSize < count);
         });
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Mono<ItemDto> getItem(Long cartId, Long id) {
+        return itemRepository.findById(id).
+                map(item -> cartItemRepository.findByCartIdAndItemId(cartId, item.getId()).
+                        map(ci -> itemToItemDtoMapper.mapItem(item, ci.getCount())).
+                        defaultIfEmpty(itemToItemDtoMapper.mapItem(item))).
+                flatMap(Function.identity());
+    }
+
+    @Override
     @Transactional
-    public ItemDto createItem(String title, String description, BigDecimal price) {
+    public Mono<ItemDto> createItem(String title, String description, BigDecimal price) {
         Item item = new Item();
         item.setTitle(title);
         item.setDescription(description);
         item.setPrice(price);
-        return itemToItemDtoMapper.mapItem(itemRepository.save(item), 0);
+        return itemRepository.save(item).map(itemToItemDtoMapper::mapItem);
     }
 
-    private @NonNull Map<Long, Integer> getItemsCartCount(Long cartId, List<Item> items) {
-        return cartRepository.findById(cartId).map(cart -> {
-            List<CartItem> cartItems = cartItemRepository.findAllByCartAndItemIn(cart, items);
-            return cartItems.stream().collect(Collectors.toMap(cartItemKey -> cartItemKey.getItem().getId(), CartItem::getCount));
-        }).orElse(Collections.emptyMap());
-    }
-
-    private Page<Item> getPage(String search, String sort, Integer pageNumber, Integer pageSize) {
-        Pageable pageable = PageRequest.of(pageNumber - PAGE_NUMBER_DELTA, pageSize, SORT_BY.getOrDefault(sort, Sort.unsorted()));
+    private Flux<Item> getPage(String search, String sort, Integer pageNumber, Integer pageSize) {
+        pageNumber = pageNumber == null ? PAGE_NUMBER_DEFAULT : pageNumber;
+        pageSize = pageSize == null ? PAGE_SIZE_DEFAULT : pageSize;
+        sort = sort == null ? SORT_DEFAULT : sort;
+        Pageable pageable = PageRequest.of(pageNumber - PAGE_NUMBER_DELTA,
+                pageSize,
+                SORT_BY.getOrDefault(sort, Sort.unsorted()));
         return getPage(search, pageable);
     }
 
-    private Page<Item> getPage(String search, Pageable pageable) {
-        return search == null || search.isEmpty() ? itemRepository.findAll(pageable) :
+    private Flux<Item> getPage(String search, Pageable pageable) {
+        return search == null || search.isEmpty() ?
+                itemRepository.findAllBy(pageable) :
                 itemRepository.findByTitleContainingOrDescriptionContainingAllIgnoreCase(search, search, pageable);
     }
 }

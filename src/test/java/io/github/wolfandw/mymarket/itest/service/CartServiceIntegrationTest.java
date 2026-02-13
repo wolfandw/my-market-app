@@ -1,16 +1,15 @@
 package io.github.wolfandw.mymarket.itest.service;
 
-import io.github.wolfandw.mymarket.dto.CartDto;
-import io.github.wolfandw.mymarket.dto.ItemDto;
 import io.github.wolfandw.mymarket.itest.AbstractIntegrationTest;
 import org.junit.jupiter.api.Test;
-import org.springframework.transaction.annotation.Transactional;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import reactor.test.StepVerifier;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Интеграционный тест сервиса корзин.
@@ -21,55 +20,44 @@ public class CartServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void getCartTest() {
-        Long cartId = DEFAULT_CART_ID;
-        CartDto actualCart = cartService.getCart(cartId);
-        assertThat(actualCart).isNotNull();
-
-        Long actualCartTotal = actualCart.total();
-        assertThat(actualCartTotal).isEqualTo(7700);
-
-        List<ItemDto> actualCartItems = actualCart.items();
-        assertThat(actualCartItems).isNotNull();
-        assertThat(actualCartItems.size()).isEqualTo(12);
-        assertThat(actualCartItems.getFirst().title()).isEqualTo("Item 08");
-        assertThat(actualCartItems.getFirst().count()).isEqualTo(60);
+        StepVerifier.create(cartService.getCart(DEFAULT_CART_ID)).
+        consumeNextWith(actualCart -> {
+            assertThat(actualCart.total()).isEqualTo(7808L);
+        }).verifyComplete();
     }
 
     @Test
-    @Transactional
-    void changeItemCountPlus() {
-        Long cartId = DEFAULT_CART_ID;
-        Long entityId = 2L;
-
-        Optional<ItemDto> entity = itemService.getItem(cartId, entityId);
-        assertTrue(entity.isPresent(), "Сущность должна присутствовать");
-        int countBefore = entity.get().count();
-
-        cartService.changeItemCount(cartId, entityId, ACTION_PLUS);
-
-        entity = itemService.getItem(cartId, entityId);
-        assertTrue(entity.isPresent(), "Сущность должна присутствовать");
-        int countAfter = entity.get().count();
-
-        assertThat(countAfter - countBefore).isEqualTo(1);
+    void getCartItemsTest() {
+        StepVerifier.create(cartService.getCartItems(DEFAULT_CART_ID).collectList()).
+                assertNext(actualCartItems -> {
+                    assertThat(actualCartItems).isNotEmpty();
+                    assertThat(actualCartItems.size()).isEqualTo(12);
+                    assertThat(actualCartItems.getFirst().title()).isEqualTo("Item 08");
+                    assertThat(actualCartItems.getFirst().count()).isEqualTo(60);
+                }).verifyComplete();
     }
 
-    @Test
-    @Transactional
-    void changeItemCountMinus() {
+    @ParameterizedTest
+    @MethodSource("provideChangeItemCountArgs")
+    void changeItemCount(String action, long countBefore, long countAfter) {
         Long cartId = DEFAULT_CART_ID;
         Long entityId = 2L;
 
-        Optional<ItemDto> entity = itemService.getItem(cartId, entityId);
-        assertTrue(entity.isPresent(), "Сущность должна присутствовать");
-        int countBefore = entity.get().count();
+        StepVerifier.create(itemService.getItem(cartId, entityId)).
+        consumeNextWith(entity -> {
+            assertThat(entity.count()).isEqualTo(countBefore);
+        }).verifyComplete();
 
-        cartService.changeItemCount(cartId, entityId, ACTION_MINUS);
+        trxStepVerifier.create(cartService.changeItemCount(cartId, entityId, action).then(itemService.getItem(cartId, entityId))).
+                consumeNextWith(entity -> {
+                    assertThat(entity.count()).isEqualTo(countAfter);
+                }).verifyComplete();
+    }
 
-        entity = itemService.getItem(cartId, entityId);
-        assertTrue(entity.isPresent(), "Сущность должна присутствовать");
-        int countAfter = entity.get().count();
-
-        assertThat(countBefore - countAfter).isEqualTo(1);
+    private static Stream<Arguments> provideChangeItemCountArgs() {
+        return Stream.of(
+                Arguments.of(ACTION_MINUS, 60, 59),
+                Arguments.of(ACTION_PLUS, 60, 61)
+        );
     }
 }

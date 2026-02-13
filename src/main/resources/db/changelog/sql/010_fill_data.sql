@@ -1,22 +1,23 @@
 INSERT INTO items(title, description, img_path, price)
 VALUES
-('Item 07 SearchTag', 'item 07 description', '1.png', '07.00'),
-('Item 08', 'item 08 description', '2.png', '06.00'),
-('Item 09', 'item 09 description', '3.png', '05.00'),
-('Item 10', 'item 10 description SearchTag', '4.png', '04.00'),
-('Item 11', 'item 11 description', '5.png', '03.00'),
-('Item 12', 'item 12 description', '6.png', '02.00'),
-('Item 13', 'item 13 description', '7.png', '01.00'),
-('Item 01 searchtag', 'item 01 description', '8.png', '13.00'),
-('Item 02', 'item 02 description', '9.png', '12.00'),
-('Item 03', 'item 03 description', '10.png', '11.00'),
-('Item 04', 'item 04 description', '11.png', '10.00'),
-('Item 05', 'item 05 description', '12.png', '09.00'),
-('Item 06', 'item 06 description searchtag', '13.png', '08.00');
+('Item 07 SearchTag', 'item 07 description', '1.png', '07.01'),
+('Item 08', 'item 08 description', '2.png', '06.01'),
+('Item 09', 'item 09 description', '3.png', '05.01'),
+('Item 10', 'item 10 description SearchTag', '4.png', '04.01'),
+('Item 11', 'item 11 description', '5.png', '03.01'),
+('Item 12', 'item 12 description', '6.png', '02.01'),
+('Item 13', 'item 13 description', '7.png', '01.01'),
+('Item 01 searchtag', 'item 01 description', '8.png', '13.01'),
+('Item 02', 'item 02 description', '9.png', '12.01'),
+('Item 03', 'item 03 description', '10.png', '11.01'),
+('Item 04', 'item 04 description', '11.png', '11.01'),
+('Item 05', 'item 05 description', '12.png', '09.01'),
+('Item 06', 'item 06 description searchtag', '13.png', '08.01');
 
-INSERT INTO carts(id, total)
-VALUES
-(1L, 6*60 + 5*50 + 4*40 + 3*30 + 2*20 + 1*10 + 13*130 + 12*120 + 11*110 + 10*100 + 9*90 + 8*80);
+UPDATE carts
+SET
+    total = (6.01*60 + 5.01*50 + 4.01*40 + 3.01*30 + 2.01*20 + 1.01*10 + 13.01*130 + 12.01*120 + 11.01*110 + 11.01*100 + 9.01*90 + 8.01*80)
+WHERE id = 1L;
 
 INSERT INTO cart_items(cart_id, item_id, count)
 VALUES
@@ -35,7 +36,7 @@ VALUES
 
 INSERT INTO orders(total_sum)
 VALUES
-(6*65 + 5*55 + 4*45 + 3*35 + 2*25 + 1*15 + 13*135 + 12*125 + 11*115 + 10*105 + 9*95 + 8*85);
+(6.01*65 + 5.01*55 + 4.01*45 + 3.01*35 + 2.01*25 + 1.01*15 + 13.01*135 + 12.01*125 + 11.01*115 + 10.01*105 + 9.01*95 + 8.01*85);
 
 INSERT INTO order_items(order_id, item_id, count)
 VALUES

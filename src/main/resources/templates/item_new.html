@@ -28,8 +28,8 @@
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">Новый товар</h5>
-                    <form th:action="'/items/new'" method="post" enctype="multipart/form-data">
-                        <div class="row p-2">
+                    <form th:action="'/items/new'" method="post">
+                        <<div class="row p-2">
                             <div class="col">
                                 <div class="hstack gap-3">
                                     <input class="form-control me-2 mw-100" type="text" placeholder="Наименование..."
@@ -50,14 +50,6 @@
                                 <div class="hstack gap-3">
                                     <input class="form-control me-2 mw-100" type="number" placeholder="Цена..."
                                            aria-label="Цена" name="price" th:value="${price}"/>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row p-2">
-                            <div class="col">
-                                <div class="hstack gap-3">
-                                    <input class="form-control me-2 mw-100" type="file" accept=".jpg, .jpeg, .png" placeholder="Изображение..."
-                                           aria-label="Изображение" name="imageFile" th:value="${imageFile}"/>
                                 </div>
                             </div>
                         </div>
