@@ -14,10 +14,9 @@ VALUES
 ('Item 05', 'item 05 description', '12.png', '09.01'),
 ('Item 06', 'item 06 description searchtag', '13.png', '08.01');
 
-UPDATE carts
-SET
-    total = (6.01*60 + 5.01*50 + 4.01*40 + 3.01*30 + 2.01*20 + 1.01*10 + 13.01*130 + 12.01*120 + 11.01*110 + 11.01*100 + 9.01*90 + 8.01*80)
-WHERE id = 1L;
+INSERT INTO  carts(id, total)
+VALUES
+(1L, 6.01*60 + 5.01*50 + 4.01*40 + 3.01*30 + 2.01*20 + 1.01*10 + 13.01*130 + 12.01*120 + 11.01*110 + 11.01*100 + 9.01*90 + 8.01*80);
 
 INSERT INTO cart_items(cart_id, item_id, count)
 VALUES

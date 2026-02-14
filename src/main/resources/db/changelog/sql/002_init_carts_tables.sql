@@ -3,8 +3,6 @@ CREATE TABLE IF NOT EXISTS carts (
     total NUMERIC NOT NULL DEFAULT 0
 );
 
-INSERT INTO carts(total) VALUES (0);
-
 CREATE TABLE IF NOT EXISTS cart_items (
       id BIGSERIAL PRIMARY KEY,
       cart_id BIGINT NOT NULL,

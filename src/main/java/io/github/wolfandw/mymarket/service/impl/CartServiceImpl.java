@@ -76,7 +76,7 @@ public class CartServiceImpl implements CartService {
         Mono<Item> itemMono = itemRepository.findById(itemId);
         Mono<Cart> cartMono = cartRepository.findById(cartId).switchIfEmpty(Mono.defer(() -> cartRepository.save(new Cart(cartId))));
         Mono<CartItem> cartItemMono = cartItemRepository.findByCartIdAndItemId(cartId, itemId).
-                defaultIfEmpty(createCartItem(cartId, itemId));
+                switchIfEmpty(Mono.defer(() -> createCartItem(cartId, itemId)));
 
         return Mono.zip(itemMono, cartMono, cartItemMono).flatMap(tuple -> {
                     Item item = tuple.getT1();
@@ -101,20 +101,21 @@ public class CartServiceImpl implements CartService {
                     cart.setTotal(total);
                     cartItem.setCount(count);
 
+                    Mono<Cart> savedCart = cartRepository.save(cart);
                     if (count > 0) {
-                        return cartItemRepository.save(cartItem).then(cartRepository.save(cart)).then();
+                        return savedCart.then(cartItemRepository.save(cartItem)).then();
                     } else if (cartItem.getId() != null) {
-                        return cartItemRepository.delete(cartItem).then(cartRepository.save(cart)).then();
+                        return savedCart.then(cartItemRepository.delete(cartItem));
                     }
-                    return cartRepository.save(cart).then();
+                    return savedCart.then();
                 }
         );
     }
 
-    private CartItem createCartItem(Long cartId, Long itemId) {
+    private Mono<CartItem> createCartItem(Long cartId, Long itemId) {
         CartItem cartItem = new CartItem();
         cartItem.setCartId(cartId);
         cartItem.setItemId(itemId);
-        return cartItem;
+        return Mono.just(cartItem);
     }
 }
