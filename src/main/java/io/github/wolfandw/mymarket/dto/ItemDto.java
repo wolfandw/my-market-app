@@ -10,8 +10,6 @@ public class ItemDto {
     private final long price;
     private final int count;
 
-    private String imgData;
-
     /**
      * DTO-описание товара.
      *
@@ -84,24 +82,6 @@ public class ItemDto {
      */
     public String description() {
         return description;
-    }
-
-    /**
-     * Возвращает путь к изображению товара.
-     *
-     * @return путь к изображению товара
-     */
-    public String imgData() {
-        return imgData;
-    }
-
-    /**
-     * Устанавливает путь к изображению товара.
-     *
-     * @param imgData путь к изображению товара
-     */
-    public void setImgData(String imgData) {
-        this.imgData = imgData;
     }
 
     /**

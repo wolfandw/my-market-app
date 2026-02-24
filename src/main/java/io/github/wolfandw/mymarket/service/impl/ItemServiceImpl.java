@@ -1,5 +1,6 @@
 package io.github.wolfandw.mymarket.service.impl;
 
+import io.github.wolfandw.mymarket.cache.ItemsCache;
 import io.github.wolfandw.mymarket.dto.ItemDto;
 import io.github.wolfandw.mymarket.dto.ItemsPagingDto;
 import io.github.wolfandw.mymarket.model.Item;
@@ -40,6 +41,7 @@ public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final CartItemRepository cartItemRepository;
     private final ItemToDtoMapper itemToItemDtoMapper;
+    private final ItemsCache itemsCache;
 
     /**
      * Создает сервис работы с товарами.
@@ -47,13 +49,16 @@ public class ItemServiceImpl implements ItemService {
      * @param itemRepository     репозиторий товаров
      * @param cartItemRepository репозиторий строк корзин
      * @param itemToDtoMapper    маппер товаров на DTO-представление товаров.
+     * @param itemsCache кэш товаров
      */
     public ItemServiceImpl(ItemRepository itemRepository,
                            CartItemRepository cartItemRepository,
-                           ItemToDtoMapper itemToDtoMapper) {
+                           ItemToDtoMapper itemToDtoMapper,
+                           ItemsCache itemsCache) {
         this.itemRepository = itemRepository;
         this.cartItemRepository = cartItemRepository;
         this.itemToItemDtoMapper = itemToDtoMapper;
+        this.itemsCache = itemsCache;
     }
 
     @Override
@@ -106,15 +111,18 @@ public class ItemServiceImpl implements ItemService {
         pageNumber = pageNumber == null ? PAGE_NUMBER_DEFAULT : pageNumber;
         pageSize = pageSize == null ? PAGE_SIZE_DEFAULT : pageSize;
         sort = sort == null ? SORT_DEFAULT : sort;
+        search = search == null ? "" : search;
+
         Pageable pageable = PageRequest.of(pageNumber - PAGE_NUMBER_DELTA,
                 pageSize,
                 SORT_BY.getOrDefault(sort, Sort.unsorted()));
-        return getPage(search, pageable);
-    }
 
-    private Flux<Item> getPage(String search, Pageable pageable) {
-        return search == null || search.isEmpty() ?
-                itemRepository.findAllBy(pageable) :
-                itemRepository.findByTitleContainingOrDescriptionContainingAllIgnoreCase(search, search, pageable);
+        Flux<Item> cachedItems = itemsCache.getItems(search, sort, pageNumber, pageSize);
+
+        Flux<Item> databaseItems = search.isEmpty() ?
+                    itemRepository.findAllBy(pageable) :
+                    itemRepository.findByTitleContainingOrDescriptionContainingAllIgnoreCase(search, search, pageable);
+
+        return cachedItems.switchIfEmpty(itemsCache.cache(search, sort, pageNumber, pageSize, databaseItems));
     }
 }
