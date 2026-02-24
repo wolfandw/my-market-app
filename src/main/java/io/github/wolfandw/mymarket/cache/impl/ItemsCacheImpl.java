@@ -2,11 +2,15 @@ package io.github.wolfandw.mymarket.cache.impl;
 
 import io.github.wolfandw.mymarket.cache.ItemsCache;
 import io.github.wolfandw.mymarket.model.Item;
+import io.github.wolfandw.mymarket.service.impl.FileStorageServiceImpl;
 import org.jspecify.annotations.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 
@@ -15,7 +19,9 @@ import java.time.Duration;
  */
 @Component
 public class ItemsCacheImpl implements ItemsCache {
+    private static final Logger LOG = LoggerFactory.getLogger(ItemsCacheImpl.class);
     private static final String KEY_PREFIX = "mymarket:items:list";
+    private static final String KEY_DELIMITER = ":";
 
     private final ReactiveRedisTemplate<String, Item> itemCacheTemplate;
 
@@ -41,14 +47,21 @@ public class ItemsCacheImpl implements ItemsCache {
     public Flux<Item> cache(String search, String sort, Integer pageNumber, Integer pageSize, Flux<Item> databaseItems) {
         String key = buildKey(search, sort, pageNumber, pageSize);
         return databaseItems
-                .flatMap(data ->
-                        itemCacheTemplate.opsForList().rightPushAll(key, data) // Store each item in Redis list
-                                .then(itemCacheTemplate.expire(key, Duration.ofMinutes(10))) // Set TTL for the key
-                                .thenReturn(data)
-                ).cache(Duration.ofMinutes(timeToLive));
+                .flatMap(item -> {
+                            LOG.info("Помещаем в кэш список товаров");
+                            return itemCacheTemplate.opsForList().rightPush(key, item)
+                                    .then(itemCacheTemplate.expire(key, Duration.ofMinutes(timeToLive)))
+                                    .thenReturn(item);
+                        }
+                );
+    }
+
+    @Override
+    public Mono<Long> clear() {
+        return itemCacheTemplate.delete(itemCacheTemplate.keys(KEY_PREFIX + ':' + '*'));
     }
 
     private static @NonNull String buildKey(String search, String sort, Integer pageNumber, Integer pageSize) {
-        return String.join(":", KEY_PREFIX, search, sort, pageNumber.toString(), pageSize.toString());
+        return String.join(KEY_DELIMITER, KEY_PREFIX, search, sort, pageNumber.toString(), pageSize.toString());
     }
 }

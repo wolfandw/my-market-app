@@ -1,5 +1,6 @@
 package io.github.wolfandw.mymarket.service.impl;
 
+import io.github.wolfandw.mymarket.cache.ItemCache;
 import io.github.wolfandw.mymarket.dto.ItemDto;
 import io.github.wolfandw.mymarket.dto.OrderDto;
 import io.github.wolfandw.mymarket.repository.ItemRepository;
@@ -23,6 +24,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderItemRepository orderItemRepository;
     private final ItemRepository itemRepository;
     private final ItemToDtoMapper itemToItemDtoMapper;
+    private final ItemCache itemCache;
 
     /**
      * Создает сервис работы с заказами товаров.
@@ -31,15 +33,18 @@ public class OrderServiceImpl implements OrderService {
      * @param orderItemRepository репозиторий заказов
      * @param itemRepository      репозиторий товаров
      * @param itemToItemDtoMapper маппер строк заказов
+     * @param itemCache кэш товаров
      */
     public OrderServiceImpl(OrderRepository orderRepository,
                             OrderItemRepository orderItemRepository,
                             ItemRepository itemRepository,
-                            ItemToDtoMapper itemToItemDtoMapper) {
+                            ItemToDtoMapper itemToItemDtoMapper,
+                            ItemCache itemCache) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.itemRepository = itemRepository;
         this.itemToItemDtoMapper = itemToItemDtoMapper;
+        this.itemCache = itemCache;
     }
 
     @Override
@@ -62,7 +67,8 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     public Flux<ItemDto> getOrderItems(Long orderId) {
         return orderItemRepository.findAllByOrderId(orderId).map(orderItem ->
-                        itemRepository.findById(orderItem.getItemId()).
+                        itemCache.getItem(orderItem.getItemId()).
+                                switchIfEmpty(itemCache.cache(itemRepository.findById(orderItem.getItemId()))).
                                 map(item -> itemToItemDtoMapper.mapItem(item, orderItem.getCount())).
                                 switchIfEmpty(Mono.just(new ItemDto(-1L, "", "", 0L, 0)))).
                 flatMap(itemDto -> itemDto);

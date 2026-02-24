@@ -1,6 +1,8 @@
 package io.github.wolfandw.mymarket.service.impl;
 
+import io.github.wolfandw.mymarket.cache.ItemCache;
 import io.github.wolfandw.mymarket.cache.ItemsCache;
+import io.github.wolfandw.mymarket.cache.ItemsCountCache;
 import io.github.wolfandw.mymarket.dto.ItemDto;
 import io.github.wolfandw.mymarket.dto.ItemsPagingDto;
 import io.github.wolfandw.mymarket.model.Item;
@@ -42,6 +44,8 @@ public class ItemServiceImpl implements ItemService {
     private final CartItemRepository cartItemRepository;
     private final ItemToDtoMapper itemToItemDtoMapper;
     private final ItemsCache itemsCache;
+    private final ItemsCountCache itemsCountCache;
+    private final ItemCache itemCache;
 
     /**
      * Создает сервис работы с товарами.
@@ -49,16 +53,22 @@ public class ItemServiceImpl implements ItemService {
      * @param itemRepository     репозиторий товаров
      * @param cartItemRepository репозиторий строк корзин
      * @param itemToDtoMapper    маппер товаров на DTO-представление товаров.
-     * @param itemsCache кэш товаров
+     * @param itemsCache         кэш товаров
+     * @param itemsCountCache    кэш количества товаров
+     * @param itemCache          кэш товаров
      */
     public ItemServiceImpl(ItemRepository itemRepository,
                            CartItemRepository cartItemRepository,
                            ItemToDtoMapper itemToDtoMapper,
-                           ItemsCache itemsCache) {
+                           ItemsCache itemsCache,
+                           ItemsCountCache itemsCountCache,
+                           ItemCache itemCache) {
         this.itemRepository = itemRepository;
         this.cartItemRepository = cartItemRepository;
         this.itemToItemDtoMapper = itemToDtoMapper;
         this.itemsCache = itemsCache;
+        this.itemsCountCache = itemsCountCache;
+        this.itemCache = itemCache;
     }
 
     @Override
@@ -74,23 +84,28 @@ public class ItemServiceImpl implements ItemService {
     @Override
     @Transactional(readOnly = true)
     public Mono<ItemsPagingDto> getItemsPaging(String search, Integer pageNumber, Integer pageSize) {
-        Mono<Long> itemsCount = search == null || search.isEmpty() ?
+        Mono<Long> cachedItemsCount = itemsCountCache.getItemsCount(getSearch(search),
+                getPageNumber(pageNumber), getPageSize(pageSize));
+        Mono<Long> databaseItemsCount = getSearch(search).isEmpty() ?
                 itemRepository.count() :
-                itemRepository.countByTitleContainingOrDescriptionContainingAllIgnoreCase(search, search);
-        return itemsCount.map(count -> {
-            int pagingPageNumber = pageNumber == null ? PAGE_NUMBER_DEFAULT : pageNumber;
-            int pagingPageSize = pageSize == null ? PAGE_SIZE_DEFAULT : pageSize;
-            return new ItemsPagingDto(pagingPageSize,
-                    pagingPageNumber,
-                    pagingPageNumber > 1,
-                    (long) pagingPageNumber * pagingPageSize < count);
-        });
+                itemRepository.countByTitleContainingOrDescriptionContainingAllIgnoreCase(getSearch(search), getSearch(search));
+
+        return cachedItemsCount.switchIfEmpty(itemsCountCache.cache(getSearch(search), getPageNumber(pageNumber),
+                        getPageSize(pageSize), databaseItemsCount)).
+                map(count -> {
+                    return new ItemsPagingDto(getPageSize(pageSize),
+                            getPageNumber(pageNumber),
+                            getPageNumber(pageNumber) > 1,
+                            (long) getPageNumber(pageNumber) * getPageSize(pageSize) < count);
+                });
     }
 
     @Override
     @Transactional(readOnly = true)
     public Mono<ItemDto> getItem(Long cartId, Long id) {
-        return itemRepository.findById(id).
+        Mono<Item> cachedItem = itemCache.getItem(id);
+        Mono<Item> databaseItem = itemRepository.findById(id);
+        return cachedItem.switchIfEmpty(itemCache.cache(databaseItem)).
                 map(item -> cartItemRepository.findByCartIdAndItemId(cartId, item.getId()).
                         map(ci -> itemToItemDtoMapper.mapItem(item, ci.getCount())).
                         defaultIfEmpty(itemToItemDtoMapper.mapItem(item))).
@@ -104,25 +119,39 @@ public class ItemServiceImpl implements ItemService {
         item.setTitle(title);
         item.setDescription(description);
         item.setPrice(price);
-        return itemRepository.save(item).map(itemToItemDtoMapper::mapItem);
+        return itemCache.cache(itemRepository.save(item)).flatMap(databaseItem ->
+                itemsCache.clear().then(itemsCountCache.clear()).thenReturn(itemToItemDtoMapper.mapItem(databaseItem))
+        );
     }
 
     private Flux<Item> getPage(String search, String sort, Integer pageNumber, Integer pageSize) {
-        pageNumber = pageNumber == null ? PAGE_NUMBER_DEFAULT : pageNumber;
-        pageSize = pageSize == null ? PAGE_SIZE_DEFAULT : pageSize;
-        sort = sort == null ? SORT_DEFAULT : sort;
-        search = search == null ? "" : search;
+        Pageable pageable = PageRequest.of(getPageNumber(pageNumber) - PAGE_NUMBER_DELTA,
+                getPageSize(pageSize),
+                SORT_BY.getOrDefault(getSort(sort), Sort.unsorted()));
 
-        Pageable pageable = PageRequest.of(pageNumber - PAGE_NUMBER_DELTA,
-                pageSize,
-                SORT_BY.getOrDefault(sort, Sort.unsorted()));
+        Flux<Item> cachedItems = itemsCache.getItems(getSearch(search), getSort(sort),
+                getPageNumber(pageNumber), getPageSize(pageSize));
+        Flux<Item> databaseItems = getSearch(search).isEmpty() ?
+                itemRepository.findAllBy(pageable) :
+                itemRepository.findByTitleContainingOrDescriptionContainingAllIgnoreCase(search, search, pageable);
 
-        Flux<Item> cachedItems = itemsCache.getItems(search, sort, pageNumber, pageSize);
+        return cachedItems.switchIfEmpty(itemsCache.cache(getSearch(search), getSort(sort), getPageNumber(pageNumber),
+                getPageSize(pageSize), databaseItems));
+    }
 
-        Flux<Item> databaseItems = search.isEmpty() ?
-                    itemRepository.findAllBy(pageable) :
-                    itemRepository.findByTitleContainingOrDescriptionContainingAllIgnoreCase(search, search, pageable);
+    private String getSearch(String search) {
+        return search == null ? "" : search;
+    }
 
-        return cachedItems.switchIfEmpty(itemsCache.cache(search, sort, pageNumber, pageSize, databaseItems));
+    private String getSort(String sort) {
+        return sort == null ? SORT_DEFAULT : sort;
+    }
+
+    private Integer getPageNumber(Integer pageNumber) {
+        return pageNumber == null ? PAGE_NUMBER_DEFAULT : pageNumber;
+    }
+
+    private Integer getPageSize(Integer pageSize) {
+        return pageSize == null ? PAGE_SIZE_DEFAULT : pageSize;
     }
 }

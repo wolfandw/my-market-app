@@ -1,7 +1,10 @@
 package io.github.wolfandw.mymarket.cache.impl;
 
 import io.github.wolfandw.mymarket.cache.ItemsCountCache;
+import io.github.wolfandw.mymarket.service.impl.FileStorageServiceImpl;
 import org.jspecify.annotations.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.stereotype.Component;
@@ -14,7 +17,9 @@ import java.time.Duration;
  */
 @Component
 public class ItemsCountCacheImpl implements ItemsCountCache {
+    private static final Logger LOG = LoggerFactory.getLogger(ItemsCountCacheImpl.class);
     private static final String KEY_PREFIX = "mymarket:items:paging";
+    private static final String KEY_DELIMITER = ":";
 
     private final ReactiveRedisTemplate<String, Long> itemsCountCacheTemplate;
 
@@ -31,18 +36,30 @@ public class ItemsCountCacheImpl implements ItemsCountCache {
     }
 
     @Override
-    public Mono<Long> getItemsCount(String search, String sort, Integer pageNumber, Integer pageSize) {
-        String key = buildKey(search, sort, pageNumber, pageSize);
+    public Mono<Long> getItemsCount(String search, Integer pageNumber, Integer pageSize) {
+        String key = buildKey(search, pageNumber, pageSize);
         return itemsCountCacheTemplate.opsForValue().get(key);
     }
 
     @Override
-    public Mono<Boolean> cache(String search, String sort, Integer pageNumber, Integer pageSize, Long count) {
-        String key = buildKey(search, sort, pageNumber, pageSize);
-        return itemsCountCacheTemplate.opsForValue().set(key, count, Duration.ofMinutes(timeToLive));
+    public Mono<Long> cache(String search, Integer pageNumber, Integer pageSize, Mono<Long> databaseCount) {
+        String key = buildKey(search, pageNumber, pageSize);
+        return databaseCount
+                .flatMap(count -> {
+                            LOG.info("Помещаем в кэш количество товаров");
+                            return itemsCountCacheTemplate.opsForValue()
+                                    .set(key, count, Duration.ofMinutes(timeToLive))
+                                    .thenReturn(count);
+                        }
+                );
     }
 
-    private static @NonNull String buildKey(String search, String sort, Integer pageNumber, Integer pageSize) {
-        return String.join(":", KEY_PREFIX, search, sort, pageNumber.toString(), pageSize.toString());
+    @Override
+    public Mono<Long> clear() {
+        return itemsCountCacheTemplate.delete(itemsCountCacheTemplate.keys(KEY_PREFIX + ':' + '*'));
+    }
+
+    private static @NonNull String buildKey(String search, Integer pageNumber, Integer pageSize) {
+        return String.join(KEY_DELIMITER, KEY_PREFIX, search, pageNumber.toString(), pageSize.toString());
     }
 }

@@ -10,17 +10,24 @@ public interface ItemCache {
     /**
      * Получить товар из кэша.
      *S
-     * @param id идентификатор товара
+     * @param itemId идентификатор товара
      * @return товар из кэша
      */
-    Mono<Item> getItem(Long id);
+    Mono<Item> getItem(Long itemId);
 
     /**
      * Поместить товар в кэш.
      *
-     * @param id идентификатор товара
-     * @param item товар
-     * @return {@code true} если Ок
+     * @param databaseItem товар из репозитория
+     * @return товар из репозитория
      */
-    Mono<Boolean> cache(Long id, Item item);
+    Mono<Item> cache(Mono<Item> databaseItem);
+
+    /**
+     * Очищает кэш товара.
+     *
+     * @param itemId идентификатор товара
+     * @return количество удаленных записей
+     */
+    Mono<Long> clear(Long itemId);
 }

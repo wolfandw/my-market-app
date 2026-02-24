@@ -8,13 +8,18 @@ import org.springframework.data.redis.serializer.*;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import tools.jackson.databind.ObjectMapper;
 
-import java.util.List;
-
 /**
  * Конфигурация настройки шаблонов Redis.
  */
 @Configuration
 public class RedisConfiguration {
+    /**
+     * Кэш для работы с товарами.
+     *
+     * @param connectionFactory фабрика соединений
+     * @param objectMapper маппер
+     * @return кэш товаров
+     */
     @Bean
     public ReactiveRedisTemplate<String, Item> itemCacheTemplate(
             ReactiveRedisConnectionFactory connectionFactory,
@@ -36,6 +41,13 @@ public class RedisConfiguration {
         return new ReactiveRedisTemplate<>(connectionFactory, context);
     }
 
+    /**
+     * Кэш количества товаров.
+     *
+     * @param connectionFactory фабрика соединений
+     * @param objectMapper маппер
+     * @return кэш количества товаров
+     */
     @Bean
     public ReactiveRedisTemplate<String, Long> itemsCountCacheTemplate(
             ReactiveRedisConnectionFactory connectionFactory,
@@ -57,10 +69,15 @@ public class RedisConfiguration {
         return new ReactiveRedisTemplate<>(connectionFactory, context);
     }
 
+    /**
+     * Кэш картинок сущностей.
+     *
+     * @param connectionFactory фабрика соединений
+     * @return кэш картинок сущностей
+     */
     @Bean
     public ReactiveRedisTemplate<String, byte[]> entityImageCacheTemplate(
-            ReactiveRedisConnectionFactory connectionFactory,
-            ObjectMapper objectMapper) {
+            ReactiveRedisConnectionFactory connectionFactory) {
 
         StringRedisSerializer keySerializer = new StringRedisSerializer();
 

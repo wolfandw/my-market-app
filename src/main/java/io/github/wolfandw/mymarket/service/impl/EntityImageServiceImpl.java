@@ -1,5 +1,7 @@
 package io.github.wolfandw.mymarket.service.impl;
 
+import io.github.wolfandw.mymarket.cache.EntityImageCache;
+import io.github.wolfandw.mymarket.cache.ItemCache;
 import io.github.wolfandw.mymarket.dto.EntityImageDto;
 import io.github.wolfandw.mymarket.model.Item;
 import io.github.wolfandw.mymarket.repository.ItemRepository;
@@ -25,16 +27,25 @@ public class EntityImageServiceImpl implements EntityImageService {
 
     private final ItemRepository entityRepository;
     private final FileStorageService fileStorageService;
+    private final EntityImageCache entityImageCache;
+    private final ItemCache itemCache;
 
     /**
      * Создает сервис для работы с картинками постов.
      *
      * @param entityRepository   репозиторий для работы с картинками постов
      * @param fileStorageService сервис работы с файлами
+     * @param entityImageCache   кэш картинок сущностей
+     * @param itemCache          кэш товаров
      */
-    public EntityImageServiceImpl(ItemRepository entityRepository, FileStorageService fileStorageService) {
+    public EntityImageServiceImpl(ItemRepository entityRepository,
+                                  FileStorageService fileStorageService,
+                                  EntityImageCache entityImageCache,
+                                  ItemCache itemCache) {
         this.entityRepository = entityRepository;
         this.fileStorageService = fileStorageService;
+        this.entityImageCache = entityImageCache;
+        this.itemCache = itemCache;
     }
 
     @Override
@@ -57,25 +68,29 @@ public class EntityImageServiceImpl implements EntityImageService {
     @Transactional
     public Mono<Void> setEntityImage(Long entityId, Mono<FilePart> imageFileMono) {
         return imageFileMono.flatMap(imageFile -> {
-            String originName = imageFile.filename();
-            String extension = getImageExtension(originName);
-            String imageName = entityId.toString() + "." + extension;
-            return fileStorageService.writeFile(imageName, imageFile);
-        }).zipWith(entityRepository.findById(entityId)).flatMap(tuple -> {
-            String imageName = tuple.getT1();
-            Item entity = tuple.getT2();
-            String oldImgPath = entity.getImgPath();
-            entity.setImgPath(imageName);
-            if (oldImgPath != null && !oldImgPath.isEmpty() && !oldImgPath.equals(imageName)) {
-                return entityRepository.save(entity).then(fileStorageService.deleteFile(oldImgPath));
-            }
-            return entityRepository.save(entity);
-        }).then();
+                    String originName = imageFile.filename();
+                    String extension = getImageExtension(originName);
+                    String imageName = entityId.toString() + "." + extension;
+                    return fileStorageService.writeFile(imageName, imageFile);
+                }).zipWith(itemCache.getItem(entityId).
+                        switchIfEmpty(itemCache.cache(entityRepository.findById(entityId)))).
+                flatMap(tuple -> {
+                    String imageName = tuple.getT1();
+                    Item entity = tuple.getT2();
+                    String oldImgPath = entity.getImgPath();
+                    entity.setImgPath(imageName);
+                    if (oldImgPath != null && !oldImgPath.isEmpty() && !oldImgPath.equals(imageName)) {
+                        return itemCache.cache(entityRepository.save(entity)).then(fileStorageService.deleteFile(oldImgPath));
+                    }
+                    return itemCache.cache(entityRepository.save(entity));
+                }).then();
     }
 
     private Mono<byte[]> getEntityImageContent(Long entityId) {
-        return entityRepository.findById(entityId).map(Item::getImgPath).
-                flatMap(fileStorageService::readFile);
+        return entityImageCache.getEntityImage(entityId).
+                switchIfEmpty(entityImageCache.cache(entityId, itemCache.getItem(entityId).
+                        switchIfEmpty(itemCache.cache(entityRepository.findById(entityId))).map(Item::getImgPath).
+                        flatMap(fileStorageService::readFile)));
     }
 
     private MediaType getMediaType(byte[] content) {

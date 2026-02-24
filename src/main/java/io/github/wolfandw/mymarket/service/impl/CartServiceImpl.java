@@ -1,5 +1,6 @@
 package io.github.wolfandw.mymarket.service.impl;
 
+import io.github.wolfandw.mymarket.cache.ItemCache;
 import io.github.wolfandw.mymarket.dto.CartDto;
 import io.github.wolfandw.mymarket.dto.ItemDto;
 import io.github.wolfandw.mymarket.model.Cart;
@@ -30,38 +31,39 @@ public class CartServiceImpl implements CartService {
     private final CartItemRepository cartItemRepository;
     private final ItemRepository itemRepository;
     private final ItemToDtoMapper itemToItemDtoMapper;
-    private final EntityImageService entityImageService;
+    private final ItemCache itemCache;
 
     /**
      * Создает сервис работы с корзинами.
      *
-     * @param cartRepository     репозиторий корзин
-     * @param cartItemRepository репозиторий строк корзин
-     * @param itemRepository     репозиторий товаров
-     * @param itemToItemDtoMapper    маппер товаров
-     * @param entityImageService сервис картинок товаров.
+     * @param cartRepository      репозиторий корзин
+     * @param cartItemRepository  репозиторий строк корзин
+     * @param itemRepository      репозиторий товаров
+     * @param itemToItemDtoMapper маппер товаров
+     * @param itemCache           кэш товаров
      */
     public CartServiceImpl(CartRepository cartRepository,
                            CartItemRepository cartItemRepository,
                            ItemRepository itemRepository,
                            ItemToDtoMapper itemToItemDtoMapper,
-                           EntityImageService entityImageService
+                           ItemCache itemCache
     ) {
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
         this.itemRepository = itemRepository;
         this.itemToItemDtoMapper = itemToItemDtoMapper;
-        this.entityImageService = entityImageService;
+        this.itemCache = itemCache;
     }
 
     @Override
     @Transactional(readOnly = true)
     public Flux<ItemDto> getCartItems(Long cartId) {
         return cartItemRepository.findAllByCartId(cartId).map(cartItem ->
-                itemRepository.findById(cartItem.getItemId()).
-                        map(item -> itemToItemDtoMapper.mapItem(item, cartItem.getCount())).
-                        switchIfEmpty(Mono.just(new ItemDto(-1L, "", "", 0L, 0)))).
-                        flatMap(Function.identity());
+                        itemCache.getItem(cartItem.getItemId()).
+                                switchIfEmpty(itemCache.cache(itemRepository.findById(cartItem.getItemId()))).
+                                map(item -> itemToItemDtoMapper.mapItem(item, cartItem.getCount())).
+                                switchIfEmpty(Mono.just(new ItemDto(-1L, "", "", 0L, 0)))).
+                flatMap(Function.identity());
     }
 
     @Override
