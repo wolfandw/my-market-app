@@ -44,7 +44,10 @@ public class CartServiceTest extends AbstractServiceTest {
         Cart cart = CARTS.get(cartId);
         List<CartItem> cartItems = CART_ITEMS.get(DEFAULT_CART_ID).values().stream().toList();
         when(cartItemRepository.findAllByCartId(cartId)).thenReturn(Flux.fromIterable(cartItems));
+
         mockItem();
+        when(itemCache.getItem(any(Long.class))).thenReturn(Mono.empty());
+        mockCacheItemFromCache();
 
         StepVerifier.create(cartService.getCartItems(DEFAULT_CART_ID).collectList()).
                 assertNext(actualCartItems -> {
@@ -64,9 +67,12 @@ public class CartServiceTest extends AbstractServiceTest {
         when(cartRepository.save(any(Cart.class))).thenReturn(Mono.just(CARTS.get(DEFAULT_CART_ID)));
         CartItem savedCartItem = CART_ITEMS.get(DEFAULT_CART_ID).get(entityId);
         when(cartItemRepository.save(any(CartItem.class))).thenReturn(Mono.just(savedCartItem));
+
         mockCart();
         mockItem();
         mockCartItem();
+        when(itemCache.getItem(any(Long.class))).thenReturn(Mono.empty());
+        mockCacheItemFromCache();
 
         StepVerifier.create(itemService.getItem(cartId, entityId)).
                 consumeNextWith(entity -> {

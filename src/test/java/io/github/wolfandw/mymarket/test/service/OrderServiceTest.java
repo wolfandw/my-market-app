@@ -9,6 +9,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 /**
@@ -23,6 +24,8 @@ public class OrderServiceTest extends AbstractServiceTest {
         when(orderItemRepository.findAllByOrderId(orderId)).thenReturn(Flux.fromStream(ORDER_ITEMS.get(orderId).values().stream()));
 
         mockItem();
+        when(itemCache.getItem(any(Long.class))).thenReturn(Mono.empty());
+        mockCacheItemFromCache();
 
         StepVerifier.create(orderService.getOrders().collectList()).
                 consumeNextWith(orders -> {
@@ -37,7 +40,10 @@ public class OrderServiceTest extends AbstractServiceTest {
     void getOrderItemsTest() {
         Long orderId = 1L;
         when(orderItemRepository.findAllByOrderId(orderId)).thenReturn(Flux.fromStream(ORDER_ITEMS.get(orderId).values().stream()));
+
         mockItem();
+        when(itemCache.getItem(any(Long.class))).thenReturn(Mono.empty());
+        mockCacheItemFromCache();
 
         StepVerifier.create(orderService.getOrderItems(orderId).collectList()).
                 assertNext(actualOrderItems -> {

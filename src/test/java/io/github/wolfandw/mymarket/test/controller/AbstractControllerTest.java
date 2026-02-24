@@ -11,7 +11,6 @@ import io.github.wolfandw.mymarket.test.AbstractTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
-import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 

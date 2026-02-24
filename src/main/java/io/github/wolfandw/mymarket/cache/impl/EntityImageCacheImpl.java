@@ -45,7 +45,7 @@ public class EntityImageCacheImpl implements EntityImageCache {
         String key = buildKey(entityId);
         return databaseContent
                 .flatMap(content -> {
-                            LOG.info("Помещаем в кэш список товаров");
+                            LOG.info("Помещаем в кэш картинку сущности");
                             return entityImageCacheTemplate.opsForValue()
                                     .set(key, content, Duration.ofMinutes(timeToLive))
                                     .thenReturn(content);

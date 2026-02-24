@@ -1,5 +1,9 @@
 package io.github.wolfandw.mymarket.test.service;
 
+import io.github.wolfandw.mymarket.cache.EntityImageCache;
+import io.github.wolfandw.mymarket.cache.ItemCache;
+import io.github.wolfandw.mymarket.cache.ItemsCache;
+import io.github.wolfandw.mymarket.cache.ItemsCountCache;
 import io.github.wolfandw.mymarket.itest.configuration.TrxStepVerifier;
 import io.github.wolfandw.mymarket.model.Cart;
 import io.github.wolfandw.mymarket.model.CartItem;
@@ -40,6 +44,18 @@ public abstract class AbstractServiceTest extends AbstractTest {
 
     @MockitoBean(reset = MockReset.BEFORE)
     protected FileStorageService fileStorageService;
+
+    @MockitoBean(reset = MockReset.BEFORE)
+    protected ItemsCache itemsCache;
+
+    @MockitoBean(reset = MockReset.BEFORE)
+    protected ItemCache itemCache;
+
+    @MockitoBean(reset = MockReset.BEFORE)
+    protected ItemsCountCache itemsCountCache;
+
+    @MockitoBean(reset = MockReset.BEFORE)
+    protected EntityImageCache entityImageCache;
 
     @Autowired
     protected ItemService itemService;
@@ -109,5 +125,39 @@ public abstract class AbstractServiceTest extends AbstractTest {
                 return Mono.empty();
             }
         }).when(itemRepository).findById(any(Long.class));
+    }
+
+    /**
+     * Мокает чтение товара по идентификатору из кэша.
+     */
+    protected void mockGetItemFromCache() {
+        doAnswer(new Answer<Mono<Item>>() {
+            @Override
+            public Mono<Item> answer(InvocationOnMock invocation) throws Throwable {
+                Object[] arguments = invocation.getArguments();
+                if (arguments != null && arguments.length == 1 && arguments[0] != null) {
+                    Long itemId = (Long) arguments[0];
+                    Item item = ITEMS.get(itemId);
+                    return item == null ? Mono.empty() : Mono.just(item);
+                }
+                return Mono.empty();
+            }
+        }).when(itemCache).getItem(any(Long.class));
+    }
+
+    /**
+     * Мокает кэширование товара.
+     */
+    protected void mockCacheItemFromCache() {
+        doAnswer(new Answer<Mono<Item>>() {
+            @Override
+            public Mono<Item> answer(InvocationOnMock invocation) throws Throwable {
+                Object[] arguments = invocation.getArguments();
+                if (arguments != null && arguments.length == 1 && arguments[0] != null) {
+                    return (Mono<Item>) arguments[0];
+                }
+                return Mono.empty();
+            }
+        }).when(itemCache).cache(any());
     }
 }

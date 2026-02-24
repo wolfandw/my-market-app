@@ -15,6 +15,7 @@ import java.util.Base64;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 /**
@@ -29,9 +30,16 @@ public class EntityImageServiceTest extends AbstractServiceTest {
         Item mockItem = AbstractServiceTest.ITEMS.get(entityId);
         String mockImageName = mockItem.getImgPath();
         Mono<Item> mockItemMono = Mono.just(mockItem);
+        Mono<byte[]> contentMono = Mono.just(new byte[]{1, 2, 3});
 
         when(itemRepository.findById(entityId)).thenReturn(mockItemMono);
-        when(fileStorageService.readFile(mockImageName)).thenReturn(Mono.just(new byte[]{1, 2, 3}));
+        when(fileStorageService.readFile(mockImageName)).thenReturn(contentMono);
+
+        when(itemCache.getItem(entityId)).thenReturn(Mono.empty());
+        when(itemCache.cache(any())).thenReturn(mockItemMono);
+
+        when(entityImageCache.getEntityImage(entityId)).thenReturn(Mono.empty());
+        when(entityImageCache.cache(eq(entityId), any())).thenReturn(contentMono);
 
         StepVerifier.create(fileStorageService.readFile(mockImageName).zipWith(entityImageService.getEntityImage(entityId))).consumeNextWith(tuple -> {
             byte[] expectedImageData = tuple.getT1();
@@ -49,9 +57,16 @@ public class EntityImageServiceTest extends AbstractServiceTest {
         Item mockItem = AbstractServiceTest.ITEMS.get(entityId);
         String mockImageName = mockItem.getImgPath();
         Mono<Item> mockItemMono = Mono.just(mockItem);
+        Mono<byte[]> contentMono = Mono.just(new byte[]{1, 2, 3});
 
         when(itemRepository.findById(entityId)).thenReturn(mockItemMono);
-        when(fileStorageService.readFile(mockImageName)).thenReturn(Mono.just(new byte[]{1, 2, 3}));
+        when(fileStorageService.readFile(mockImageName)).thenReturn(contentMono);
+
+        when(itemCache.getItem(entityId)).thenReturn(Mono.empty());
+        when(itemCache.cache(any())).thenReturn(mockItemMono);
+
+        when(entityImageCache.getEntityImage(entityId)).thenReturn(Mono.empty());
+        when(entityImageCache.cache(eq(entityId), any())).thenReturn(contentMono);
 
         StepVerifier.create(fileStorageService.readFile(mockImageName).zipWith(entityImageService.getEntityImageBase64(entityId))).consumeNextWith(tuple -> {
             byte[] expectedImageData = tuple.getT1();
@@ -69,11 +84,16 @@ public class EntityImageServiceTest extends AbstractServiceTest {
     void setEntityImageTest(Long entityId) throws IOException {
         Item mockItem = AbstractServiceTest.ITEMS.get(entityId);
         String mockImageName = mockItem.getImgPath();
+
         mockItem();
+        mockGetItemFromCache();
+        mockCacheItemFromCache();
+
         FilePart expectedFilePart = getFilePart(mockImageName);
         Mono<FilePart> expectedFilePartMono = Mono.just(expectedFilePart);
         when(fileStorageService.writeFile(mockImageName, expectedFilePart)).thenReturn(Mono.just(mockImageName));
         when(itemRepository.save(any(Item.class))).thenReturn(Mono.just(mockItem));
+        when(entityImageCache.clear(entityId)).thenReturn(Mono.just(1L));
         trxStepVerifier.create(entityImageService.setEntityImage(entityId, expectedFilePartMono)).verifyComplete();
     }
 }

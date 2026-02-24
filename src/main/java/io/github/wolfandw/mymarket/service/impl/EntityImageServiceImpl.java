@@ -71,7 +71,7 @@ public class EntityImageServiceImpl implements EntityImageService {
                     String originName = imageFile.filename();
                     String extension = getImageExtension(originName);
                     String imageName = entityId.toString() + "." + extension;
-                    return fileStorageService.writeFile(imageName, imageFile);
+                    return entityImageCache.clear(entityId).then(fileStorageService.writeFile(imageName, imageFile));
                 }).zipWith(itemCache.getItem(entityId).
                         switchIfEmpty(itemCache.cache(entityRepository.findById(entityId)))).
                 flatMap(tuple -> {
