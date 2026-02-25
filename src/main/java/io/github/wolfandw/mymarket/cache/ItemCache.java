@@ -8,6 +8,11 @@ import reactor.core.publisher.Mono;
  */
 public interface ItemCache {
     /**
+     * Префикс ключа.
+     */
+    String KEY_PREFIX = "mymarket:items:item";
+
+    /**
      * Получить товар из кэша.
      *S
      * @param itemId идентификатор товара

@@ -4,27 +4,35 @@ import io.github.wolfandw.mymarket.dto.OrderDto;
 import io.github.wolfandw.mymarket.model.Order;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * Интеграционные тесты сервиса заказов.
  */
 public class OrderServiceTest extends AbstractServiceTest {
-    @Test
-    void getOrdersTest() {
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void getOrdersTest(boolean emptyCache) {
         Long orderId = 1L;
         when(orderRepository.findAll()).thenReturn(Flux.fromStream(ORDERS.values().stream()));
         Order order = ORDERS.get(orderId);
         when(orderItemRepository.findAllByOrderId(orderId)).thenReturn(Flux.fromStream(ORDER_ITEMS.get(orderId).values().stream()));
 
         mockItem();
-        when(itemCache.getItem(any(Long.class))).thenReturn(Mono.empty());
+        if (emptyCache) {
+            when(itemCache.getItem(any(Long.class))).thenReturn(Mono.empty());
+        }
+        else {
+            mockGetItemFromCache();
+        }
         mockCacheItemFromCache();
 
         StepVerifier.create(orderService.getOrders().collectList()).
@@ -34,15 +42,23 @@ public class OrderServiceTest extends AbstractServiceTest {
                     assertThat(actualOrder.totalSum()).isEqualTo(8129L);
                     assertThat(actualOrder.items().size()).isEqualTo(12);
                 }).verifyComplete();
+
+        verify(itemCache, times(emptyCache ? 12 : 0)).cache(any());
     }
 
-    @Test
-    void getOrderItemsTest() {
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void getOrderItemsTest(boolean emptyCache) {
         Long orderId = 1L;
         when(orderItemRepository.findAllByOrderId(orderId)).thenReturn(Flux.fromStream(ORDER_ITEMS.get(orderId).values().stream()));
 
         mockItem();
-        when(itemCache.getItem(any(Long.class))).thenReturn(Mono.empty());
+        if (emptyCache) {
+            when(itemCache.getItem(any(Long.class))).thenReturn(Mono.empty());
+        }
+        else {
+            mockGetItemFromCache();
+        }
         mockCacheItemFromCache();
 
         StepVerifier.create(orderService.getOrderItems(orderId).collectList()).
@@ -52,6 +68,8 @@ public class OrderServiceTest extends AbstractServiceTest {
                     Assertions.assertThat(actualOrderItems.get(0).title()).isEqualTo("Item 08");
                     Assertions.assertThat(actualOrderItems.get(0).count()).isEqualTo(65);
                 }).verifyComplete();
+
+        verify(itemCache, times(emptyCache ? 12 : 0)).cache(any());
     }
 
     @Test

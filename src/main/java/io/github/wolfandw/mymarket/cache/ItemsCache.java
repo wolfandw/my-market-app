@@ -9,6 +9,11 @@ import reactor.core.publisher.Mono;
  */
 public interface ItemsCache {
     /**
+     * Префикс ключа.
+     */
+    String KEY_PREFIX = "mymarket:items:list";
+
+    /**
      * Получает список товаров из кэша.
      *
      * @param search параметры поиска

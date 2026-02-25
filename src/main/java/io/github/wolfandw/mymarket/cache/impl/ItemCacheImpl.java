@@ -18,21 +18,21 @@ import java.time.Duration;
 @Component
 public class ItemCacheImpl implements ItemCache {
     private static final Logger LOG = LoggerFactory.getLogger(ItemsCacheImpl.class);
-    private static final String KEY_PREFIX = "mymarket:items:item";
     private static final String KEY_DELIMITER = ":";
 
     private final ReactiveRedisTemplate<String, Item> itemCacheTemplate;
-
-    @Value("${mymarket.redis.time-to-live}")
-    private Integer timeToLive;
+    private final Duration timeToLive;
 
     /**
      * Создает новый кэш товаров.
      *
      * @param itemCacheTemplate кэш товаров
+     * @param timeToLive время жизни
      */
-    public ItemCacheImpl(ReactiveRedisTemplate<String, Item> itemCacheTemplate) {
+    public ItemCacheImpl(ReactiveRedisTemplate<String, Item> itemCacheTemplate,
+                         @Value("${mymarket.redis.time-to-live}") Integer timeToLive) {
         this.itemCacheTemplate = itemCacheTemplate;
+        this.timeToLive = Duration.ofSeconds(timeToLive);
     }
 
     @Override
@@ -46,7 +46,7 @@ public class ItemCacheImpl implements ItemCache {
                 .flatMap(item -> {
                             LOG.info("Помещаем в кэш товар");
                             return itemCacheTemplate.opsForValue()
-                                    .set(buildKey(item.getId()), item, Duration.ofMinutes(timeToLive))
+                                    .set(buildKey(item.getId()), item, timeToLive)
                                     .thenReturn(item);
                         }
                 );

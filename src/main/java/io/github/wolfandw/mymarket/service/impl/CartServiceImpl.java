@@ -60,9 +60,9 @@ public class CartServiceImpl implements CartService {
     public Flux<ItemDto> getCartItems(Long cartId) {
         return cartItemRepository.findAllByCartId(cartId).map(cartItem ->
                         itemCache.getItem(cartItem.getItemId()).
-                                switchIfEmpty(itemCache.cache(itemRepository.findById(cartItem.getItemId()))).
+                                switchIfEmpty(Mono.defer(() -> itemCache.cache(itemRepository.findById(cartItem.getItemId())))).
                                 map(item -> itemToItemDtoMapper.mapItem(item, cartItem.getCount())).
-                                switchIfEmpty(Mono.just(new ItemDto(-1L, "", "", 0L, 0)))).
+                                switchIfEmpty(Mono.defer(() -> Mono.just(new ItemDto(-1L, "", "", 0L, 0))))).
                 flatMap(Function.identity());
     }
 

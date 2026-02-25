@@ -90,8 +90,8 @@ public class ItemServiceImpl implements ItemService {
                 itemRepository.count() :
                 itemRepository.countByTitleContainingOrDescriptionContainingAllIgnoreCase(getSearch(search), getSearch(search));
 
-        return cachedItemsCount.switchIfEmpty(itemsCountCache.cache(getSearch(search), getPageNumber(pageNumber),
-                        getPageSize(pageSize), databaseItemsCount)).
+        return cachedItemsCount.switchIfEmpty(Mono.defer(() -> itemsCountCache.cache(getSearch(search), getPageNumber(pageNumber),
+                        getPageSize(pageSize), databaseItemsCount))).
                 map(count -> {
                     return new ItemsPagingDto(getPageSize(pageSize),
                             getPageNumber(pageNumber),
@@ -105,7 +105,7 @@ public class ItemServiceImpl implements ItemService {
     public Mono<ItemDto> getItem(Long cartId, Long id) {
         Mono<Item> cachedItem = itemCache.getItem(id);
         Mono<Item> databaseItem = itemRepository.findById(id);
-        return cachedItem.switchIfEmpty(itemCache.cache(databaseItem)).
+        return cachedItem.switchIfEmpty(Mono.defer(() -> itemCache.cache(databaseItem))).
                 map(item -> cartItemRepository.findByCartIdAndItemId(cartId, item.getId()).
                         map(ci -> itemToItemDtoMapper.mapItem(item, ci.getCount())).
                         defaultIfEmpty(itemToItemDtoMapper.mapItem(item))).
@@ -135,8 +135,8 @@ public class ItemServiceImpl implements ItemService {
                 itemRepository.findAllBy(pageable) :
                 itemRepository.findByTitleContainingOrDescriptionContainingAllIgnoreCase(search, search, pageable);
 
-        return cachedItems.switchIfEmpty(itemsCache.cache(getSearch(search), getSort(sort), getPageNumber(pageNumber),
-                getPageSize(pageSize), databaseItems));
+        return cachedItems.switchIfEmpty(Flux.defer(() -> itemsCache.cache(getSearch(search), getSort(sort), getPageNumber(pageNumber),
+                getPageSize(pageSize), databaseItems)));
     }
 
     private String getSearch(String search) {

@@ -73,7 +73,7 @@ public class EntityImageServiceImpl implements EntityImageService {
                     String imageName = entityId.toString() + "." + extension;
                     return entityImageCache.clear(entityId).then(fileStorageService.writeFile(imageName, imageFile));
                 }).zipWith(itemCache.getItem(entityId).
-                        switchIfEmpty(itemCache.cache(entityRepository.findById(entityId)))).
+                        switchIfEmpty(Mono.defer(() -> itemCache.cache(entityRepository.findById(entityId))))).
                 flatMap(tuple -> {
                     String imageName = tuple.getT1();
                     Item entity = tuple.getT2();
@@ -88,9 +88,9 @@ public class EntityImageServiceImpl implements EntityImageService {
 
     private Mono<byte[]> getEntityImageContent(Long entityId) {
         return entityImageCache.getEntityImage(entityId).
-                switchIfEmpty(entityImageCache.cache(entityId, itemCache.getItem(entityId).
-                        switchIfEmpty(itemCache.cache(entityRepository.findById(entityId))).map(Item::getImgPath).
-                        flatMap(fileStorageService::readFile)));
+                switchIfEmpty(Mono.defer(() -> entityImageCache.cache(entityId, itemCache.getItem(entityId).
+                        switchIfEmpty(Mono.defer(() -> itemCache.cache(entityRepository.findById(entityId)))).map(Item::getImgPath).
+                        flatMap(fileStorageService::readFile))));
     }
 
     private MediaType getMediaType(byte[] content) {

@@ -17,21 +17,21 @@ import java.time.Duration;
 @Component
 public class EntityImageCacheImpl implements EntityImageCache {
     private static final Logger LOG = LoggerFactory.getLogger(EntityImageCacheImpl.class);
-    private static String KEY_PREFIX = "mymarket:items:image";
     private static final String KEY_DELIMITER = ":";
 
     private final ReactiveRedisTemplate<String, byte[]> entityImageCacheTemplate;
-
-    @Value("${mymarket.redis.time-to-live}")
-    private Integer timeToLive;
+    private final Duration timeToLive;
 
     /**
      * Создает новый кэш изображений товаров.
      *
      * @param entityImageCacheTemplate кэш изображений товаров
+     * @param timeToLive время жизни
      */
-    public EntityImageCacheImpl(ReactiveRedisTemplate<String, byte[]> entityImageCacheTemplate) {
+    public EntityImageCacheImpl(ReactiveRedisTemplate<String, byte[]> entityImageCacheTemplate,
+                                @Value("${mymarket.redis.time-to-live}") Integer timeToLive) {
         this.entityImageCacheTemplate = entityImageCacheTemplate;
+        this.timeToLive = Duration.ofSeconds(timeToLive);
     }
 
     @Override
@@ -47,7 +47,7 @@ public class EntityImageCacheImpl implements EntityImageCache {
                 .flatMap(content -> {
                             LOG.info("Помещаем в кэш картинку сущности");
                             return entityImageCacheTemplate.opsForValue()
-                                    .set(key, content, Duration.ofMinutes(timeToLive))
+                                    .set(key, content, timeToLive)
                                     .thenReturn(content);
                         }
                 );

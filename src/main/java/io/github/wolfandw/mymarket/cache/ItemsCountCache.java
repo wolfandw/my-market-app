@@ -7,6 +7,11 @@ import reactor.core.publisher.Mono;
  */
 public interface ItemsCountCache {
     /**
+     * Префикс ключа.
+     */
+    String KEY_PREFIX = "mymarket:items:paging";
+
+    /**
      * Получает количество товаров для пейджинга из кэша.
      *
      * @param search параметры поиска

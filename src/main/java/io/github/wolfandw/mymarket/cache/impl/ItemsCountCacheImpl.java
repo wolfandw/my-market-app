@@ -1,7 +1,6 @@
 package io.github.wolfandw.mymarket.cache.impl;
 
 import io.github.wolfandw.mymarket.cache.ItemsCountCache;
-import io.github.wolfandw.mymarket.service.impl.FileStorageServiceImpl;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,21 +17,21 @@ import java.time.Duration;
 @Component
 public class ItemsCountCacheImpl implements ItemsCountCache {
     private static final Logger LOG = LoggerFactory.getLogger(ItemsCountCacheImpl.class);
-    private static final String KEY_PREFIX = "mymarket:items:paging";
     private static final String KEY_DELIMITER = ":";
 
     private final ReactiveRedisTemplate<String, Long> itemsCountCacheTemplate;
-
-    @Value("${mymarket.redis.time-to-live}")
-    private Integer timeToLive;
+    private final Duration timeToLive;
 
     /**
      * Создает кэш количества товаров для пейджинга.
      *
      * @param itemsCountCacheTemplate кэш количества товаров для пейджинга
+     * @param timeToLive время жизни
      */
-    public ItemsCountCacheImpl(ReactiveRedisTemplate<String, Long> itemsCountCacheTemplate) {
+    public ItemsCountCacheImpl(ReactiveRedisTemplate<String, Long> itemsCountCacheTemplate,
+                               @Value("${mymarket.redis.time-to-live}") Integer timeToLive) {
         this.itemsCountCacheTemplate = itemsCountCacheTemplate;
+        this.timeToLive = Duration.ofSeconds(timeToLive);
     }
 
     @Override
@@ -48,7 +47,7 @@ public class ItemsCountCacheImpl implements ItemsCountCache {
                 .flatMap(count -> {
                             LOG.info("Помещаем в кэш количество товаров");
                             return itemsCountCacheTemplate.opsForValue()
-                                    .set(key, count, Duration.ofMinutes(timeToLive))
+                                    .set(key, count, timeToLive)
                                     .thenReturn(count);
                         }
                 );

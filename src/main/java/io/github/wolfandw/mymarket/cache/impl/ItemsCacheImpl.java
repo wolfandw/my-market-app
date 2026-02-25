@@ -2,7 +2,6 @@ package io.github.wolfandw.mymarket.cache.impl;
 
 import io.github.wolfandw.mymarket.cache.ItemsCache;
 import io.github.wolfandw.mymarket.model.Item;
-import io.github.wolfandw.mymarket.service.impl.FileStorageServiceImpl;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,21 +19,21 @@ import java.time.Duration;
 @Component
 public class ItemsCacheImpl implements ItemsCache {
     private static final Logger LOG = LoggerFactory.getLogger(ItemsCacheImpl.class);
-    private static final String KEY_PREFIX = "mymarket:items:list";
     private static final String KEY_DELIMITER = ":";
 
     private final ReactiveRedisTemplate<String, Item> itemCacheTemplate;
-
-    @Value("${mymarket.redis.time-to-live}")
-    private Integer timeToLive;
+    private final Duration timeToLive;
 
     /**
      * Создает кэш списка товаров.
      *
      * @param itemCacheTemplate кэш товаров
+     * @param timeToLive время жизни
      */
-    public ItemsCacheImpl(ReactiveRedisTemplate<String, Item> itemCacheTemplate) {
+    public ItemsCacheImpl(ReactiveRedisTemplate<String, Item> itemCacheTemplate,
+                          @Value("${mymarket.redis.time-to-live}") Integer timeToLive) {
         this.itemCacheTemplate = itemCacheTemplate;
+        this.timeToLive = Duration.ofSeconds(timeToLive);
     }
 
     @Override
@@ -50,7 +49,7 @@ public class ItemsCacheImpl implements ItemsCache {
                 .flatMap(item -> {
                             LOG.info("Помещаем в кэш список товаров");
                             return itemCacheTemplate.opsForList().rightPush(key, item)
-                                    .then(itemCacheTemplate.expire(key, Duration.ofMinutes(timeToLive)))
+                                    .then(itemCacheTemplate.expire(key, timeToLive))
                                     .thenReturn(item);
                         }
                 );

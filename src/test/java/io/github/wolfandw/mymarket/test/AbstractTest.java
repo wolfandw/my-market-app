@@ -55,8 +55,11 @@ public abstract class AbstractTest {
 
     private static final int BUFFER_SIZE = 4096;
 
+    /**
+     * Инициализация перед каждым тестом.
+     */
     @BeforeEach
-    void setUp() {
+    protected void setUp() {
         ITEMS.clear();
         ITEMS.put(1L, new Item(1L, "Item 07 SearchTag", "item 07 description", "1.png", new BigDecimal("7.01")));
         ITEMS.put(2L, new Item(2L, "Item 08", "item 08 description", "2.png", new BigDecimal("6.01")));

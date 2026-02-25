@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -37,8 +38,9 @@ public class CartServiceTest extends AbstractServiceTest {
                 }).verifyComplete();
     }
 
-    @Test
-    void getCartItemsTest() {
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void getCartItemsTest(boolean emptyCache) {
         Long cartId = DEFAULT_CART_ID;
 
         Cart cart = CARTS.get(cartId);
@@ -46,7 +48,12 @@ public class CartServiceTest extends AbstractServiceTest {
         when(cartItemRepository.findAllByCartId(cartId)).thenReturn(Flux.fromIterable(cartItems));
 
         mockItem();
-        when(itemCache.getItem(any(Long.class))).thenReturn(Mono.empty());
+        if (emptyCache) {
+            when(itemCache.getItem(any(Long.class))).thenReturn(Mono.empty());
+        }
+        else {
+            mockGetItemFromCache();
+        }
         mockCacheItemFromCache();
 
         StepVerifier.create(cartService.getCartItems(DEFAULT_CART_ID).collectList()).
@@ -56,11 +63,13 @@ public class CartServiceTest extends AbstractServiceTest {
                     assertThat(actualCartItems.getFirst().title()).isEqualTo("Item 08");
                     assertThat(actualCartItems.getFirst().count()).isEqualTo(60);
                 }).verifyComplete();
+
+        verify(itemCache, times(emptyCache ? 12 : 0)).cache(any());
     }
 
     @ParameterizedTest
     @MethodSource("provideChangeItemCountArgs")
-    void changeItemCount(String action, long countBefore, long countAfter) {
+    void changeItemCount(String action, long countBefore, long countAfter, boolean emptyCache) {
         Long cartId = DEFAULT_CART_ID;
         Long entityId = 2L;
 
@@ -71,7 +80,12 @@ public class CartServiceTest extends AbstractServiceTest {
         mockCart();
         mockItem();
         mockCartItem();
-        when(itemCache.getItem(any(Long.class))).thenReturn(Mono.empty());
+        if (emptyCache) {
+            when(itemCache.getItem(any(Long.class))).thenReturn(Mono.empty());
+        }
+        else {
+            mockGetItemFromCache();
+        }
         mockCacheItemFromCache();
 
         StepVerifier.create(itemService.getItem(cartId, entityId)).
@@ -85,12 +99,15 @@ public class CartServiceTest extends AbstractServiceTest {
                 }).verifyComplete();
 
         verify(cartItemRepository).save(any(CartItem.class));
+        verify(itemCache, times(emptyCache ? 2 : 0)).cache(any());
     }
 
     private static Stream<Arguments> provideChangeItemCountArgs() {
         return Stream.of(
-                Arguments.of(ACTION_MINUS, 60, 59),
-                Arguments.of(ACTION_PLUS, 60, 61)
+                Arguments.of(ACTION_MINUS, 60, 59, true),
+                Arguments.of(ACTION_PLUS, 60, 61, true),
+                Arguments.of(ACTION_MINUS, 60, 59, false),
+                Arguments.of(ACTION_PLUS, 60, 61, false)
         );
     }
 }

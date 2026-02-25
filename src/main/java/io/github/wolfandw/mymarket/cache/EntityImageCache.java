@@ -7,6 +7,11 @@ import reactor.core.publisher.Mono;
  */
 public interface EntityImageCache {
     /**
+     * Префикс ключа.
+     */
+    String KEY_PREFIX = "mymarket:items:image";
+
+    /**
      * Получает данные картинки из кэша.
      *
      * @param entityId идентификатор сущности
