@@ -2,7 +2,6 @@ package io.github.wolfandw.mymarket.itest.service;
 
 import io.github.wolfandw.mymarket.itest.AbstractIntegrationTest;
 import org.junit.jupiter.api.Test;
-import reactor.test.StepVerifier;
 
 import java.math.BigDecimal;
 
@@ -14,13 +13,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ItemServiceIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void getItemsTest() {
-        StepVerifier.create(itemService.getItems(DEFAULT_CART_ID, null, "NO", 1, 5).collectList()).
+        trxStepVerifier.create(itemService.getItems(DEFAULT_CART_ID, null, "NO", 1, 5).collectList()).
                 assertNext(itemsPage -> {
                     assertThat(itemsPage).size().isEqualTo(5);
                     assertThat(itemsPage.get(4).title()).isEqualTo("Item 11");
                 }).verifyComplete();
 
-        StepVerifier.create(itemService.getItemsPaging(null, 1, 5)).
+        trxStepVerifier.create(itemService.getItemsPaging(null, 1, 5)).
                 consumeNextWith(actualPaging -> {
                     assertThat(actualPaging.pageSize()).isEqualTo(5);
                     assertThat(actualPaging.pageNumber()).isEqualTo(1);
@@ -31,7 +30,7 @@ public class ItemServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void getItemsSearchTest() {
-        StepVerifier.create(itemService.getItems(DEFAULT_CART_ID, "searchtag", "NO", 1, 5).collectList()).
+        trxStepVerifier.create(itemService.getItems(DEFAULT_CART_ID, "searchtag", "NO", 1, 5).collectList()).
                 assertNext(itemsPage -> {
                     assertThat(itemsPage).size().isEqualTo(4);
                     assertThat(itemsPage.get(3).title()).isEqualTo("Item 06");
@@ -40,7 +39,7 @@ public class ItemServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void getItemsSearchOrderByTitleTest() {
-        StepVerifier.create(itemService.getItems(DEFAULT_CART_ID, "searchtag", "ALPHA", 1, 5).collectList()).
+        trxStepVerifier.create(itemService.getItems(DEFAULT_CART_ID, "searchtag", "ALPHA", 1, 5).collectList()).
                 assertNext(itemsPage -> {
                     assertThat(itemsPage).size().isEqualTo(4);
                     assertThat(itemsPage.get(3).title()).isEqualTo("Item 10");
@@ -49,7 +48,7 @@ public class ItemServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void getItemsSearchOrderByPriceTest() {
-        StepVerifier.create(itemService.getItems(DEFAULT_CART_ID, "SEARCHTAG", "PRICE", 1, 5).collectList()).
+        trxStepVerifier.create(itemService.getItems(DEFAULT_CART_ID, "SEARCHTAG", "PRICE", 1, 5).collectList()).
                 assertNext(itemsPage -> {
                     assertThat(itemsPage).size().isEqualTo(4);
                     assertThat(itemsPage.get(3).title()).isEqualTo("Item 01 searchtag");
@@ -58,7 +57,7 @@ public class ItemServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void getItemsDefaultTest() {
-        StepVerifier.create(itemService.getItems(DEFAULT_CART_ID, null, null, null, null).collectList()).
+        trxStepVerifier.create(itemService.getItems(DEFAULT_CART_ID, null, null, null, null).collectList()).
                 assertNext(itemsPage -> {
                     assertThat(itemsPage).size().isEqualTo(5);
                     assertThat(itemsPage.get(4).title()).isEqualTo("Item 11");
@@ -67,13 +66,13 @@ public class ItemServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void getItemTest() {
-        StepVerifier.create(itemService.getItem(DEFAULT_CART_ID, 1L)).
+        trxStepVerifier.create(itemService.getItem(DEFAULT_CART_ID, 1L)).
                 consumeNextWith(itemDto -> assertThat(itemDto.title()).isEqualTo("Item 07 SearchTag")).verifyComplete();
     }
 
     @Test
     void getItemEmptyTest() {
-        StepVerifier.create(itemService.getItem(DEFAULT_CART_ID, 14L)).
+        trxStepVerifier.create(itemService.getItem(DEFAULT_CART_ID, 14L)).
                 expectNextCount(0).verifyComplete();
     }
 

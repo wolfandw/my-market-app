@@ -97,7 +97,7 @@ public class EntityImageServiceTest extends AbstractServiceTest {
         Mono<FilePart> expectedFilePartMono = Mono.just(expectedFilePart);
         when(fileStorageService.writeFile(mockImageName, expectedFilePart)).thenReturn(Mono.just(mockImageName));
         when(itemRepository.save(any(Item.class))).thenReturn(Mono.just(mockItem));
-        when(entityImageCache.clear(entityId)).thenReturn(Mono.just(1L));
+        when(entityImageCache.delete(entityId)).thenReturn(Mono.just(1L));
         trxStepVerifier.create(entityImageService.setEntityImage(entityId, expectedFilePartMono)).verifyComplete();
 
         verify(entityImageCache, never()).cache(eq(entityId), any());

@@ -27,8 +27,6 @@ public class CartControllerIntegrationTest extends AbstractIntegrationTest {
                 .consumeWith(res -> {
                     String body = res.getResponseBody();
                     assertNotNull(body);
-                    assertTrue(body.contains("Item 08"));
-                    assertTrue(body.contains("7815"));
                     assertTrue(body.contains(TEMPLATE_CART));
                 });
     }

@@ -4,7 +4,8 @@ import io.github.wolfandw.mymarket.dto.OrderDto;
 import io.github.wolfandw.mymarket.itest.AbstractIntegrationTest;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
-import reactor.test.StepVerifier;
+
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
@@ -14,7 +15,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 public class OrderServiceIntegrationTest extends AbstractIntegrationTest {
     @Test
     void getOrdersTest() {
-        StepVerifier.create(orderService.getOrders().collectList()).
+        trxStepVerifier.create(orderService.getOrders().collectList()).
                 consumeNextWith(orders -> {
                     assertThat(orders.size()).isEqualTo(1);
                     OrderDto actualOrder = orders.getFirst();
@@ -24,11 +25,13 @@ public class OrderServiceIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void getOrderItemsTest() {
+    void getOrderItemsTest() throws InterruptedException {
         Long orderId = 1L;
-        StepVerifier.create(orderService.getOrderItems(orderId).collectList()).
+        TimeUnit.SECONDS.sleep(2L);
+        trxStepVerifier.create(orderService.getOrderItems(orderId).collectList()).
                 assertNext(actualOrderItems -> {
                     Assertions.assertThat(actualOrderItems).isNotEmpty();
+                    System.out.println(actualOrderItems);
                     Assertions.assertThat(actualOrderItems.size()).isEqualTo(12);
                     Assertions.assertThat(actualOrderItems.get(0).title()).isEqualTo("Item 08");
                     Assertions.assertThat(actualOrderItems.get(0).count()).isEqualTo(65);
@@ -38,7 +41,7 @@ public class OrderServiceIntegrationTest extends AbstractIntegrationTest {
     @Test
     void getOrderTest() {
         Long orderId = 1L;
-        StepVerifier.create(orderService.getOrder(orderId, false)).
+        trxStepVerifier.create(orderService.getOrder(orderId, false)).
                 consumeNextWith(orderDto -> {
             assertThat(orderDto.totalSum()).isEqualTo(8129L);
         }).verifyComplete();

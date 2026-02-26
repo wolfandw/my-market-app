@@ -20,7 +20,7 @@ public class CartServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void getCartTest() {
-        StepVerifier.create(cartService.getCart(DEFAULT_CART_ID)).
+        trxStepVerifier.create(cartService.getCart(DEFAULT_CART_ID)).
         consumeNextWith(actualCart -> {
             assertThat(actualCart.total()).isEqualTo(7808L);
         }).verifyComplete();
@@ -28,7 +28,7 @@ public class CartServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void getCartItemsTest() {
-        StepVerifier.create(cartService.getCartItems(DEFAULT_CART_ID).collectList()).
+        trxStepVerifier.create(cartService.getCartItems(DEFAULT_CART_ID).collectList()).
                 assertNext(actualCartItems -> {
                     assertThat(actualCartItems).isNotEmpty();
                     assertThat(actualCartItems.size()).isEqualTo(12);

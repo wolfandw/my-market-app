@@ -14,7 +14,7 @@ public interface ItemCache {
 
     /**
      * Получить товар из кэша.
-     *S
+     *
      * @param itemId идентификатор товара
      * @return товар из кэша
      */
@@ -29,10 +29,17 @@ public interface ItemCache {
     Mono<Item> cache(Mono<Item> databaseItem);
 
     /**
-     * Очищает кэш товара.
+     * Удаляет товар из кэша.
      *
      * @param itemId идентификатор товара
      * @return количество удаленных записей
      */
-    Mono<Long> clear(Long itemId);
+    Mono<Long> delete(Long itemId);
+
+    /**
+     * Очищает кэш товаров.
+     *
+     * @return количество удаленных записей
+     */
+    Mono<Long> clear();
 }

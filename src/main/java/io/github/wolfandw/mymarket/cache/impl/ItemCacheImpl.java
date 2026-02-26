@@ -53,8 +53,13 @@ public class ItemCacheImpl implements ItemCache {
     }
 
     @Override
-    public Mono<Long> clear(Long itemId) {
+    public Mono<Long> delete(Long itemId) {
         return itemCacheTemplate.delete(buildKey(itemId));
+    }
+
+    @Override
+    public Mono<Long> clear() {
+        return itemCacheTemplate.delete(itemCacheTemplate.keys(KEY_PREFIX + ':' + '*'));
     }
 
     private static @NonNull String buildKey(Long itemId) {

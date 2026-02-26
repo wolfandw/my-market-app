@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.multipart.FilePart;
 import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -20,12 +19,12 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class EntityImageServiceIntegrationTest extends AbstractIntegrationTest {
     @BeforeEach
-    void setup() {
+    protected void setup() {
         setupImages();
     }
 
     @AfterEach
-    void cleanUp() {
+    protected void cleanUp() {
         cleanUpImages();
     }
 
@@ -34,7 +33,7 @@ public class EntityImageServiceIntegrationTest extends AbstractIntegrationTest {
         Long entityId = 5L;
         String imageName = entityId + ".png";
 
-        StepVerifier.create(fileStorageService.readFile(imageName).zipWith(entityImageService.getEntityImage(entityId))).consumeNextWith(tuple -> {
+        trxStepVerifier.create(fileStorageService.readFile(imageName).zipWith(entityImageService.getEntityImage(entityId))).consumeNextWith(tuple -> {
             byte[] expectedImageData = tuple.getT1();
             EntityImageDto actualEntityImage = tuple.getT2();
             assertNotNull(actualEntityImage, "Картинка должна быть получена");
@@ -50,7 +49,7 @@ public class EntityImageServiceIntegrationTest extends AbstractIntegrationTest {
 
         String imageName = entityId + ".png";
 
-        StepVerifier.create(fileStorageService.readFile(imageName).zipWith(entityImageService.getEntityImageBase64(entityId))).consumeNextWith(tuple -> {
+        trxStepVerifier.create(fileStorageService.readFile(imageName).zipWith(entityImageService.getEntityImageBase64(entityId))).consumeNextWith(tuple -> {
             byte[] expectedImageData = tuple.getT1();
             String base64Encoded = new String(Base64.getEncoder().encode(expectedImageData), StandardCharsets.UTF_8);
             String expectedItemImageBase64 = "data:" + MediaType.IMAGE_PNG + ";base64, " + base64Encoded;

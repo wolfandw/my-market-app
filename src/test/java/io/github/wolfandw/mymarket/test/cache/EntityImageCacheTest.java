@@ -66,19 +66,30 @@ public class EntityImageCacheTest extends AbstractTest {
         when(reactiveValueOperations.set(eq(key), any(byte[].class), any(Duration.class))).thenReturn(Mono.just(true));
 
         StepVerifier.create( cache.cache(entityId, contentMono)).
-                consumeNextWith(cachedContent -> {
-                    assertArrayEquals(cachedContent, content);
-                }).verifyComplete();
+                consumeNextWith(cachedContent -> assertArrayEquals(cachedContent, content)).verifyComplete();
     }
 
     @Test
-    void clear() {
+    void deleteTest() {
         Long entityId = 1L;
         String key = String.join(":", EntityImageCache.KEY_PREFIX, entityId.toString());
 
         when(entityImageCacheTemplate.delete(Flux.just(key))).thenReturn(Mono.just(1L));
 
-        StepVerifier.create(cache.clear(entityId)).
+        StepVerifier.create(cache.delete(entityId)).
+                consumeNextWith(count -> {
+                    Assertions.assertThat(count).isEqualTo(1L);
+                }).expectComplete();
+    }
+
+    @Test
+    void clearTest() {
+        Long entityId = 1L;
+        String key = String.join(":", EntityImageCache.KEY_PREFIX, entityId.toString());
+
+        when(entityImageCacheTemplate.delete(Flux.just(key))).thenReturn(Mono.just(1L));
+
+        StepVerifier.create(cache.clear()).
                 consumeNextWith(count -> {
                     Assertions.assertThat(count).isEqualTo(1L);
                 }).expectComplete();

@@ -54,8 +54,13 @@ public class EntityImageCacheImpl implements EntityImageCache {
     }
 
     @Override
-    public Mono<Long> clear(Long entityId) {
+    public Mono<Long> delete(Long entityId) {
         return entityImageCacheTemplate.delete(buildKey(entityId));
+    }
+
+    @Override
+    public Mono<Long> clear() {
+        return entityImageCacheTemplate.delete(entityImageCacheTemplate.keys(KEY_PREFIX + ':' + '*'));
     }
 
     private static @NonNull String buildKey(Long entityId) {

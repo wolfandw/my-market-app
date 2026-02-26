@@ -68,13 +68,26 @@ public class ItemCacheTest extends AbstractTest {
     }
 
     @Test
+    void deleteTest() {
+        Long itemId = 1L;
+        String key = String.join(":", ItemCache.KEY_PREFIX, itemId.toString());;
+
+        when(itemCacheTemplate.delete(Flux.just(key))).thenReturn(Mono.just(1L));
+
+        StepVerifier.create(cache.delete(itemId)).
+                consumeNextWith(count -> {
+                    Assertions.assertThat(count).isEqualTo(1L);
+                }).expectComplete();
+    }
+
+    @Test
     void clearTest() {
         Long itemId = 1L;
         String key = String.join(":", ItemCache.KEY_PREFIX, itemId.toString());;
 
         when(itemCacheTemplate.delete(Flux.just(key))).thenReturn(Mono.just(1L));
 
-        StepVerifier.create(cache.clear(itemId)).
+        StepVerifier.create(cache.clear()).
                 consumeNextWith(count -> {
                     Assertions.assertThat(count).isEqualTo(1L);
                 }).expectComplete();

@@ -29,10 +29,17 @@ public interface EntityImageCache {
     Mono<byte[]> cache(Long entityId, Mono<byte[]> databaseContent);
 
     /**
-     * Очищает кэш картинки сущности.
+     * Удаляет картинку сущности из кэша.
      *
      * @param entityId идентификатор сущности
      * @return количество удаленных записей
      */
-    Mono<Long> clear(Long entityId);
+    Mono<Long> delete(Long entityId);
+
+    /**
+     * Очищает кэш картинок сущностей.
+     *
+     * @return количество удаленных записей
+     */
+    Mono<Long> clear();
 }

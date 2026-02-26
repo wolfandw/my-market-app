@@ -3,7 +3,6 @@ package io.github.wolfandw.mymarket.itest.service;
 import io.github.wolfandw.mymarket.itest.AbstractIntegrationTest;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
-import reactor.test.StepVerifier;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
@@ -31,7 +30,7 @@ public class BuyServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void buyCartTest() {
-        StepVerifier.create(cartService.getCart(DEFAULT_CART_ID)).
+        trxStepVerifier.create(cartService.getCart(DEFAULT_CART_ID)).
                 consumeNextWith(actualCartBefore -> {
                     Assertions.assertThat(actualCartBefore.total()).isEqualTo(7808L);
                 }).verifyComplete();
@@ -45,7 +44,7 @@ public class BuyServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void buyCartItemsTest() {
-        StepVerifier.create(cartService.getCartItems(DEFAULT_CART_ID).collectList()).
+        trxStepVerifier.create(cartService.getCartItems(DEFAULT_CART_ID).collectList()).
                 assertNext(actualCartItemsAfter -> {
                     Assertions.assertThat(actualCartItemsAfter).isNotEmpty();
                     Assertions.assertThat(actualCartItemsAfter.size()).isEqualTo(12);
