@@ -86,8 +86,8 @@ public class CartServiceImpl implements CartService {
                     Cart cart = tuple.getT2();
                     CartItem cartItem = tuple.getT3();
 
-                    BigDecimal price = item.getPrice();
-                    BigDecimal total = cart.getTotal();
+                    BigDecimal price = item.getPrice().add(BigDecimal.valueOf(0,0));
+                    BigDecimal total = cart.getTotal().add(BigDecimal.valueOf(0,0));
 
                     int count = cartItem.getCount();
                     if (ACTION_MINUS.equals(action)) {

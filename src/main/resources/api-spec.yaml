@@ -1,0 +1,137 @@
+openapi: 3.0.3
+info:
+  title: Payment Service API
+  description: API для управления платежами клиентов
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8081
+    description: Локальный сервис платежей
+
+paths:
+  /api/payments/{id}/balance:
+    get:
+      tags:
+        - Payments
+      summary: Получить баланс клиента
+      operationId: getBalance
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+
+      responses:
+        '200':
+          description: Баланс получен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BalanceDto'
+
+  /api/payments/{id}/payment:
+    post:
+      tags:
+        - Payments
+      summary: Выполнить платеж клиента
+      operationId: makePayment
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentDto'
+
+      responses:
+        '202':
+          description: Платеж выполнен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BalanceDto'
+
+  /api/payments/{id}/receipt:
+    post:
+      tags:
+        - Payments
+      summary: Пополнить баланс клиента
+      operationId: topUpBalance
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReceiptDto'
+
+      responses:
+        '202':
+          description: Баланс пополнен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BalanceDto'
+
+components:
+  schemas:
+    BalanceDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+          format: int64
+        balance:
+          type: number
+          example: 999.99
+        accept:
+          type: boolean
+          example: true
+
+    PaymentDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+          format: int64
+        payment:
+          type: number
+          example: 999.99
+      required:
+        - id
+        - payment
+
+    ReceiptDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+          format: int64
+        receipt:
+          type: number
+          example: 999.99
+      required:
+        - id
+        - receipt

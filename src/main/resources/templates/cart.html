@@ -44,12 +44,31 @@
                 </div>
             </div>
         </div>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert" th:if="${balance==null}">
+            Сервис платежей недоступен! Заказ не может быть создан!
+        </div>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert" th:if="${balance!=null && (balance.getBalance() < cart.total())}">
+            Недостаточно средств на балансе! Заказ не может быть создан!
+        </div>
         <div class="row p-2">
             <div class="col">
-                <form action="/buy" method="post" th:if="${!items.isEmpty()}">
+                <form action="/buy" method="post" th:if="${items!=null && !items.isEmpty()}">
                     <div class="hstack gap-3">
                         <h2 th:text="'Итого: '+${cart.total()}+' руб.'"/>
-                        <button class="btn btn-warning ms-auto">Купить</button>
+                        <button class="btn btn-warning ms-auto" th:disabled="${balance==null || balance.getBalance() < cart.total()}">Купить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="row p-2">
+            <div class="col">
+                <form action="/topUpBalance" method="post" th:if="${items!=null && !items.isEmpty()}">
+                    <div class="hstack gap-3">
+                        <input type="hidden" name="id" th:value="${cart.id()}">
+                        <h2 th:style="'width: 50%;'" th:text="'Баланс: '+${balance.getBalance()}+' руб.'"  th:if="${balance!=null}"/>
+                        <input class="form-control me-2 mw-5" type="number" placeholder="На сумму..."
+                               aria-label="На сумму" name="receipt" th:value="${receipt}" th:if="${balance!=null}"/>
+                        <button class="btn btn-warning ms-auto" th:if="${balance!=null}">Пополнить</button>
                     </div>
                 </form>
             </div>

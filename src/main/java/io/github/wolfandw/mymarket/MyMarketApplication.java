@@ -12,7 +12,11 @@ import org.springframework.web.reactive.config.WebFluxConfigurer;
  */
 @SpringBootApplication
 public class MyMarketApplication {
-
+    /**
+     * Точка входа.
+     *
+     * @param args аргументы командной строки
+     */
     public static void main(String[] args) {
         SpringApplication.run(MyMarketApplication.class, args);
     }

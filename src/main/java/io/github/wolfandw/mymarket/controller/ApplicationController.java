@@ -1,8 +1,11 @@
 package io.github.wolfandw.mymarket.controller;
 
 import io.github.wolfandw.mymarket.service.BuyService;
+import io.github.wolfandw.mymarket.service.PaymentsService;
+import io.github.wolfandw.payment.client.domain.ReceiptDto;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import reactor.core.publisher.Mono;
@@ -16,14 +19,17 @@ public class ApplicationController {
     private static final Long DEFAULT_CART_ID = 1L;
 
     private final BuyService buyService;
+    private final PaymentsService paymentsService;
 
     /**
      * Создает контроллер приложения.
      *
-     * @param buyService сервис корзин
+     * @param buyService      сервис корзин
+     * @param paymentsService сервис платежей
      */
-    public ApplicationController(BuyService buyService) {
+    public ApplicationController(BuyService buyService, PaymentsService paymentsService) {
         this.buyService = buyService;
+        this.paymentsService = paymentsService;
     }
 
     /**
@@ -45,6 +51,18 @@ public class ApplicationController {
     public Mono<String> buy() {
         return buyService.buy(DEFAULT_CART_ID).map(orderDto ->
                         RedirectUrlFactory.createRedirectUrlToNewOrder(orderDto.id())).
-                switchIfEmpty(Mono.just(RedirectUrlFactory.createRedirectUrlToOrders()));
+                switchIfEmpty(Mono.just(RedirectUrlFactory.createRedirectUrlToCart(DEFAULT_CART_ID)));
+    }
+
+    /**
+     * Пополнение баланса и редирект на страницу корзины.
+     *
+     * @return строка редиректа на корзину
+     */
+    @PostMapping("/topUpBalance")
+    public Mono<String> topUpBalance(@ModelAttribute ReceiptDto receiptDto) {
+        return paymentsService.topUpBalance(receiptDto.getId(), receiptDto).map(balanceDto ->
+                        RedirectUrlFactory.createRedirectUrlToCart(receiptDto.getId())).
+                switchIfEmpty(Mono.just(RedirectUrlFactory.createRedirectUrlToCart(receiptDto.getId())));
     }
 }

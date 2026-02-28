@@ -68,7 +68,6 @@ public class OrderServiceImpl implements OrderService {
     public Flux<ItemDto> getOrderItems(Long orderId) {
         return orderItemRepository.findAllByOrderId(orderId).map(orderItem ->
                         itemCache.getItem(orderItem.getItemId()).
-                                //switchIfEmpty(Mono.defer(() -> itemCache.cache(itemRepository.findById(orderItem.getItemId())))).
                                 switchIfEmpty(Mono.defer(() -> itemCache.cache(itemRepository.findById(orderItem.getItemId())))).
                                 map(item -> itemToItemDtoMapper.mapItem(item, orderItem.getCount())).
                                 switchIfEmpty(Mono.defer(() -> Mono.just(new ItemDto(-1L, "", "", 0L, 0))))).
