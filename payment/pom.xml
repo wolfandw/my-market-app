@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>io.github.wolfandw</groupId>
+		<artifactId>my-market-app</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+		<relativePath>../pom.xml</relativePath>
+	</parent>
+
+	<artifactId>payment</artifactId>
+
+	<name>payment</name>
+	<description>payment</description>
+
+<!--	<properties>-->
+<!--		<java.version>21</java.version>-->
+<!--	</properties>-->
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+
+			<plugin>
+				<groupId>org.openapitools</groupId>
+				<artifactId>openapi-generator-maven-plugin</artifactId>
+				<version>7.20.0</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<generatorName>spring</generatorName>
+							<inputSpec>${project.basedir}/src/main/resources/api-spec.yaml</inputSpec>
+							<output>${project.basedir}/target/generated</output>
+							<modelPackage>io.github.wolfandw.payment.server.domain</modelPackage>
+							<invokerPackage>io.github.wolfandw.payment.server</invokerPackage>
+							<apiPackage>io.github.wolfandw.payment.server.api</apiPackage>
+							<skipValidateSpec>true</skipValidateSpec>
+							<configOptions>
+								<hideGenerationTimestamp>true</hideGenerationTimestamp>
+								<requestMappingMode>controller</requestMappingMode>
+								<interfaceOnly>true</interfaceOnly>
+								<library>spring-boot</library>
+								<reactive>true</reactive>
+								<useSpringBoot4>true</useSpringBoot4>
+								<useJakartaEe>true</useJakartaEe>
+								<useTags>true</useTags>
+								<dateLibrary>java8</dateLibrary>
+								<openApiNullable>false</openApiNullable>
+								<serializableModel>true</serializableModel>
+								<returnSuccessCode>true</returnSuccessCode>
+								<generateSpringApplication>false</generateSpringApplication>
+							</configOptions>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<version>3.6.1</version>
+				<executions>
+					<execution>
+						<id>add-source</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>add-source</goal>
+						</goals>
+						<configuration>
+							<sources>
+								<source>${project.basedir}/target/generated/src/main/java</source>
+							</sources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>

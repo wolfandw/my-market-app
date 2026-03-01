@@ -120,7 +120,6 @@ components:
           example: 999.99
       required:
         - id
-        - payment
 
     ReceiptDto:
       type: object
@@ -134,4 +133,3 @@ components:
           example: 999.99
       required:
         - id
-        - receipt
