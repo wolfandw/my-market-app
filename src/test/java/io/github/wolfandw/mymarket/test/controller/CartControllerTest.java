@@ -6,11 +6,13 @@ import io.github.wolfandw.mymarket.dto.CartDto;
 import io.github.wolfandw.mymarket.dto.ItemDto;
 import io.github.wolfandw.mymarket.model.Cart;
 import io.github.wolfandw.mymarket.model.CartItem;
+import io.github.wolfandw.payment.client.domain.BalanceDto;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.webflux.test.autoconfigure.WebFluxTest;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -36,8 +38,13 @@ public class CartControllerTest extends AbstractControllerTest{
         Cart cart = CARTS.get(DEFAULT_CART_ID);
         List<ItemDto> cartItems = mapCartItems(CART_ITEMS.get(DEFAULT_CART_ID).values().stream().toList());
         CartDto cartDto = new CartDto(DEFAULT_CART_ID, cart.getTotal().longValue());
+        BalanceDto balanceDto = new BalanceDto();
+        balanceDto.setId(DEFAULT_CART_ID);
+        balanceDto.setAccept(true);
+        balanceDto.setBalance(BigDecimal.valueOf(8000L));
         when(cartService.getCart(DEFAULT_CART_ID)).thenReturn(Mono.just(cartDto));
         when(cartService.getCartItems(DEFAULT_CART_ID)).thenReturn(Flux.fromIterable(cartItems));
+        when(paymentsService.getBalance(DEFAULT_CART_ID)).thenReturn(Mono.just(balanceDto));
 
         webTestClient.get().uri("/cart/items")
                 .exchange()
@@ -48,6 +55,61 @@ public class CartControllerTest extends AbstractControllerTest{
                     assertNotNull(body);
                     assertTrue(body.contains("Item 08"));
                     assertTrue(body.contains("7815"));
+                    assertTrue(body.contains("8000"));
+                    assertTrue(body.contains("Купить"));
+                    assertTrue(body.contains(TEMPLATE_CART));
+                });
+    }
+
+    @Test
+    void getCartLowBalanceTest() {
+        Cart cart = CARTS.get(DEFAULT_CART_ID);
+        List<ItemDto> cartItems = mapCartItems(CART_ITEMS.get(DEFAULT_CART_ID).values().stream().toList());
+        CartDto cartDto = new CartDto(DEFAULT_CART_ID, cart.getTotal().longValue());
+        BalanceDto balanceDto = new BalanceDto();
+        balanceDto.setId(DEFAULT_CART_ID);
+        balanceDto.setAccept(true);
+        balanceDto.setBalance(BigDecimal.valueOf(7000L));
+        when(cartService.getCart(DEFAULT_CART_ID)).thenReturn(Mono.just(cartDto));
+        when(cartService.getCartItems(DEFAULT_CART_ID)).thenReturn(Flux.fromIterable(cartItems));
+        when(paymentsService.getBalance(DEFAULT_CART_ID)).thenReturn(Mono.just(balanceDto));
+
+        webTestClient.get().uri("/cart/items")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(String.class)
+                .consumeWith(res -> {
+                    String body = res.getResponseBody();
+                    assertNotNull(body);
+                    assertTrue(body.contains("Item 08"));
+                    assertTrue(body.contains("7815"));
+                    assertTrue(body.contains("7000"));
+                    assertTrue(body.contains("Купить"));
+                    assertTrue(body.contains("Недостаточно средств на балансе! Заказ не может быть создан!"));
+                    assertTrue(body.contains(TEMPLATE_CART));
+                });
+    }
+
+    @Test
+    void getCartPaymentsServiceErrorTest() {
+        Cart cart = CARTS.get(DEFAULT_CART_ID);
+        List<ItemDto> cartItems = mapCartItems(CART_ITEMS.get(DEFAULT_CART_ID).values().stream().toList());
+        CartDto cartDto = new CartDto(DEFAULT_CART_ID, cart.getTotal().longValue());
+        when(cartService.getCart(DEFAULT_CART_ID)).thenReturn(Mono.just(cartDto));
+        when(cartService.getCartItems(DEFAULT_CART_ID)).thenReturn(Flux.fromIterable(cartItems));
+        when(paymentsService.getBalance(DEFAULT_CART_ID)).thenReturn(Mono.empty());
+
+        webTestClient.get().uri("/cart/items")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(String.class)
+                .consumeWith(res -> {
+                    String body = res.getResponseBody();
+                    assertNotNull(body);
+                    assertTrue(body.contains("Item 08"));
+                    assertTrue(body.contains("7815"));
+                    assertTrue(body.contains("Купить"));
+                    assertTrue(body.contains("Сервис платежей недоступен! Заказ не может быть создан!"));
                     assertTrue(body.contains(TEMPLATE_CART));
                 });
     }

@@ -4,12 +4,14 @@ import io.github.wolfandw.mymarket.cache.EntityImageCache;
 import io.github.wolfandw.mymarket.cache.ItemCache;
 import io.github.wolfandw.mymarket.cache.ItemsCache;
 import io.github.wolfandw.mymarket.cache.ItemsCountCache;
+import io.github.wolfandw.mymarket.configuration.PaymentsApiConfiguration;
 import io.github.wolfandw.mymarket.itest.configuration.EmbeddedRedisConfiguration;
 import io.github.wolfandw.mymarket.itest.configuration.IntegrationTestConfiguration;
 import io.github.wolfandw.mymarket.itest.configuration.TrxStepVerifier;
 import io.github.wolfandw.mymarket.model.Item;
 import io.github.wolfandw.mymarket.repository.ItemRepository;
 import io.github.wolfandw.mymarket.service.*;
+import io.github.wolfandw.payment.client.api.PaymentsApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -23,6 +25,8 @@ import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.codec.multipart.FilePart;
+import org.springframework.test.context.bean.override.mockito.MockReset;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -39,7 +43,7 @@ import java.util.stream.Stream;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureWebTestClient
-@Import({IntegrationTestConfiguration.class, EmbeddedRedisConfiguration.class })
+@Import({IntegrationTestConfiguration.class, EmbeddedRedisConfiguration.class, PaymentsApiConfiguration.class})
 public abstract class AbstractIntegrationTest {
     /**
      * Идентификатор корзины по-умолчанию.
@@ -131,6 +135,15 @@ public abstract class AbstractIntegrationTest {
      */
     @Autowired
     protected EntityImageCache entityImageCache;
+
+    /**
+     * Сервис платежей.
+     */
+    @Autowired
+    protected PaymentsService paymentsService;
+
+    @MockitoBean(reset = MockReset.BEFORE)
+    protected PaymentsApi paymentsApi;
 
     /**
      * Папка с изображениями для тестов.

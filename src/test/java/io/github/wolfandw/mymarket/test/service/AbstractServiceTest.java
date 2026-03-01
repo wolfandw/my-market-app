@@ -11,6 +11,7 @@ import io.github.wolfandw.mymarket.model.Item;
 import io.github.wolfandw.mymarket.repository.*;
 import io.github.wolfandw.mymarket.service.*;
 import io.github.wolfandw.mymarket.test.AbstractTest;
+import io.github.wolfandw.payment.client.api.PaymentsApi;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +58,9 @@ public abstract class AbstractServiceTest extends AbstractTest {
     @MockitoBean(reset = MockReset.BEFORE)
     protected EntityImageCache entityImageCache;
 
+    @MockitoBean(reset = MockReset.BEFORE)
+    protected PaymentsApi paymentsApi;
+
     @Autowired
     protected ItemService itemService;
 
@@ -71,6 +75,9 @@ public abstract class AbstractServiceTest extends AbstractTest {
 
     @Autowired
     protected BuyService buyService;
+
+    @Autowired
+    protected PaymentsService paymentsService;
 
     @Autowired
     protected TrxStepVerifier trxStepVerifier;
