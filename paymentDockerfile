@@ -1,7 +1,5 @@
 FROM amazoncorretto:21-alpine-jdk
 WORKDIR /app
-COPY target/*.jar app.jar
-ENV REDIS_HOST=redis
-ENV PAYMENT_HOST=payment
-EXPOSE 8080
+COPY payment/target/*.jar app.jar
+EXPOSE 8081
 ENTRYPOINT ["java", "-jar", "app.jar"]

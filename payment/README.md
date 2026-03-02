@@ -1,24 +1,36 @@
-# Getting Started
+# Модуль 2. Спринт 7. RESTful-сервис платежей и OpenAPI
 
-### Reference Documentation
-For further reference, please consider the following sections:
+## Описание
 
-* [Official Apache Maven documentation](https://maven.apache.org/guides/index.html)
-* [Spring Boot Maven Plugin Reference Guide](https://docs.spring.io/spring-boot/4.0.3/maven-plugin)
-* [Create an OCI image](https://docs.spring.io/spring-boot/4.0.3/maven-plugin/build-image.html)
-* [Spring Reactive Web](https://docs.spring.io/spring-boot/4.0.3/reference/web/reactive.html)
-* [SpringDoc OpenAPI](https://springdoc.org/)
+Приложение работает во встроенном сервлет-контейнере Netty и доступно по адресу http://localhost:8081/.
+Для работы с приложением необходимо клонировать репозиторий проекта, перейти в каталог проекта (/payment), собрать,
+протестировать и запустить приложение.
+Для запуска в Docker можно собрать и использовать Docker-образ продукта.
 
-### Guides
-The following guides illustrate how to use some features concretely:
+## Начало
 
-* [Building a Reactive RESTful Web Service](https://spring.io/guides/gs/reactive-rest-service/)
-* [SpringDoc OpenAPI](https://github.com/springdoc/springdoc-openapi-demos/)
+- Клонировать репозиторий продукта
+- Перейти в каталог продукта (/payment)
 
-### Maven Parent overrides
+## Сборка, тестирование
 
-Due to Maven's design, elements are inherited from the parent POM to the project POM.
-While most of the inheritance is fine, it also inherits unwanted elements like `<license>` and `<developers>` from the parent.
-To prevent this, the project POM contains empty overrides for these elements.
-If you manually switch to a different parent and actually want the inheritance, you need to remove those overrides.
+- Как собирать:```mvn clean package -DskipTests=true -Dmaven.test.skip=true```
+- Как запускать тесты:```mvn test```
 
+## Как запускать
+
+- Собрать приложение
+- Запустить тесты
+- Запустить приложение ```java -jar target/payment-0.0.1-SNAPSHOT.jar```
+
+## Как собрать образ Docker
+
+- Собрать и протестировать приложение
+- Создать образ приложения
+    - Запустить в терминале```sudo docker build -t my-market-payment-image .```
+    - Проверить наличие образа ```sudo docker image ls```
+- Создать и запустить контейнер приложение:
+    - Запустить в терминале```sudo docker run --name my-market-payment-container -p 8081:8081 my-market-payment-image```
+    - Запустить в терминале```sudo docker container ls``` и убедиться, что контейнер запущен
+    - Остановить контейнер можно командой```sudo docker container stop <id контейнера>``` в терминале
+    - Запустить заново созданный контейнер можно командой```sudo docker container start <id контейнера>``` в терминале

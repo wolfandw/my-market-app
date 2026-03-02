@@ -4,7 +4,6 @@ import io.github.wolfandw.mymarket.controller.RedirectUrlFactory;
 import io.github.wolfandw.mymarket.itest.AbstractIntegrationTest;
 import io.github.wolfandw.payment.client.domain.BalanceDto;
 import org.junit.jupiter.api.Test;
-import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
