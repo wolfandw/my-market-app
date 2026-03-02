@@ -1,0 +1,45 @@
+package io.github.wolfandw.mymarket.cache;
+
+import io.github.wolfandw.mymarket.model.Item;
+import reactor.core.publisher.Mono;
+
+/**
+ * Кэш товаров.
+ */
+public interface ItemCache {
+    /**
+     * Префикс ключа.
+     */
+    String KEY_PREFIX = "mymarket:items:item";
+
+    /**
+     * Получить товар из кэша.
+     *
+     * @param itemId идентификатор товара
+     * @return товар из кэша
+     */
+    Mono<Item> getItem(Long itemId);
+
+    /**
+     * Поместить товар в кэш.
+     *
+     * @param databaseItem товар из репозитория
+     * @return товар из репозитория
+     */
+    Mono<Item> cache(Mono<Item> databaseItem);
+
+    /**
+     * Удаляет товар из кэша.
+     *
+     * @param itemId идентификатор товара
+     * @return количество удаленных записей
+     */
+    Mono<Long> delete(Long itemId);
+
+    /**
+     * Очищает кэш товаров.
+     *
+     * @return количество удаленных записей
+     */
+    Mono<Long> clear();
+}

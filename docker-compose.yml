@@ -1,0 +1,33 @@
+services:
+
+  redis:
+    image: redis:7.4.2-bookworm
+    container_name: redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+  payment:
+    container_name: payment
+    build:
+      context: .
+      dockerfile: paymentDockerfile
+    ports:
+      - "8081:8081"
+    restart: unless-stopped
+
+  showcase:
+    container_name: showcase
+    build:
+      context: .
+      dockerfile: showcaseDockerfile
+    environment:
+      - REDIS_HOST=redis
+      - PAYMENT_HOST=payment
+    depends_on:
+      - redis
+      - payment
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
