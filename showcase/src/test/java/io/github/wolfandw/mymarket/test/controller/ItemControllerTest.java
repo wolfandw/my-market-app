@@ -56,7 +56,7 @@ public class ItemControllerTest extends AbstractControllerTest {
 
         ItemsPagingDto paging = new ItemsPagingDto(pageSizeParamValue, pageNumberParamValue, false, true);
 
-        when(itemService.getItems(DEFAULT_CART_ID, searchParamValue,
+        when(itemService.getItems(searchParamValue,
                 sortParamValue,
                 pageNumberParamValue,
                 pageSizeParamValue)).thenReturn(Flux.fromIterable(itemDtos));
@@ -87,7 +87,7 @@ public class ItemControllerTest extends AbstractControllerTest {
     void getItemTest() {
         Long itemId = 2L;
 
-        when(itemService.getItem(DEFAULT_CART_ID, itemId)).thenReturn(Mono.just(mapItem(ITEMS.get(itemId), 0)));
+        when(itemService.getItem(itemId)).thenReturn(Mono.just(mapItem(ITEMS.get(itemId), 0)));
 
         webTestClient.get().uri(uriBuilder -> uriBuilder
                         .path("/items/2")
@@ -112,7 +112,7 @@ public class ItemControllerTest extends AbstractControllerTest {
         Integer pageNumberParamValue = 1;
         Integer pageSizeParamValue = 5;
 
-        when(cartService.changeItemCount(DEFAULT_CART_ID, itemId, ACTION_PLUS)).thenReturn(Mono.empty());
+        when(cartService.changeItemCount(DEFAULT_USER_ID, itemId, ACTION_PLUS)).thenReturn(Mono.empty());
 
         webTestClient.post().uri(uriBuilder -> uriBuilder
                         .path("/items")
@@ -130,14 +130,14 @@ public class ItemControllerTest extends AbstractControllerTest {
                         RedirectUrlFactory.createUrlToItems(searchParamValue, sortParamValue, pageNumberParamValue, pageSizeParamValue)
                 );
 
-        verify(cartService).changeItemCount(DEFAULT_CART_ID, itemId, ACTION_PLUS);
+        verify(cartService).changeItemCount(DEFAULT_USER_ID, itemId, ACTION_PLUS);
     }
 
     @Test
     void changeItemCountOnItemTest() {
         long itemId = 1L;
-        when(itemService.getItem(DEFAULT_CART_ID, itemId)).thenReturn(Mono.just(mapItem(ITEMS.get(itemId), 0)));
-        when(cartService.changeItemCount(DEFAULT_CART_ID, itemId, ACTION_PLUS)).thenReturn(Mono.empty());
+        when(itemService.getItem(itemId)).thenReturn(Mono.just(mapItem(ITEMS.get(itemId), 0)));
+        when(cartService.changeItemCount(DEFAULT_USER_ID, itemId, ACTION_PLUS)).thenReturn(Mono.empty());
 
         webTestClient.post().uri(uriBuilder -> uriBuilder
                         .path("/items/1")
@@ -151,7 +151,7 @@ public class ItemControllerTest extends AbstractControllerTest {
                 );
 
 
-        verify(cartService).changeItemCount(DEFAULT_CART_ID, itemId, ACTION_PLUS);
+        verify(cartService).changeItemCount(DEFAULT_USER_ID, itemId, ACTION_PLUS);
     }
 
     @Test

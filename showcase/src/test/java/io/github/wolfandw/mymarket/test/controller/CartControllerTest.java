@@ -35,16 +35,16 @@ public class CartControllerTest extends AbstractControllerTest{
 
     @Test
     void getCartTest() {
-        Cart cart = CARTS.get(DEFAULT_CART_ID);
-        List<ItemDto> cartItems = mapCartItems(CART_ITEMS.get(DEFAULT_CART_ID).values().stream().toList());
-        CartDto cartDto = new CartDto(DEFAULT_CART_ID, cart.getTotal().longValue());
+        Cart cart = CARTS.get(DEFAULT_USER_ID);
+        List<ItemDto> cartItems = mapCartItems(CART_ITEMS.get(DEFAULT_USER_ID).values().stream().toList());
+        CartDto cartDto = new CartDto(cart.getId(), cart.getUserId(), cart.getTotal().longValue());
         BalanceDto balanceDto = new BalanceDto();
-        balanceDto.setId(DEFAULT_CART_ID);
+        balanceDto.setId(DEFAULT_USER_ID);
         balanceDto.setAccept(true);
         balanceDto.setBalance(BigDecimal.valueOf(8000L));
-        when(cartService.getCart(DEFAULT_CART_ID)).thenReturn(Mono.just(cartDto));
-        when(cartService.getCartItems(DEFAULT_CART_ID)).thenReturn(Flux.fromIterable(cartItems));
-        when(paymentsService.getBalance(DEFAULT_CART_ID)).thenReturn(Mono.just(balanceDto));
+        when(cartService.getCart(DEFAULT_USER_ID)).thenReturn(Mono.just(cartDto));
+        when(cartService.getCartItems(DEFAULT_USER_ID)).thenReturn(Flux.fromIterable(cartItems));
+        when(paymentsService.getBalance(DEFAULT_USER_ID)).thenReturn(Mono.just(balanceDto));
 
         webTestClient.get().uri("/cart/items")
                 .exchange()
@@ -63,16 +63,16 @@ public class CartControllerTest extends AbstractControllerTest{
 
     @Test
     void getCartLowBalanceTest() {
-        Cart cart = CARTS.get(DEFAULT_CART_ID);
-        List<ItemDto> cartItems = mapCartItems(CART_ITEMS.get(DEFAULT_CART_ID).values().stream().toList());
-        CartDto cartDto = new CartDto(DEFAULT_CART_ID, cart.getTotal().longValue());
+        Cart cart = CARTS.get(DEFAULT_USER_ID);
+        List<ItemDto> cartItems = mapCartItems(CART_ITEMS.get(DEFAULT_USER_ID).values().stream().toList());
+        CartDto cartDto = new CartDto(cart.getId(), cart.getUserId(), cart.getTotal().longValue());
         BalanceDto balanceDto = new BalanceDto();
-        balanceDto.setId(DEFAULT_CART_ID);
+        balanceDto.setId(DEFAULT_USER_ID);
         balanceDto.setAccept(true);
         balanceDto.setBalance(BigDecimal.valueOf(7000L));
-        when(cartService.getCart(DEFAULT_CART_ID)).thenReturn(Mono.just(cartDto));
-        when(cartService.getCartItems(DEFAULT_CART_ID)).thenReturn(Flux.fromIterable(cartItems));
-        when(paymentsService.getBalance(DEFAULT_CART_ID)).thenReturn(Mono.just(balanceDto));
+        when(cartService.getCart(DEFAULT_USER_ID)).thenReturn(Mono.just(cartDto));
+        when(cartService.getCartItems(DEFAULT_USER_ID)).thenReturn(Flux.fromIterable(cartItems));
+        when(paymentsService.getBalance(DEFAULT_USER_ID)).thenReturn(Mono.just(balanceDto));
 
         webTestClient.get().uri("/cart/items")
                 .exchange()
@@ -92,12 +92,12 @@ public class CartControllerTest extends AbstractControllerTest{
 
     @Test
     void getCartPaymentsServiceErrorTest() {
-        Cart cart = CARTS.get(DEFAULT_CART_ID);
-        List<ItemDto> cartItems = mapCartItems(CART_ITEMS.get(DEFAULT_CART_ID).values().stream().toList());
-        CartDto cartDto = new CartDto(DEFAULT_CART_ID, cart.getTotal().longValue());
-        when(cartService.getCart(DEFAULT_CART_ID)).thenReturn(Mono.just(cartDto));
-        when(cartService.getCartItems(DEFAULT_CART_ID)).thenReturn(Flux.fromIterable(cartItems));
-        when(paymentsService.getBalance(DEFAULT_CART_ID)).thenReturn(Mono.empty());
+        Cart cart = CARTS.get(DEFAULT_USER_ID);
+        List<ItemDto> cartItems = mapCartItems(CART_ITEMS.get(DEFAULT_USER_ID).values().stream().toList());
+        CartDto cartDto = new CartDto(cart.getId(), cart.getUserId(), cart.getTotal().longValue());
+        when(cartService.getCart(DEFAULT_USER_ID)).thenReturn(Mono.just(cartDto));
+        when(cartService.getCartItems(DEFAULT_USER_ID)).thenReturn(Flux.fromIterable(cartItems));
+        when(paymentsService.getBalance(DEFAULT_USER_ID)).thenReturn(Mono.empty());
 
         webTestClient.get().uri("/cart/items")
                 .exchange()
@@ -117,7 +117,7 @@ public class CartControllerTest extends AbstractControllerTest{
     @Test
     void changeChartItemCountTest() {
         Long itemId = 1L;
-        when(cartService.changeItemCount(DEFAULT_CART_ID, itemId, ACTION_PLUS)).thenReturn(Mono.empty());
+        when(cartService.changeItemCount(DEFAULT_USER_ID, itemId, ACTION_PLUS)).thenReturn(Mono.empty());
 
         webTestClient.post().uri(uriBuilder -> uriBuilder
                         .path("/cart/items")
@@ -128,10 +128,10 @@ public class CartControllerTest extends AbstractControllerTest{
                 .expectStatus().is3xxRedirection()
                 .expectHeader().valueEquals(
                         "Location",
-                        RedirectUrlFactory.createUrlToCart(DEFAULT_CART_ID)
+                        RedirectUrlFactory.createUrlToUserCart()
                 );
 
-        verify(cartService).changeItemCount(DEFAULT_CART_ID, itemId, ACTION_PLUS);
+        verify(cartService).changeItemCount(DEFAULT_USER_ID, itemId, ACTION_PLUS);
     }
 
     private List<ItemDto> mapCartItems(List<CartItem> cartItems) {

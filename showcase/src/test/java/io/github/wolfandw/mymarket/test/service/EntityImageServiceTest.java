@@ -8,6 +8,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.multipart.FilePart;
+import org.springframework.security.test.context.support.WithMockUser;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -85,6 +86,7 @@ public class EntityImageServiceTest extends AbstractServiceTest {
 
     @ParameterizedTest
     @ValueSource(longs = {1L, 13L})
+    @WithMockUser(roles = "ADMIN")
     void setEntityImageTest(Long entityId) {
         Item mockItem = AbstractServiceTest.ITEMS.get(entityId);
         String mockImageName = mockItem.getImgPath();

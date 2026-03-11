@@ -33,9 +33,9 @@ VALUES
 (1L, 12L, 90),
 (1L, 13L, 80);
 
-INSERT INTO orders(id, total_sum)
+INSERT INTO orders(id, user_id, total_sum)
 VALUES
-(1L, 6.01*65 + 5.01*55 + 4.01*45 + 3.01*35 + 2.01*25 + 1.01*15 + 13.01*135 + 12.01*125 + 11.01*115 + 10.01*105 + 9.01*95 + 8.01*85);
+(1L, 1L, 6.01*65 + 5.01*55 + 4.01*45 + 3.01*35 + 2.01*25 + 1.01*15 + 13.01*135 + 12.01*125 + 11.01*115 + 10.01*105 + 9.01*95 + 8.01*85);
 
 INSERT INTO order_items(order_id, item_id, count)
 VALUES

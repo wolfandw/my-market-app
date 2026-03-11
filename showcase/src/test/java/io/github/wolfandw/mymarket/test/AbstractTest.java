@@ -25,9 +25,9 @@ import java.util.stream.Collectors;
  */
 public abstract class AbstractTest {
     /**
-     * Идентификатор корзины по-умолчанию.
+     * Идентификатор пользователя по-умолчанию.
      */
-    protected static final Long DEFAULT_CART_ID = 1L;
+    protected static final Long DEFAULT_USER_ID = 1L;
 
     /**
      * Тестовые данные товаров.
@@ -76,7 +76,9 @@ public abstract class AbstractTest {
         ITEMS.put(13L, new Item(13L, "Item 06", "item 06 description searchtag", "13.png", new BigDecimal("8.01")));
 
         CARTS.clear();
-        Cart cart = new Cart(1L);
+        Cart cart = new Cart();
+        cart.setId(1L);
+        cart.setUserId(1L);
         cart.setTotal(BigDecimal.valueOf(7815));
         CARTS.put(1L, cart);
         List<CartItem> cartItems = new ArrayList<>();
@@ -96,7 +98,9 @@ public abstract class AbstractTest {
         CART_ITEMS.put(1L, cartItems.stream().collect(Collectors.toMap(CartItem::getItemId, Function.identity())));
 
         ORDERS.clear();
-        Order order = new Order(1L);
+        Order order = new Order();
+        order.setId(1L);
+        order.setUserId(1L);
         order.setTotalSum(BigDecimal.valueOf(8129));
         ORDERS.put(1L, order);
         List<OrderItem> orderItems = new ArrayList<>();

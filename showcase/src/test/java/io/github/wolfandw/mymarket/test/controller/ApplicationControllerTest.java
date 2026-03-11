@@ -39,15 +39,17 @@ public class ApplicationControllerTest extends AbstractControllerTest {
     void buyTest() throws Exception {
         Long orderId = 2L;
 
-        Cart cart = CARTS.get(DEFAULT_CART_ID);
+        Cart cart = CARTS.get(DEFAULT_USER_ID);
 
-        Order order = new Order(orderId);
-        List<OrderItem> orderItems = CART_ITEMS.get(DEFAULT_CART_ID).values().stream().map(cartItem ->
+        Order order = new Order();
+        order.setId(orderId);
+        order.setUserId(DEFAULT_USER_ID);
+        List<OrderItem> orderItems = CART_ITEMS.get(DEFAULT_USER_ID).values().stream().map(cartItem ->
                 new OrderItem(order.getId(), cartItem.getItemId(), cartItem.getCount())).toList();
         order.setTotalSum(cart.getTotal());
 
         OrderDto orderDto = new OrderDto(orderId, mapOrderItems(orderItems), cart.getTotal().longValue());
-        when(buyService.buy(DEFAULT_CART_ID)).thenReturn(Mono.just(orderDto));
+        when(buyService.buy()).thenReturn(Mono.just(orderDto));
 
         webTestClient.post().uri("/buy")
                 .exchange()
@@ -60,7 +62,7 @@ public class ApplicationControllerTest extends AbstractControllerTest {
 
     @Test
     void buyLowBalanceOrServiceErrorTest() throws Exception {
-        when(buyService.buy(DEFAULT_CART_ID)).thenReturn(Mono.empty());
+        when(buyService.buy()).thenReturn(Mono.empty());
 
         webTestClient.post().uri("/buy")
                 .exchange()

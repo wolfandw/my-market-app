@@ -16,6 +16,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.bean.override.mockito.MockReset;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import reactor.core.publisher.Mono;
@@ -61,6 +62,9 @@ public abstract class AbstractServiceTest extends AbstractTest {
     @MockitoBean(reset = MockReset.BEFORE)
     protected PaymentsApi paymentsApi;
 
+    @MockitoBean(reset = MockReset.BEFORE)
+    protected UserRepository userRepository;
+
     @Autowired
     protected ItemService itemService;
 
@@ -78,6 +82,9 @@ public abstract class AbstractServiceTest extends AbstractTest {
 
     @Autowired
     protected PaymentsService paymentsService;
+
+    @Autowired
+    protected UserService userService;
 
     @Autowired
     protected TrxStepVerifier trxStepVerifier;
@@ -114,6 +121,21 @@ public abstract class AbstractServiceTest extends AbstractTest {
                 return Mono.empty();
             }
         }).when(cartRepository).findById(any(Long.class));
+    }
+
+    protected void mockUserCart() {
+        doAnswer(new Answer<Mono<Cart>>() {
+            @Override
+            public Mono<Cart> answer(InvocationOnMock invocation) throws Throwable {
+                Object[] arguments = invocation.getArguments();
+                if (arguments != null && arguments.length == 1 && arguments[0] != null) {
+                    Long userId = (Long) arguments[0];
+                    Cart cart = CARTS.get(userId);
+                    return cart == null ? Mono.empty() : Mono.just(cart);
+                }
+                return Mono.empty();
+            }
+        }).when(cartRepository).findFirstByUserId(any(Long.class));
     }
 
     /**
