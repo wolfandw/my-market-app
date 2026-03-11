@@ -38,8 +38,8 @@ public class SecurityConfiguration {
         http
             .csrf(ServerHttpSecurity.CsrfSpec::disable)
             .authorizeExchange(exchanges -> exchanges
-                .pathMatchers("/api/payments/**").hasRole("PAYMENTS_SERVICE_CLIENT")
-                            .anyExchange().authenticated()
+                    .pathMatchers("/api/payments/**").hasRole("PAYMENTS_SERVICE_CLIENT")
+                    .anyExchange().authenticated()
             )
             .oauth2ResourceServer(oauth2 ->
                     oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
@@ -55,21 +55,17 @@ public class SecurityConfiguration {
     @Bean
     public ReactiveJwtAuthenticationConverter jwtAuthenticationConverter() {
         ReactiveJwtAuthenticationConverter converter = new ReactiveJwtAuthenticationConverter();
-
         Converter<Jwt, Flux<GrantedAuthority>> jwtGrantedAuthoritiesConverter = jwt ->
                 Mono.justOrEmpty(jwt.getClaimAsMap("realm_access"))
-                .flatMapMany(realmAccess -> {
-                    Object roles = realmAccess.get("roles");
-                    if (roles instanceof Collection<?> rolesList) {
-                        return Flux.fromIterable(rolesList)
-                                .filter(String.class::isInstance)
-                                .map(role -> {
-                                    LOG.info("******* Payments Service Role Accepted {}", role);
-                                    return new SimpleGrantedAuthority("ROLE_" + role);
-                                });
-                    }
-                    return Flux.empty();
-                });
+                        .flatMapMany(realmAccess -> {
+                            Object roles = realmAccess.get("roles");
+                            if (roles instanceof Collection<?> rolesList) {
+                                return Flux.fromIterable(rolesList)
+                                        .filter(String.class::isInstance)
+                                        .map(role -> new SimpleGrantedAuthority("ROLE_" + role));
+                            }
+                            return Flux.empty();
+                        });
         converter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter);
         return converter;
     }

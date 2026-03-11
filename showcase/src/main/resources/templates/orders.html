@@ -16,12 +16,18 @@
                     <h2>
                         <span class="badge text-bg-success">Витрина магазина</span>
                     </h2>
-                    <a href="/cart/items" class="btn btn-secondary bi bi-cart4 ms-auto"> Корзина</a>
+                    <a href="/cart/items" th:if="${userInfo.isUser()}" class="btn btn-secondary bi bi-cart4 ms-auto"> Корзина</a>
                     <a href="/items" class="btn btn-secondary bi bi-arrow-left-square"> Главная</a>
+                    <span class="badge text-bg-success justify-content-end" th:text="${userInfo.username()}"></span>
+                    <a href="/login" th:if="${!userInfo.isUser()}" class="btn btn-primary">Авторизоваться</a>
+                    <a href="/logout" th:if="${userInfo.isUser()}" class="btn btn-danger">Выйти</a>
                 </div>
             </div>
         </div>
-        <div class="row p-2" th:each="order : ${orders}">
+        <div class="alert alert-danger alert-dismissible fade show" role="alert" th:if="${!userInfo.isUser()}">
+            Для незарегистрированных пользователей функционал ограничен! Заказы не могут быть просмотрены!
+        </div>
+        <div class="row p-2" th:each="order : ${orders}" th:if="${userInfo.isUser()}">
             <div class="col">
                 <div class="card">
                     <div class="card-header">

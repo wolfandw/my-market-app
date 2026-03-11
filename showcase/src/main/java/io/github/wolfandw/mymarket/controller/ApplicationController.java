@@ -3,6 +3,7 @@ package io.github.wolfandw.mymarket.controller;
 import io.github.wolfandw.mymarket.service.BuyService;
 import io.github.wolfandw.mymarket.service.PaymentsService;
 import io.github.wolfandw.payment.client.domain.ReceiptDto;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -16,7 +17,7 @@ import reactor.core.publisher.Mono;
 @Controller
 @RequestMapping("/")
 public class ApplicationController {
-    private static final Long DEFAULT_CART_ID = 1L;
+    private static final String TEMPLATE_LOGIN = "orders";
 
     private final BuyService buyService;
     private final PaymentsService paymentsService;
@@ -47,11 +48,12 @@ public class ApplicationController {
      *
      * @return строка редиректа на заказ
      */
+    @PreAuthorize("hasRole('USER')")
     @PostMapping("/buy")
     public Mono<String> buy() {
-        return buyService.buy(DEFAULT_CART_ID).map(orderDto ->
+        return buyService.buy().map(orderDto ->
                         RedirectUrlFactory.createRedirectUrlToNewOrder(orderDto.id())).
-                switchIfEmpty(Mono.just(RedirectUrlFactory.createRedirectUrlToCart(DEFAULT_CART_ID)));
+                switchIfEmpty(Mono.just(RedirectUrlFactory.createRedirectUrlToUserCart()));
     }
 
     /**
@@ -59,10 +61,11 @@ public class ApplicationController {
      *
      * @return строка редиректа на корзину
      */
+    @PreAuthorize("hasRole('USER')")
     @PostMapping("/topUpBalance")
     public Mono<String> topUpBalance(@ModelAttribute ReceiptDto receiptDto) {
-        return paymentsService.topUpBalance(receiptDto.getId(), receiptDto).map(balanceDto ->
-                        RedirectUrlFactory.createRedirectUrlToCart(receiptDto.getId())).
-                switchIfEmpty(Mono.just(RedirectUrlFactory.createRedirectUrlToCart(receiptDto.getId())));
+        return paymentsService.topUpUserBalance(receiptDto).map(balanceDto ->
+                        RedirectUrlFactory.createRedirectUrlToUserCart()).
+                switchIfEmpty(Mono.just(RedirectUrlFactory.createRedirectUrlToUserCart()));
     }
 }

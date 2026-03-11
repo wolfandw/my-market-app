@@ -14,9 +14,9 @@ VALUES
 ('Item 05', 'item 05 description', '12.png', '09.01'),
 ('Item 06', 'item 06 description searchtag', '13.png', '08.01');
 
-INSERT INTO  carts(id, total)
+INSERT INTO  carts(id, user_id, total)
 VALUES
-(1L, 6.01*60 + 5.01*50 + 4.01*40 + 3.01*30 + 2.01*20 + 1.01*10 + 13.01*130 + 12.01*120 + 11.01*110 + 11.01*100 + 9.01*90 + 8.01*80);
+(1L, 1L, 6.01*60 + 5.01*50 + 4.01*40 + 3.01*30 + 2.01*20 + 1.01*10 + 13.01*130 + 12.01*120 + 11.01*110 + 11.01*100 + 9.01*90 + 8.01*80);
 
 INSERT INTO cart_items(cart_id, item_id, count)
 VALUES
@@ -33,9 +33,9 @@ VALUES
 (1L, 12L, 90),
 (1L, 13L, 80);
 
-INSERT INTO orders(total_sum)
+INSERT INTO orders(id, total_sum)
 VALUES
-(6.01*65 + 5.01*55 + 4.01*45 + 3.01*35 + 2.01*25 + 1.01*15 + 13.01*135 + 12.01*125 + 11.01*115 + 10.01*105 + 9.01*95 + 8.01*85);
+(1L, 6.01*65 + 5.01*55 + 4.01*45 + 3.01*35 + 2.01*25 + 1.01*15 + 13.01*135 + 12.01*125 + 11.01*115 + 10.01*105 + 9.01*95 + 8.01*85);
 
 INSERT INTO order_items(order_id, item_id, count)
 VALUES

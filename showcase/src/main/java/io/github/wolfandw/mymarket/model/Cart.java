@@ -17,15 +17,26 @@ public class Cart implements Persistable<Long> {
     private Long id;
 
     @Column
+    private Long userId;
+
+    @Column
     private BigDecimal total = BigDecimal.ZERO;
 
     @Transient
     private boolean isNew = false;
+
     /**
      * Создает корзину.
      */
     public Cart() {
-        // By default
+        // Default
+    }
+
+    /**
+     * Создает корзину.
+     */
+    public Cart(Long userId) {
+        this.userId = userId;
     }
 
     /**
@@ -33,8 +44,9 @@ public class Cart implements Persistable<Long> {
      *
      * @param id идентификатор корзины
      */
-    public Cart(Long id) {
+    public Cart(Long id, Long userId) {
         this.id = id;
+        this.userId = userId;
         this.isNew = true;
     }
 
@@ -87,5 +99,23 @@ public class Cart implements Persistable<Long> {
      */
     public void setTotal(BigDecimal total) {
         this.total = total;
+    }
+
+    /**
+     * Возвращает идентификатор пользователя.
+     *
+     * @return идентификатор пользователя
+     */
+    public Long getUserId() {
+        return userId;
+    }
+
+    /**
+     * Устанавливает идентификатор пользователя.
+     *
+     * @param userId идентификатор пользователя
+     */
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 }

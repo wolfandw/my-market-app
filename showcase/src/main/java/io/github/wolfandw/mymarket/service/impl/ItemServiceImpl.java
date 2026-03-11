@@ -5,14 +5,18 @@ import io.github.wolfandw.mymarket.cache.ItemsCache;
 import io.github.wolfandw.mymarket.cache.ItemsCountCache;
 import io.github.wolfandw.mymarket.dto.ItemDto;
 import io.github.wolfandw.mymarket.dto.ItemsPagingDto;
+import io.github.wolfandw.mymarket.model.Cart;
 import io.github.wolfandw.mymarket.model.Item;
 import io.github.wolfandw.mymarket.repository.CartItemRepository;
+import io.github.wolfandw.mymarket.repository.CartRepository;
 import io.github.wolfandw.mymarket.repository.ItemRepository;
 import io.github.wolfandw.mymarket.service.ItemService;
+import io.github.wolfandw.mymarket.service.UserService;
 import io.github.wolfandw.mymarket.service.mapper.ItemToDtoMapper;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
@@ -20,7 +24,6 @@ import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
 import java.util.Map;
-import java.util.function.Function;
 
 /**
  * Реализация {@link ItemService}.
@@ -46,6 +49,8 @@ public class ItemServiceImpl implements ItemService {
     private final ItemsCache itemsCache;
     private final ItemsCountCache itemsCountCache;
     private final ItemCache itemCache;
+    private final UserService userService;
+    private final CartRepository cartRepository;
 
     /**
      * Создает сервис работы с товарами.
@@ -56,29 +61,37 @@ public class ItemServiceImpl implements ItemService {
      * @param itemsCache         кэш товаров
      * @param itemsCountCache    кэш количества товаров
      * @param itemCache          кэш товаров
+     * @param userService        сервис пользователей
+     * @param cartRepository     репозиторий корзин
      */
     public ItemServiceImpl(ItemRepository itemRepository,
                            CartItemRepository cartItemRepository,
                            ItemToDtoMapper itemToDtoMapper,
                            ItemsCache itemsCache,
                            ItemsCountCache itemsCountCache,
-                           ItemCache itemCache) {
+                           ItemCache itemCache,
+                           UserService userService,
+                           CartRepository cartRepository) {
         this.itemRepository = itemRepository;
         this.cartItemRepository = cartItemRepository;
         this.itemToItemDtoMapper = itemToDtoMapper;
         this.itemsCache = itemsCache;
         this.itemsCountCache = itemsCountCache;
         this.itemCache = itemCache;
+        this.userService = userService;
+        this.cartRepository = cartRepository;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Flux<ItemDto> getItems(Long cartId, String search, String sort, Integer pageNumber, Integer pageSize) {
+    public Flux<ItemDto> getItems(String search, String sort, Integer pageNumber, Integer pageSize) {
         Flux<Item> page = getPage(search, sort, pageNumber, pageSize);
-        return page.map(item -> cartItemRepository.findByCartIdAndItemId(cartId, item.getId()).
-                        map(ci -> itemToItemDtoMapper.mapItem(item, ci.getCount())).
-                        defaultIfEmpty(itemToItemDtoMapper.mapItem(item))).
-                flatMap(Function.identity());
+        Mono<Long> userIdMono = userService.getCurrentUserId();
+        Mono<Cart> cartMono = userIdMono.flatMap(cartRepository::findFirstByUserId);
+        return page.flatMap(item -> cartMono.flatMap(cart ->
+                        cartItemRepository.findByCartIdAndItemId(cart.getId(), item.getId()).
+                        map(ci -> itemToItemDtoMapper.mapItem(item, ci.getCount()))
+                ).defaultIfEmpty(itemToItemDtoMapper.mapItem(item)));
     }
 
     @Override
@@ -102,18 +115,21 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional(readOnly = true)
-    public Mono<ItemDto> getItem(Long cartId, Long id) {
+    public Mono<ItemDto> getItem(Long id) {
         Mono<Item> cachedItem = itemCache.getItem(id);
         Mono<Item> databaseItem = itemRepository.findById(id);
+        Mono<Long> userIdMono = userService.getCurrentUserId();
+        Mono<Cart> cartMono = userIdMono.flatMap(cartRepository::findFirstByUserId);
         return cachedItem.switchIfEmpty(Mono.defer(() -> itemCache.cache(databaseItem))).
-                map(item -> cartItemRepository.findByCartIdAndItemId(cartId, item.getId()).
-                        map(ci -> itemToItemDtoMapper.mapItem(item, ci.getCount())).
-                        defaultIfEmpty(itemToItemDtoMapper.mapItem(item))).
-                flatMap(Function.identity());
+                flatMap(item -> cartMono.flatMap(cart ->
+                        cartItemRepository.findByCartIdAndItemId(cart.getId(), item.getId()).
+                        map(ci -> itemToItemDtoMapper.mapItem(item, ci.getCount()))
+                ).defaultIfEmpty(itemToItemDtoMapper.mapItem(item)));
     }
 
     @Override
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public Mono<ItemDto> createItem(String title, String description, BigDecimal price) {
         Item item = new Item();
         item.setTitle(title);

@@ -17,18 +17,24 @@
                 <h2>
                     <span class="badge text-bg-success">Витрина магазина</span>
                 </h2>
-                <a href="/orders" class="btn btn-secondary ms-auto bi bi-file-earmark-text"> Заказы</a>
-                <a href="/cart/items" class="btn btn-secondary bi bi-cart4"> Корзина</a>
+                <a href="/orders" th:if="${userInfo.isUser()}" class="btn btn-secondary ms-auto bi bi-file-earmark-text"> Заказы</a>
+                <a href="/cart/items" th:if="${userInfo.isUser()}" class="btn btn-secondary bi bi-cart4"> Корзина</a>
                 <a href="/items" class="btn btn-secondary bi bi-arrow-left-square"> Главная</a>
+                <span class="badge text-bg-success justify-content-end" th:text="${userInfo.username()}"></span>
+                <a href="/login" th:if="${!userInfo.isUser()}" class="btn btn-primary">Авторизоваться</a>
+                <a href="/logout" th:if="${userInfo.isUser()}" class="btn btn-danger">Выйти</a>
             </div>
         </div>
     </div>
-    <div class="row p-2">
+    <div class="alert alert-danger alert-dismissible fade show" role="alert" th:if="${!userInfo.isUser()}">
+        Для незарегистрированных пользователей функционал ограничен! Корзина не может быть наполнена!
+    </div>
+    <div class="row p-2" th:if="${userInfo.isUser()}">
         <div class="col">
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">Новый товар</h5>
-                    <form th:action="'/items/new'" method="post">
+                    <form th:action="@{/items/new}" method="post">
                         <div class="row p-2">
                             <div class="col">
                                 <div class="hstack gap-3">

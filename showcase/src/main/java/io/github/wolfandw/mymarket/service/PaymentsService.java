@@ -33,4 +33,27 @@ public interface PaymentsService {
      * @return новый баланс
      */
     Mono<BalanceDto> topUpBalance(Long id, ReceiptDto receiptDto);
+
+    /**
+     * Получает баланс пользователя.
+     *
+     * @return баланс
+     */
+    Mono<BalanceDto> getUserBalance();
+
+    /**
+     * Выполняет платеж пользователя.
+     *
+     * @param paymentDto параметры платежа
+     * @return новый баланс
+     */
+    Mono<BalanceDto> makeUserPayment(PaymentDto paymentDto);
+
+    /**
+     * Пополняет баланс пользователя.
+     *
+     * @param receiptDto параметры пополнения
+     * @return новый баланс
+     */
+    Mono<BalanceDto> topUpUserBalance(ReceiptDto receiptDto);
 }
