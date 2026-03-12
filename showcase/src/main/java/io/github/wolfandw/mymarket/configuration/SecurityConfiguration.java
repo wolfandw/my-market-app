@@ -2,6 +2,7 @@ package io.github.wolfandw.mymarket.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
@@ -49,7 +50,29 @@ public class SecurityConfiguration {
                     .csrfTokenRequestHandler(csrfTokenRequestHandler)
                 )
                 .authorizeExchange(exchanges -> exchanges
-                    .pathMatchers("/", "/login", "/register", "/items/**", "/static/**").permitAll()
+                    .pathMatchers("/", "/login", "/static/**").permitAll()
+
+                    .pathMatchers(HttpMethod.GET, "/items*").permitAll()
+                    .pathMatchers(HttpMethod.POST, "/items*").authenticated()
+
+                    .pathMatchers(HttpMethod.GET, "/items/*").permitAll()
+                    .pathMatchers(HttpMethod.POST, "/items/*").authenticated()
+
+                    .pathMatchers(HttpMethod.GET,"/items/new").authenticated()
+                    .pathMatchers(HttpMethod.POST,"/items/new").authenticated()
+
+                    .pathMatchers(HttpMethod.GET,"/items/*/image").permitAll()
+                    .pathMatchers(HttpMethod.POST,"/items/*/image").authenticated()
+
+                    .pathMatchers(HttpMethod.GET,"/cart/items").authenticated()
+                    .pathMatchers(HttpMethod.POST,"/cart/items*").authenticated()
+
+                    .pathMatchers(HttpMethod.GET,"/orders").authenticated()
+                    .pathMatchers(HttpMethod.POST,"/orders/*").authenticated()
+
+                    .pathMatchers(HttpMethod.POST,"/buy").authenticated()
+                    .pathMatchers(HttpMethod.POST,"/topUpBalance").authenticated()
+
                     .anyExchange().authenticated()
                 )
                 .formLogin(form -> form

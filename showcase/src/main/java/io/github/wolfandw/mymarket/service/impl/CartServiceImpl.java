@@ -106,7 +106,7 @@ public class CartServiceImpl implements CartService {
     @Transactional
     @PreAuthorize("hasRole('USER')")
     public Mono<Void> changeUserItemCount(Long itemId, String action) {
-        Mono<Long> userIdMono = userService.getCurrentUserId();
+        Mono<Long> userIdMono = userService.getCurrentUserId().filter(currentUserId -> currentUserId > 0);
         Mono<Cart> cartMono = userIdMono.flatMap(userId ->
                 cartRepository.findFirstByUserId(userId).
                         switchIfEmpty(Mono.defer(() -> cartRepository.save(new Cart(userId)))));

@@ -7,15 +7,21 @@ import io.github.wolfandw.mymarket.model.Item;
 import io.github.wolfandw.mymarket.model.Order;
 import io.github.wolfandw.mymarket.model.OrderItem;
 import io.github.wolfandw.mymarket.model.User;
+import io.github.wolfandw.mymarket.repository.UserRepository;
 import io.github.wolfandw.mymarket.service.*;
 import io.github.wolfandw.mymarket.service.mapper.ItemToDtoMapper;
 import io.github.wolfandw.mymarket.test.AbstractTest;
+import io.github.wolfandw.payment.client.auth.Authentication;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers;
+import org.springframework.test.context.bean.override.mockito.MockReset;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+
+import static org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.csrf;
 
 /**
  * Абстрактный модельный тест контроллеров.
@@ -76,33 +82,20 @@ public class AbstractControllerTest extends AbstractTest {
                 orderItem.getCount())).toList();
     }
 
-    protected User getUser() {
-        User user = new User();
-        user.setId(1L);
-        user.setUsername("user");
-        user.setPassword("password");
-        user.setRoles("USER");
-        return user;
-    }
+    protected void checkFound(String uri) {
+        webTestClient.get().uri(uri)
+                .exchange()
+                .expectStatus().isFound()
+                .expectHeader().valueEquals(
+                        "Location",
+                        "/login");
 
-    protected Mono<UserInfoDto> getUserInfo() {
-        return Mono.just(new UserInfoDto(1L, "user", true, false));
-    }
-
-    protected User getAdmin() {
-        User user = new User();
-        user.setId(1L);
-        user.setUsername("admin");
-        user.setPassword("password");
-        user.setRoles("ADMIN");
-        return user;
-    }
-
-    protected Mono<UserInfoDto> getAdminInfo() {
-        return Mono.just(new UserInfoDto(1L, "admin", true, true));
-    }
-
-    protected Mono<UserInfoDto> getGuestInfo() {
-        return Mono.just(new UserInfoDto(-1L, "guest", false, false));
+        webTestClient.mutateWith(csrf())
+                .post().uri(uri)
+                .exchange()
+                .expectStatus().isFound()
+                .expectHeader().valueEquals(
+                        "Location",
+                        "/login");
     }
 }

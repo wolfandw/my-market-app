@@ -1,5 +1,6 @@
 package io.github.wolfandw.mymarket.test.controller;
 
+import io.github.wolfandw.mymarket.IsRoleUser;
 import io.github.wolfandw.mymarket.controller.CartController;
 import io.github.wolfandw.mymarket.controller.RedirectUrlFactory;
 import io.github.wolfandw.mymarket.dto.CartDto;
@@ -36,9 +37,8 @@ public class CartControllerTest extends AbstractControllerTest{
     private static final String ACTION_PLUS = "PLUS";
 
     @Test
-    @WithMockUser(roles = "ANONYMOUS")
-    void getCartTest() {
-        when(userService.getCurrentUserInfo()).thenReturn(getGuestInfo());
+    @IsRoleUser
+    public void getCartUserTest() {
         Cart cart = CARTS.get(DEFAULT_USER_ID);
         List<ItemDto> cartItems = mapCartItems(CART_ITEMS.get(DEFAULT_USER_ID).values().stream().toList());
         CartDto cartDto = new CartDto(cart.getId(), cart.getUserId(), cart.getTotal().longValue());
@@ -49,32 +49,7 @@ public class CartControllerTest extends AbstractControllerTest{
         when(cartService.getUserCart()).thenReturn(Mono.just(cartDto));
         when(cartService.getUserCartItems()).thenReturn(Flux.fromIterable(cartItems));
         when(paymentsService.getUserBalance()).thenReturn(Mono.just(balanceDto));
-
-        webTestClient.get().uri("/cart/items")
-                .exchange()
-                .expectStatus().isOk()
-                .expectBody(String.class)
-                .consumeWith(res -> {
-                    String body = res.getResponseBody();
-                    assertNotNull(body);
-                    assertTrue(body.contains("Для незарегистрированных пользователей функционал ограничен! Корзина не может быть наполнена!"));
-                });
-    }
-
-    @Test
-    @WithMockUser(roles = "USER")
-    void getCartUserTest() {
-        when(userService.getCurrentUserInfo()).thenReturn(getUserInfo());
-        Cart cart = CARTS.get(DEFAULT_USER_ID);
-        List<ItemDto> cartItems = mapCartItems(CART_ITEMS.get(DEFAULT_USER_ID).values().stream().toList());
-        CartDto cartDto = new CartDto(cart.getId(), cart.getUserId(), cart.getTotal().longValue());
-        BalanceDto balanceDto = new BalanceDto();
-        balanceDto.setId(DEFAULT_USER_ID);
-        balanceDto.setAccept(true);
-        balanceDto.setBalance(BigDecimal.valueOf(8000L));
-        when(cartService.getUserCart()).thenReturn(Mono.just(cartDto));
-        when(cartService.getUserCartItems()).thenReturn(Flux.fromIterable(cartItems));
-        when(paymentsService.getUserBalance()).thenReturn(Mono.just(balanceDto));
+        when(userService.getCurrentUserInfo()).thenReturn(getUserInfoMono());
 
         webTestClient.get().uri("/cart/items")
                 .exchange()
@@ -92,9 +67,13 @@ public class CartControllerTest extends AbstractControllerTest{
     }
 
     @Test
-    @WithMockUser(roles = "USER")
+    public void getCartTest() {
+        checkFound("/cart/items");
+    }
+
+    @Test
+    @IsRoleUser
     void getCartLowBalanceTest() {
-        when(userService.getCurrentUserInfo()).thenReturn(getUserInfo());
         Cart cart = CARTS.get(DEFAULT_USER_ID);
         List<ItemDto> cartItems = mapCartItems(CART_ITEMS.get(DEFAULT_USER_ID).values().stream().toList());
         CartDto cartDto = new CartDto(cart.getId(), cart.getUserId(), cart.getTotal().longValue());
@@ -105,6 +84,7 @@ public class CartControllerTest extends AbstractControllerTest{
         when(cartService.getUserCart()).thenReturn(Mono.just(cartDto));
         when(cartService.getUserCartItems()).thenReturn(Flux.fromIterable(cartItems));
         when(paymentsService.getUserBalance()).thenReturn(Mono.just(balanceDto));
+        when(userService.getCurrentUserInfo()).thenReturn(getUserInfoMono());
 
         webTestClient.get().uri("/cart/items")
                 .exchange()
@@ -123,15 +103,15 @@ public class CartControllerTest extends AbstractControllerTest{
     }
 
     @Test
-    @WithMockUser(roles = "USER")
+    @IsRoleUser
     void getCartPaymentsServiceErrorTest() {
-        when(userService.getCurrentUserInfo()).thenReturn(getUserInfo());
         Cart cart = CARTS.get(DEFAULT_USER_ID);
         List<ItemDto> cartItems = mapCartItems(CART_ITEMS.get(DEFAULT_USER_ID).values().stream().toList());
         CartDto cartDto = new CartDto(cart.getId(), cart.getUserId(), cart.getTotal().longValue());
         when(cartService.getUserCart()).thenReturn(Mono.just(cartDto));
         when(cartService.getUserCartItems()).thenReturn(Flux.fromIterable(cartItems));
         when(paymentsService.getUserBalance()).thenReturn(Mono.empty());
+        when(userService.getCurrentUserInfo()).thenReturn(getUserInfoMono());
 
         webTestClient.get().uri("/cart/items")
                 .exchange()
@@ -149,32 +129,9 @@ public class CartControllerTest extends AbstractControllerTest{
     }
 
     @Test
-    @WithMockUser(roles = "ANONYMOUS")
-    void changeChartItemCountGuestTest() {
-        when(userService.getCurrentUserInfo()).thenReturn(getGuestInfo());
-        Long itemId = 1L;
-        when(cartService.changeUserItemCount(itemId, ACTION_PLUS)).thenReturn(Mono.empty());
-
-        webTestClient.mutateWith(csrf())
-                .post().uri(uriBuilder -> uriBuilder
-                        .path("/cart/items")
-                        .queryParam(PARAMETER_ID, Long.toString(1L))
-                        .queryParam(PARAMETER_ACTION, ACTION_PLUS)
-                        .build())
-                .exchange()
-                .expectStatus().is3xxRedirection()
-                .expectHeader().valueEquals(
-                        "Location",
-                        RedirectUrlFactory.createUrlToUserCart()
-                );
-
-        verify(cartService).changeUserItemCount(itemId, ACTION_PLUS);
-    }
-
-    @Test
-    @WithMockUser(roles = "USER")
+    @IsRoleUser
     void changeChartItemCountUserTest() {
-        when(userService.getCurrentUserInfo()).thenReturn(getUserInfo());
+        when(userService.getCurrentUserInfo()).thenReturn(getUserInfoMono());
         Long itemId = 1L;
         when(cartService.changeUserItemCount(itemId, ACTION_PLUS)).thenReturn(Mono.empty());
 

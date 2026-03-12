@@ -1,18 +1,14 @@
 package io.github.wolfandw.mymarket.test.service;
 
-import io.github.wolfandw.mymarket.service.PaymentsService;
-import io.github.wolfandw.mymarket.service.UserService;
+import io.github.wolfandw.mymarket.IsRoleAdmin;
+import io.github.wolfandw.mymarket.IsRoleGuest;
+import io.github.wolfandw.mymarket.IsRoleUser;
+import io.github.wolfandw.mymarket.model.User;
 import io.github.wolfandw.payment.client.domain.BalanceDto;
 import io.github.wolfandw.payment.client.domain.PaymentDto;
 import io.github.wolfandw.payment.client.domain.ReceiptDto;
-import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authorization.AuthorizationDeniedException;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.bean.override.mockito.MockReset;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -27,287 +23,184 @@ import static org.mockito.Mockito.when;
  * Модульный тест сервиса платежей.
  */
 public class PaymentsServiceTest extends AbstractServiceTest {
-    @MockitoBean(reset = MockReset.BEFORE)
-    private UserService mockUserService;
-
-    private @NonNull Long prepareBalanceTest() {
-        Long id = 1L;
-        BalanceDto mockBalanceDto = new BalanceDto();
-        mockBalanceDto.setId(id);
-        mockBalanceDto.setAccept(true);
-        mockBalanceDto.setBalance(BigDecimal.valueOf(8000L));
-        when(paymentsApi.getBalance(eq(id))).thenReturn(Mono.just(mockBalanceDto));
-        when(mockUserService.getCurrentUserId()).thenReturn(Mono.just(id));
-        return id;
+    @Test
+    @IsRoleUser
+    public void getBalanceUserTest() {
+        StepVerifier.create(paymentsService.getBalance(getUser().getId())).verifyError(AuthorizationDeniedException.class);
     }
 
     @Test
-    void getBalanceIsUnauthorizedTest() {
-        Long id = prepareBalanceTest();
-        StepVerifier.create(paymentsService.getBalance(id)).verifyError(AuthorizationDeniedException.class);
+    @IsRoleAdmin
+    public void getBalanceAdminTest() {
+        balanceTest(getAdmin(), getAdminMono(), paymentsService.getBalance(getAdmin().getId()));
     }
 
     @Test
-    void getUserBalanceIsUnauthorizedTest() {
-        Long id = prepareBalanceTest();
-        StepVerifier.create(paymentsService.getUserBalance()).verifyError(AuthorizationDeniedException.class);
+    @IsRoleGuest
+    public void getBalanceGuestTest() {
+        StepVerifier.create(paymentsService.getBalance(ID_GUEST)).verifyError(AuthorizationDeniedException.class);
     }
 
     @Test
-    @WithMockUser(roles = "USER")
-    void getBalanceIsUserTest() {
-        Long id = prepareBalanceTest();
-        StepVerifier.create(paymentsService.getBalance(id)).verifyError(AuthorizationDeniedException.class);
+    @IsRoleUser
+    public void getUserBalanceUserTest() {
+        balanceTest(getUser(), getUserMono(), paymentsService.getUserBalance());
     }
 
     @Test
-    @WithMockUser(roles = "USER")
-    void getUserBalanceIsUserTest() {
-        Long id = prepareBalanceTest();
-        StepVerifier.create(paymentsService.getUserBalance()).
-                consumeNextWith(actualBalanceDto -> {
-                    assertThat(actualBalanceDto.getId()).isEqualTo(id);
-                    assertThat(actualBalanceDto.getBalance()).isEqualTo(BigDecimal.valueOf(8000L));
-                    assertThat(actualBalanceDto.getAccept()).isEqualTo(true);
-                }).verifyComplete();
+    @IsRoleGuest
+    public void getUserBalanceGuestTest() {
+        StepVerifier.create(paymentsService.getBalance(ID_GUEST)).verifyError(AuthorizationDeniedException.class);
     }
 
     @Test
-    @WithMockUser(roles = "ADMIN")
-    void getBalanceIsAdminTest() {
-        Long id = prepareBalanceTest();
-        StepVerifier.create(paymentsService.getBalance(id)).
-                consumeNextWith(actualBalanceDto -> {
-                    assertThat(actualBalanceDto.getId()).isEqualTo(id);
-                    assertThat(actualBalanceDto.getBalance()).isEqualTo(BigDecimal.valueOf(8000L));
-                    assertThat(actualBalanceDto.getAccept()).isEqualTo(true);
-                }).verifyComplete();
+    @IsRoleUser
+    void getBalanceErrorUserTest() {
+        StepVerifier.create(paymentsService.getBalance(getUser().getId())).verifyError(AuthorizationDeniedException.class);
     }
 
     @Test
-    @WithMockUser(roles = "ADMIN")
-    void getBalanceErrorIsAdminTest() {
-        Long id = 1L;
-        when(paymentsApi.getBalance(eq(id))).thenReturn(Mono.empty());
-        StepVerifier.create(paymentsService.getBalance(id)).verifyComplete();
+    @IsRoleAdmin
+    void getBalanceErrorAdminTest() {
+        when(paymentsApi.getBalance(any(Long.class))).thenReturn(Mono.empty());
+        when(userRepository.findByUsername(any(String.class))).thenReturn(getAdminMono());
+        StepVerifier.create(paymentsService.getBalance(getAdmin().getId())).verifyComplete();
     }
 
     @Test
-    void makePaymentIsUnauthorizedTest() {
-        Long id = 1L;
-        BalanceDto mockBalanceDto = new BalanceDto();
-        mockBalanceDto.setId(id);
-        mockBalanceDto.setAccept(true);
-        mockBalanceDto.setBalance(BigDecimal.valueOf(8000L));
+    @IsRoleGuest
+    void getBalanceErrorGuestTest() {
+        StepVerifier.create(paymentsService.getBalance(ID_GUEST)).verifyError(AuthorizationDeniedException.class);
+    }
+
+    @Test
+    @IsRoleUser
+    public void makePaymentUserTest() {
+        StepVerifier.create(paymentsService.makePayment(getUser().getId(),  new PaymentDto())).verifyError(AuthorizationDeniedException.class);
+    }
+
+    @Test
+    @IsRoleAdmin
+    public void makePaymentAdminTest() {
         PaymentDto mockPaymentDto = new PaymentDto();
-        mockPaymentDto.setId(id);
+        mockPaymentDto.setId(getAdmin().getId());
         mockPaymentDto.setPayment(BigDecimal.valueOf(1000L));
-        when(paymentsApi.makePayment(eq(id), any(PaymentDto.class))).thenReturn(Mono.just(mockBalanceDto));
-
-        StepVerifier.create(paymentsService.makePayment(id, mockPaymentDto)).verifyError(AuthorizationDeniedException.class);
+        balanceTest(getAdmin(), getAdminMono(), paymentsService.makePayment(getAdmin().getId(), mockPaymentDto));
     }
 
     @Test
-    void makeUserPaymentIsUnauthorizedTest() {
-        Long id = 1L;
-        BalanceDto mockBalanceDto = new BalanceDto();
-        mockBalanceDto.setId(id);
-        mockBalanceDto.setAccept(true);
-        mockBalanceDto.setBalance(BigDecimal.valueOf(8000L));
+    @IsRoleGuest
+    public void makePaymentGuestTest() {
+        StepVerifier.create(paymentsService.makePayment(ID_GUEST,  new PaymentDto())).verifyError(AuthorizationDeniedException.class);
+    }
+
+    @Test
+    @IsRoleUser
+    public void makeUserPaymentUserTest() {
         PaymentDto mockPaymentDto = new PaymentDto();
-        mockPaymentDto.setId(id);
+        mockPaymentDto.setId(getUser().getId());
         mockPaymentDto.setPayment(BigDecimal.valueOf(1000L));
-        when(paymentsApi.makePayment(eq(id), any(PaymentDto.class))).thenReturn(Mono.just(mockBalanceDto));
-
-        StepVerifier.create(paymentsService.makeUserPayment(mockPaymentDto)).verifyError(AuthorizationDeniedException.class);
+        balanceTest(getUser(), getUserMono(), paymentsService.makeUserPayment(mockPaymentDto));
     }
 
     @Test
-    @WithMockUser(roles = "USER")
-    void makePaymentIsUserTest() {
-        Long id = 1L;
-        BalanceDto mockBalanceDto = new BalanceDto();
-        mockBalanceDto.setId(id);
-        mockBalanceDto.setAccept(true);
-        mockBalanceDto.setBalance(BigDecimal.valueOf(8000L));
-        PaymentDto mockPaymentDto = new PaymentDto();
-        mockPaymentDto.setId(id);
-        mockPaymentDto.setPayment(BigDecimal.valueOf(1000L));
-        when(paymentsApi.makePayment(eq(id), any(PaymentDto.class))).thenReturn(Mono.just(mockBalanceDto));
-
-        StepVerifier.create(paymentsService.makePayment(id, mockPaymentDto)).verifyError(AuthorizationDeniedException.class);
+    @IsRoleGuest
+    public void makeUserPaymentGuestTest() {
+        StepVerifier.create(paymentsService.makeUserPayment(new PaymentDto())).verifyError(AuthorizationDeniedException.class);
     }
 
     @Test
-    @WithMockUser(roles = "USER")
-    void makeUserPaymentIsUserTest() {
-        Long id = 1L;
+    @IsRoleUser
+    public void makeUserPaymentBadBalanceTest() {
         BalanceDto mockBalanceDto = new BalanceDto();
-        mockBalanceDto.setId(id);
-        mockBalanceDto.setAccept(true);
-        mockBalanceDto.setBalance(BigDecimal.valueOf(8000L));
-        PaymentDto mockPaymentDto = new PaymentDto();
-        mockPaymentDto.setId(id);
-        mockPaymentDto.setPayment(BigDecimal.valueOf(1000L));
-        when(paymentsApi.makePayment(eq(id), any(PaymentDto.class))).thenReturn(Mono.just(mockBalanceDto));
-        when(mockUserService.getCurrentUserId()).thenReturn(Mono.just(id));
-
-        StepVerifier.create(paymentsService.makeUserPayment(mockPaymentDto)).
-                consumeNextWith(actualBalanceDto -> {
-                    assertThat(actualBalanceDto.getId()).isEqualTo(id);
-                    assertThat(actualBalanceDto.getBalance()).isEqualTo(BigDecimal.valueOf(8000L));
-                    assertThat(actualBalanceDto.getAccept()).isEqualTo(true);
-                }).verifyComplete();
-    }
-
-    @Test
-    @WithMockUser(roles = "ADMIN")
-    void makePaymentIsAdminTest() {
-        Long id = 1L;
-        BalanceDto mockBalanceDto = new BalanceDto();
-        mockBalanceDto.setId(id);
-        mockBalanceDto.setAccept(true);
-        mockBalanceDto.setBalance(BigDecimal.valueOf(8000L));
-        PaymentDto mockPaymentDto = new PaymentDto();
-        mockPaymentDto.setId(id);
-        mockPaymentDto.setPayment(BigDecimal.valueOf(1000L));
-        when(paymentsApi.makePayment(eq(id), any(PaymentDto.class))).thenReturn(Mono.just(mockBalanceDto));
-
-        StepVerifier.create(paymentsService.makePayment(id, mockPaymentDto)).
-                consumeNextWith(actualBalanceDto -> {
-                    assertThat(actualBalanceDto.getId()).isEqualTo(id);
-                    assertThat(actualBalanceDto.getBalance()).isEqualTo(BigDecimal.valueOf(8000L));
-                    assertThat(actualBalanceDto.getAccept()).isEqualTo(true);
-                }).verifyComplete();
-    }
-
-    @Test
-    @WithMockUser(roles = "ADMIN")
-    void makePaymentBadBalanceTest() {
-        Long id = 1L;
-        BalanceDto mockBalanceDto = new BalanceDto();
-        mockBalanceDto.setId(id);
+        mockBalanceDto.setId(getUser().getId());
         mockBalanceDto.setAccept(false);
 
         mockBalanceDto.setBalance(BigDecimal.valueOf(8000L));
         PaymentDto mockPaymentDto = new PaymentDto();
-        mockPaymentDto.setId(id);
+        mockPaymentDto.setId(getUser().getId());
         mockPaymentDto.setPayment(BigDecimal.valueOf(1000L));
-        when(paymentsApi.makePayment(eq(id), any(PaymentDto.class))).thenReturn(Mono.just(mockBalanceDto));
+        when(paymentsApi.makePayment(eq(getUser().getId()), any(PaymentDto.class))).thenReturn(Mono.just(mockBalanceDto));
+        when(userRepository.findByUsername(any(String.class))).thenReturn(getUserMono());
 
-        StepVerifier.create(paymentsService.makePayment(id, mockPaymentDto)).verifyComplete();
+        StepVerifier.create(paymentsService.makeUserPayment(mockPaymentDto)).verifyComplete();
     }
 
     @Test
-    @WithMockUser(roles = "ADMIN")
-    void makePaymentServiceErrorTest() {
-        Long id = 1L;
+    @IsRoleUser
+    public void makeUserPaymentServiceErrorTest() {
         PaymentDto mockPaymentDto = new PaymentDto();
-        mockPaymentDto.setId(id);
+        mockPaymentDto.setId(getUser().getId());
         mockPaymentDto.setPayment(BigDecimal.valueOf(1000L));
-        when(paymentsApi.makePayment(eq(id), any(PaymentDto.class))).thenReturn(Mono.error(new IllegalArgumentException()));
+        when(paymentsApi.makePayment(eq(getUser().getId()), any(PaymentDto.class))).thenReturn(Mono.error(new IllegalArgumentException()));
+        when(userRepository.findByUsername(any(String.class))).thenReturn(getUserMono());
 
-        StepVerifier.create(paymentsService.makePayment(id, mockPaymentDto)).verifyComplete();
+        StepVerifier.create(paymentsService.makeUserPayment(mockPaymentDto)).verifyComplete();
     }
 
     @Test
-    void topUpBalanceIsUnauthorizedTest() {
-        Long id = 1L;
-        BalanceDto mockBalanceDto = new BalanceDto();
-        mockBalanceDto.setId(id);
-        mockBalanceDto.setAccept(true);
-        mockBalanceDto.setBalance(BigDecimal.valueOf(8000L));
-        ReceiptDto mockReceiptDto = new ReceiptDto();
-        mockReceiptDto.setId(id);
-        mockReceiptDto.setReceipt(BigDecimal.valueOf(1000L));
-        when(paymentsApi.topUpBalance(eq(id), any(ReceiptDto.class))).thenReturn(Mono.just(mockBalanceDto));
-
-        StepVerifier.create(paymentsService.topUpBalance(id, mockReceiptDto)).verifyError(AuthorizationDeniedException.class);
+    @IsRoleUser
+    public void topUpBalanceUserTest() {
+        StepVerifier.create(paymentsService.topUpBalance(getUser().getId(),  new ReceiptDto())).verifyError(AuthorizationDeniedException.class);
     }
 
     @Test
-    void topUpUserBalanceIsUnauthorizedTest() {
-        Long id = 1L;
-        BalanceDto mockBalanceDto = new BalanceDto();
-        mockBalanceDto.setId(id);
-        mockBalanceDto.setAccept(true);
-        mockBalanceDto.setBalance(BigDecimal.valueOf(8000L));
+    @IsRoleAdmin
+    public void topUpBalanceAdminTest() {
         ReceiptDto mockReceiptDto = new ReceiptDto();
-        mockReceiptDto.setId(id);
+        mockReceiptDto.setId(getUser().getId());
         mockReceiptDto.setReceipt(BigDecimal.valueOf(1000L));
-        when(paymentsApi.topUpBalance(eq(id), any(ReceiptDto.class))).thenReturn(Mono.just(mockBalanceDto));
-
-        StepVerifier.create(paymentsService.topUpBalance(id, mockReceiptDto)).verifyError(AuthorizationDeniedException.class);
+        balanceTest(getAdmin(), getAdminMono(), paymentsService.topUpBalance(getAdmin().getId(), mockReceiptDto));
     }
 
     @Test
-    @WithMockUser(roles = "USER")
-    void topUpBalanceIsUserTest() {
-        Long id = 1L;
-        BalanceDto mockBalanceDto = new BalanceDto();
-        mockBalanceDto.setId(id);
-        mockBalanceDto.setAccept(true);
-        mockBalanceDto.setBalance(BigDecimal.valueOf(8000L));
-        ReceiptDto mockReceiptDto = new ReceiptDto();
-        mockReceiptDto.setId(id);
-        mockReceiptDto.setReceipt(BigDecimal.valueOf(1000L));
-        when(paymentsApi.topUpBalance(eq(id), any(ReceiptDto.class))).thenReturn(Mono.just(mockBalanceDto));
-
-        StepVerifier.create(paymentsService.topUpBalance(id, mockReceiptDto)).verifyError(AuthorizationDeniedException.class);
+    @IsRoleGuest
+    public void topUpBalanceGuestTest() {
+        StepVerifier.create(paymentsService.topUpBalance(ID_GUEST,  new ReceiptDto())).verifyError(AuthorizationDeniedException.class);
     }
 
     @Test
-    @WithMockUser(roles = "USER")
-    void topUpUserBalanceIsUserTest() {
-        Long id = 1L;
+    @IsRoleUser
+    public void topUpUserBalanceUserTest() {
+        ReceiptDto mockReceiptDto = new ReceiptDto();
+        mockReceiptDto.setId(getUser().getId());
+        mockReceiptDto.setReceipt(BigDecimal.valueOf(1000L));
+        balanceTest(getUser(), getUserMono(), paymentsService.topUpUserBalance(mockReceiptDto));
+    }
+
+    @Test
+    @IsRoleGuest
+    public void topUpUserBalanceGuestTest() {
+        StepVerifier.create(paymentsService.topUpUserBalance(new ReceiptDto())).verifyError(AuthorizationDeniedException.class);
+    }
+
+    @Test
+    @IsRoleUser
+    public void topUpUserBalanceServiceErrorTest() {
+        ReceiptDto mockReceiptDto = new ReceiptDto();
+        mockReceiptDto.setId(getUser().getId());
+        mockReceiptDto.setReceipt(BigDecimal.valueOf(1000L));
+        when(paymentsApi.topUpBalance(eq(getUser().getId()), any(ReceiptDto.class))).thenReturn(Mono.error(new IllegalArgumentException()));
+        when(userRepository.findByUsername(any(String.class))).thenReturn(getUserMono());
+
+        StepVerifier.create(paymentsService.topUpUserBalance(mockReceiptDto)).verifyComplete();
+    }
+
+    private void balanceTest(User testUser, Mono<User> testUserMono, Mono<BalanceDto> testBalanceMono) {
         BalanceDto mockBalanceDto = new BalanceDto();
-        mockBalanceDto.setId(id);
+        mockBalanceDto.setId(testUser.getId());
         mockBalanceDto.setAccept(true);
         mockBalanceDto.setBalance(BigDecimal.valueOf(8000L));
-        ReceiptDto mockReceiptDto = new ReceiptDto();
-        mockReceiptDto.setId(id);
-        mockReceiptDto.setReceipt(BigDecimal.valueOf(1000L));
-        when(paymentsApi.topUpBalance(eq(id), any(ReceiptDto.class))).thenReturn(Mono.just(mockBalanceDto));
-        when(mockUserService.getCurrentUserId()).thenReturn(Mono.just(id));
+        when(paymentsApi.getBalance(any(Long.class))).thenReturn(Mono.just(mockBalanceDto));
+        when(paymentsApi.makePayment(any(Long.class), any(PaymentDto.class))).thenReturn(Mono.just(mockBalanceDto));
+        when(paymentsApi.topUpBalance(any(Long.class), any(ReceiptDto.class))).thenReturn(Mono.just(mockBalanceDto));
+        when(userRepository.findByUsername(any(String.class))).thenReturn(testUserMono);
 
-        StepVerifier.create(paymentsService.topUpUserBalance(mockReceiptDto)).
+        StepVerifier.create(testBalanceMono).
                 consumeNextWith(actualBalanceDto -> {
-                    assertThat(actualBalanceDto.getId()).isEqualTo(id);
-                    assertThat(actualBalanceDto.getBalance()).isEqualTo(BigDecimal.valueOf(8000L));
-                    assertThat(actualBalanceDto.getAccept()).isEqualTo(true);
+                    assertThat(actualBalanceDto.getId()).isEqualTo(mockBalanceDto.getId());
+                    assertThat(actualBalanceDto.getBalance()).isEqualTo(mockBalanceDto.getBalance());
+                    assertThat(actualBalanceDto.getAccept()).isEqualTo(mockBalanceDto.getAccept());
                 }).verifyComplete();
-    }
-
-    @Test
-    @WithMockUser(roles = "ADMIN")
-    void topUpBalanceIsAdminTest() {
-        Long id = 1L;
-        BalanceDto mockBalanceDto = new BalanceDto();
-        mockBalanceDto.setId(id);
-        mockBalanceDto.setAccept(true);
-        mockBalanceDto.setBalance(BigDecimal.valueOf(8000L));
-        ReceiptDto mockReceiptDto = new ReceiptDto();
-        mockReceiptDto.setId(id);
-        mockReceiptDto.setReceipt(BigDecimal.valueOf(1000L));
-        when(paymentsApi.topUpBalance(eq(id), any(ReceiptDto.class))).thenReturn(Mono.just(mockBalanceDto));
-
-        StepVerifier.create(paymentsService.topUpBalance(id, mockReceiptDto)).
-                consumeNextWith(actualBalanceDto -> {
-                    assertThat(actualBalanceDto.getId()).isEqualTo(id);
-                    assertThat(actualBalanceDto.getBalance()).isEqualTo(BigDecimal.valueOf(8000L));
-                    assertThat(actualBalanceDto.getAccept()).isEqualTo(true);
-                }).verifyComplete();
-    }
-
-    @Test
-    @WithMockUser(roles = "ADMIN")
-    void topUpBalanceServiceErrorTest() {
-        Long id = 1L;
-        ReceiptDto mockReceiptDto = new ReceiptDto();
-        mockReceiptDto.setId(id);
-        mockReceiptDto.setReceipt(BigDecimal.valueOf(1000L));
-        when(paymentsApi.topUpBalance(eq(id), any(ReceiptDto.class))).thenReturn(Mono.error(new IllegalArgumentException()));
-
-        StepVerifier.create(paymentsService.topUpBalance(id, mockReceiptDto)).verifyComplete();
     }
 }

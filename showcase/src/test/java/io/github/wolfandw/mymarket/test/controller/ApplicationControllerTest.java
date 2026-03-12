@@ -1,5 +1,6 @@
 package io.github.wolfandw.mymarket.test.controller;
 
+import io.github.wolfandw.mymarket.IsRoleUser;
 import io.github.wolfandw.mymarket.controller.ApplicationController;
 import io.github.wolfandw.mymarket.controller.RedirectUrlFactory;
 import io.github.wolfandw.mymarket.dto.OrderDto;
@@ -10,7 +11,6 @@ import io.github.wolfandw.payment.client.domain.BalanceDto;
 import io.github.wolfandw.payment.client.domain.ReceiptDto;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.webflux.test.autoconfigure.WebFluxTest;
-import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
 import reactor.core.publisher.Mono;
 
@@ -28,9 +28,9 @@ import static org.springframework.web.reactive.function.BodyInserters.fromFormDa
 @WebFluxTest(ApplicationController.class)
 public class ApplicationControllerTest extends AbstractControllerTest {
     @Test
-    @WithMockUser(roles = "ANONYMOUS")
-    void redirectToItemsGuestTest() throws Exception {
-        when(userService.getCurrentUserInfo()).thenReturn(getGuestInfo());
+    @IsRoleUser
+    public void redirectToItemsUserTest() throws Exception {
+        when(userService.getCurrentUserInfo()).thenReturn(getGuestInfoMono());
         webTestClient.get().uri("/")
                 .exchange()
                 .expectStatus().is3xxRedirection()
@@ -41,50 +41,14 @@ public class ApplicationControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "USER")
-    void redirectToItemsUserTest() throws Exception {
-        when(userService.getCurrentUserInfo()).thenReturn(getUserInfo());
-        webTestClient.get().uri("/")
-                .exchange()
-                .expectStatus().is3xxRedirection()
-                .expectHeader().valueEquals(
-                        "Location",
-                        RedirectUrlFactory.createUrlToItems()
-                );
+    public void redirectToItemsTest() {
+        checkFound("/");
     }
 
     @Test
-    @WithMockUser(roles = "ANONYMOUS")
-    void buyGuestTest() throws Exception {
-        when(userService.getCurrentUserInfo()).thenReturn(getGuestInfo());
-        Long orderId = 2L;
-
-        Cart cart = CARTS.get(DEFAULT_USER_ID);
-
-        Order order = new Order();
-        order.setId(orderId);
-        order.setUserId(DEFAULT_USER_ID);
-        List<OrderItem> orderItems = CART_ITEMS.get(DEFAULT_USER_ID).values().stream().map(cartItem ->
-                new OrderItem(order.getId(), cartItem.getItemId(), cartItem.getCount())).toList();
-        order.setTotalSum(cart.getTotal());
-
-        OrderDto orderDto = new OrderDto(orderId, mapOrderItems(orderItems), cart.getTotal().longValue());
-        when(buyService.buy()).thenReturn(Mono.just(orderDto));
-
-        webTestClient.mutateWith(csrf())
-                .post().uri("/buy")
-                .exchange()
-                .expectStatus().is3xxRedirection()
-                .expectHeader().valueMatches(
-                        "Location",
-                        "\\/orders\\/\\d+\\?newOrder\\=true"
-                );
-    }
-
-    @Test
-    @WithMockUser(roles = "USER")
+    @IsRoleUser
     void buyUserTest() throws Exception {
-        when(userService.getCurrentUserInfo()).thenReturn(getUserInfo());
+        when(userService.getCurrentUserInfo()).thenReturn(getUserInfoMono());
         Long orderId = 2L;
 
         Cart cart = CARTS.get(DEFAULT_USER_ID);
@@ -110,9 +74,14 @@ public class ApplicationControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "USER")
+    public void buyTest() {
+        checkFound("/buy");
+    }
+
+    @Test
+    @IsRoleUser
     void buyLowBalanceOrServiceErrorTest() throws Exception {
-        when(userService.getCurrentUserInfo()).thenReturn(getUserInfo());
+        when(userService.getCurrentUserInfo()).thenReturn(getUserInfoMono());
         when(buyService.buy()).thenReturn(Mono.empty());
 
         webTestClient.mutateWith(csrf())
@@ -126,9 +95,9 @@ public class ApplicationControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "USER")
+    @IsRoleUser
     void topUpBalanceUserTest() throws Exception {
-        when(userService.getCurrentUserInfo()).thenReturn(getUserInfo());
+        when(userService.getCurrentUserInfo()).thenReturn(getUserInfoMono());
         Long id = 1L;
         BalanceDto mockBalanceDto = new BalanceDto();
         mockBalanceDto.setId(id);
@@ -150,9 +119,14 @@ public class ApplicationControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "USER")
+    public void topUpBalanceTest() {
+        checkFound("/topUpBalance");
+    }
+
+    @Test
+    @IsRoleUser
     void topUpBalanceLowBalanceOrServiceErrorTest() throws Exception {
-        when(userService.getCurrentUserInfo()).thenReturn(getUserInfo());
+        when(userService.getCurrentUserInfo()).thenReturn(getUserInfoMono());
         when(paymentsService.topUpUserBalance(any(ReceiptDto.class))).thenReturn(Mono.empty());
 
         webTestClient.mutateWith(csrf())
