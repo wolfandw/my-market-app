@@ -28,7 +28,7 @@ import static org.springframework.web.reactive.function.BodyInserters.fromFormDa
 public class ApplicationControllerTest extends AbstractControllerTest {
     @Test
     @IsRoleUser
-    public void redirectToItemsUserTest() throws Exception {
+    public void redirectToItemsUserTest() {
         when(userService.getCurrentUserInfo()).thenReturn(getGuestInfoMono());
         webTestClient.get().uri("/")
                 .exchange()
@@ -46,7 +46,7 @@ public class ApplicationControllerTest extends AbstractControllerTest {
 
     @Test
     @IsRoleUser
-    void buyUserTest() throws Exception {
+    void buyUserTest() {
         when(userService.getCurrentUserInfo()).thenReturn(getUserInfoMono());
         Cart cart = CARTS.get(getUser().getId());
 
@@ -77,7 +77,7 @@ public class ApplicationControllerTest extends AbstractControllerTest {
 
     @Test
     @IsRoleUser
-    void buyLowBalanceOrServiceErrorTest() throws Exception {
+    void buyLowBalanceOrServiceErrorTest() {
         when(userService.getCurrentUserInfo()).thenReturn(getUserInfoMono());
         when(buyService.buy()).thenReturn(Mono.empty());
 
@@ -93,7 +93,7 @@ public class ApplicationControllerTest extends AbstractControllerTest {
 
     @Test
     @IsRoleUser
-    void topUpBalanceUserTest() throws Exception {
+    void topUpBalanceUserTest() {
         when(userService.getCurrentUserInfo()).thenReturn(getUserInfoMono());
         Long id = 1L;
         BalanceDto mockBalanceDto = new BalanceDto();
@@ -122,7 +122,7 @@ public class ApplicationControllerTest extends AbstractControllerTest {
 
     @Test
     @IsRoleUser
-    void topUpBalanceLowBalanceOrServiceErrorTest() throws Exception {
+    void topUpBalanceLowBalanceOrServiceErrorTest() {
         when(userService.getCurrentUserInfo()).thenReturn(getUserInfoMono());
         when(paymentsService.topUpUserBalance(any(ReceiptDto.class))).thenReturn(Mono.empty());
 

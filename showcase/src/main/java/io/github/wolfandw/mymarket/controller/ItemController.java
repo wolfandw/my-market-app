@@ -149,7 +149,7 @@ public class ItemController {
      * @return страница создания товара
      */
     @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/new")
+    @GetMapping("/add/new")
     public Mono<Rendering> addNewItem() {
         Mono<UserInfoDto> userInfoMono = userService.getCurrentUserInfo();
         return Mono.just(Rendering.view(TEMPLATE_ITEM_NEW).modelAttribute(ATTRIBUTE_USER_INFO, userInfoMono).build());
@@ -162,7 +162,7 @@ public class ItemController {
      * @return страница созданного товара.
      */
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/new")
+    @PostMapping("/add/new")
     public Mono<Rendering> saveNewItem(@ModelAttribute ItemNewFormRequest request) {
         Mono<ItemDto> newItemDtoMono = itemService.createItem(request.getTitle(),
                 request.getDescription(), BigDecimal.valueOf(request.getPrice()));

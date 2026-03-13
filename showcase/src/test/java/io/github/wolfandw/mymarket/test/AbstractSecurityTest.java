@@ -1,26 +1,13 @@
 package io.github.wolfandw.mymarket.test;
 
 import io.github.wolfandw.mymarket.dto.UserInfoDto;
-import io.github.wolfandw.mymarket.model.*;
+import io.github.wolfandw.mymarket.model.User;
 import io.github.wolfandw.mymarket.service.impl.UserServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.core.io.buffer.DataBufferUtils;
-import org.springframework.core.io.buffer.DefaultDataBufferFactory;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.codec.multipart.FilePart;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.math.BigDecimal;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static io.github.wolfandw.mymarket.service.impl.UserServiceImpl.ROLE_ADMIN;
 import static io.github.wolfandw.mymarket.service.impl.UserServiceImpl.ROLE_USER;

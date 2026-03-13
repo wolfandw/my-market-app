@@ -55,23 +55,20 @@ public class SecurityConfiguration {
                     .pathMatchers(HttpMethod.GET, "/items*").permitAll()
                     .pathMatchers(HttpMethod.POST, "/items*").authenticated()
 
+                    .pathMatchers(HttpMethod.GET,"/items/add/new").authenticated()
+                    .pathMatchers(HttpMethod.POST,"/items/add/new").authenticated()
+
                     .pathMatchers(HttpMethod.GET, "/items/*").permitAll()
                     .pathMatchers(HttpMethod.POST, "/items/*").authenticated()
-
-                    .pathMatchers(HttpMethod.GET,"/items/new").authenticated()
-                    .pathMatchers(HttpMethod.POST,"/items/new").authenticated()
 
                     .pathMatchers(HttpMethod.GET,"/items/*/image").permitAll()
                     .pathMatchers(HttpMethod.POST,"/items/*/image").authenticated()
 
-                    .pathMatchers(HttpMethod.GET,"/cart/items").authenticated()
-                    .pathMatchers(HttpMethod.POST,"/cart/items*").authenticated()
+                    .pathMatchers("/cart/**").authenticated()
+                    .pathMatchers("/orders/**").permitAll()
 
-                    .pathMatchers(HttpMethod.GET,"/orders").authenticated()
-                    .pathMatchers(HttpMethod.POST,"/orders/*").authenticated()
-
-                    .pathMatchers(HttpMethod.POST,"/buy").authenticated()
-                    .pathMatchers(HttpMethod.POST,"/topUpBalance").authenticated()
+                    .pathMatchers("/buy").authenticated()
+                    .pathMatchers("/topUpBalance").authenticated()
 
                     .anyExchange().authenticated()
                 )

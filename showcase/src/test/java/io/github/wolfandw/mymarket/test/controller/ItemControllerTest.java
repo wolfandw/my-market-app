@@ -252,7 +252,7 @@ public class ItemControllerTest extends AbstractControllerTest {
 
     @Test
     public void saveNewItemGuestTest() {
-        checkFound("/items/new");
+        checkFound("/items/add/new");
     }
 
     private void saveNewItemTest(UserInfoDto testUserInfo) {
@@ -265,7 +265,7 @@ public class ItemControllerTest extends AbstractControllerTest {
         when(userService.getCurrentUserInfo()).thenReturn(Mono.just(testUserInfo));
 
         webTestClient.mutateWith(csrf())
-                .post().uri("/items/new")
+                .post().uri("/items/add/new")
                 .contentType(MediaType.TEXT_HTML)
                 .body(fromFormData(PARAMETER_TITLE, titleParamValue).
                         with(PARAMETER_DESCRIPTION, descriptionParamValue).

@@ -56,12 +56,6 @@ public class CartServiceTest extends AbstractServiceTest {
         getCartTest(getUser(), getUserMono(), cartService.getUserCart());
     }
 
-//    @Test
-//    @WithMockUserAdmin
-//    public void getUserCartAdminTest() {
-//        getCartTest(getAdmin(), getAdminMono(), cartService.getUserCart());
-//    }
-
     @Test
     @IsRoleGuest
     public void getUserCartGuestTest() {

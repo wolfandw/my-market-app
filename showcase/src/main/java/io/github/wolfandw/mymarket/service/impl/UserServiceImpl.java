@@ -75,11 +75,20 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Mono<Long> getCurrentUserId() {
-        return getCurrentUserName().flatMap(userRepository::findByUsername).map(User::getId).defaultIfEmpty(-1L);
+        LOG.info("***** Пробуем получить current user info идентификатор");
+        return getCurrentUserName().flatMap(username -> {
+            LOG.debug("    ***** Имя пользователя из Authentication = {}", username);
+            return userRepository.findByUsername(username);
+        }).map(user -> {
+            LOG.debug("    ***** Пользователь из репозитория = {}, идентификатор = {}", user, user.getId());
+            return user.getId();
+
+        }).defaultIfEmpty(-1L);
     }
 
     @Override
     public Mono<String> getCurrentUserName() {
+        LOG.debug("***** Пробуем получить current user info имя пользователя");
         return getAuthenticationMono().flatMap(UserServiceImpl::getUsername);
     }
 
@@ -95,7 +104,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Mono<UserInfoDto> getCurrentUserInfo() {
-        LOG.info("***** Пробуем получить current user info:");
+        LOG.debug("***** Пробуем получить current user info:");
         return Mono.zip(getCurrentUserId(), getCurrentUserName(), isCurrentUserUser(), isCurrentUserAdmin()).
                 map(tuple -> {
                     LOG.info("    ***** Идентификатор пользователя в current user info = {}", tuple.getT1());
@@ -107,10 +116,13 @@ public class UserServiceImpl implements UserService {
     }
 
     private static Mono<Authentication> getAuthenticationMono() {
+        LOG.debug("***** Пробуем получить current user info Authentication");
         return ReactiveSecurityContextHolder.getContext()
-                .flatMap(securityContext ->
-                        securityContext.getAuthentication() == null ?
-                                Mono.empty() : Mono.just(securityContext.getAuthentication()));
+                .flatMap(securityContext -> {
+                        LOG.info("    ***** Authentication в current user info = {}", securityContext.getAuthentication());
+                        return securityContext.getAuthentication() == null ?
+                                Mono.empty() : Mono.just(securityContext.getAuthentication());
+                });
     }
 
     private static Mono<Boolean> isUserUser(Authentication auth) {

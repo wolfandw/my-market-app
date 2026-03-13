@@ -40,6 +40,8 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.stream.Stream;
 
+import static org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.csrf;
+
 /**
  * Абстрактный интеграционный тест.
  */
@@ -47,8 +49,6 @@ import java.util.stream.Stream;
 @AutoConfigureWebTestClient
 @Import({IntegrationTestConfiguration.class, EmbeddedRedisConfiguration.class, PaymentsApiConfiguration.class})
 public abstract class AbstractIntegrationTest extends AbstractSecurityTest {
-    protected static final Long DEFAULT_CART_ID = 1L;
-
     private static final int BUFFER_SIZE = 4096;
 
     /**
@@ -255,5 +255,22 @@ public abstract class AbstractIntegrationTest extends AbstractSecurityTest {
                 return DataBufferUtils.write(this.content(), dest);
             }
         });
+    }
+
+    protected void checkFound(String uri) {
+        webTestClient.get().uri(uri)
+                .exchange()
+                .expectStatus().isFound()
+                .expectHeader().valueEquals(
+                        "Location",
+                        "/login");
+
+        webTestClient.mutateWith(csrf())
+                .post().uri(uri)
+                .exchange()
+                .expectStatus().isFound()
+                .expectHeader().valueEquals(
+                        "Location",
+                        "/login");
     }
 }

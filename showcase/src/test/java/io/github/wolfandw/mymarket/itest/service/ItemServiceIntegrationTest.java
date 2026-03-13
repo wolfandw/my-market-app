@@ -1,7 +1,6 @@
 package io.github.wolfandw.mymarket.itest.service;
 
 import io.github.wolfandw.mymarket.IsRoleAdmin;
-import io.github.wolfandw.mymarket.IsRoleGuest;
 import io.github.wolfandw.mymarket.IsRoleUser;
 import io.github.wolfandw.mymarket.itest.AbstractIntegrationTest;
 import org.junit.jupiter.api.Test;

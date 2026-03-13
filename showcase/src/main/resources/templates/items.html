@@ -17,7 +17,7 @@
                 <div class="hstack gap-3">
                     <h2>
                         <span class="badge text-bg-success">Витрина магазина</span>
-                        <a href="/items/new" class="btn btn-warning ms-auto bi bi-plus-square" th:if="${userInfo.isAdmin()}" > Добавить</a>
+                        <a href="/items/add/new" class="btn btn-warning ms-auto bi bi-plus-square" th:if="${userInfo.isAdmin()}" > Добавить</a>
                     </h2>
                     <a href="/orders" th:if="${userInfo.isUser()}" class="btn btn-secondary ms-auto bi bi-file-earmark-text"> Заказы</a>
                     <a href="/cart/items" th:if="${userInfo.isUser()}" class="btn btn-secondary bi bi-cart4"> Корзина</a>

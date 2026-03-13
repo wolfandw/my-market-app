@@ -1,8 +1,6 @@
 package io.github.wolfandw.mymarket.test;
 
-import io.github.wolfandw.mymarket.dto.UserInfoDto;
 import io.github.wolfandw.mymarket.model.*;
-import io.github.wolfandw.mymarket.service.impl.UserServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -21,9 +19,6 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static io.github.wolfandw.mymarket.service.impl.UserServiceImpl.ROLE_ADMIN;
-import static io.github.wolfandw.mymarket.service.impl.UserServiceImpl.ROLE_USER;
 
 /**
  * Абстрактный модульный тест.

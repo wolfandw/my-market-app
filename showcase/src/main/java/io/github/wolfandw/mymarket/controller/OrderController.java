@@ -73,13 +73,13 @@ public class OrderController {
     @GetMapping("/{id}")
     public Mono<Rendering> getOrder(@PathVariable Long id,
                                     @RequestParam(value = PARAMETER_NEW_ORDER, required = false, defaultValue = "false") boolean newOrder) {
-        Mono<OrderDto> orderMono = orderService.getUserOrder(id, newOrder);
         Mono<UserInfoDto> userInfoMono = userService.getCurrentUserInfo();
+        Mono<OrderDto> orderMono = orderService.getUserOrder(id, newOrder);
         return orderMono.map(orderDto -> Rendering.view(TEMPLATE_ORDER)
+                .modelAttribute(ATTRIBUTE_USER_INFO, userInfoMono)
                 .modelAttribute(ATTRIBUTE_ORDER, orderDto)
                 .modelAttribute(ATTRIBUTE_ITEMS, orderService.getUserOrderItems(orderDto.id()))
                 .modelAttribute(ATTRIBUTE_NEW_ORDER, newOrder)
-                .modelAttribute(ATTRIBUTE_USER_INFO, userInfoMono)
                 .build()
         ).switchIfEmpty(Mono.just(Rendering.redirectTo(RedirectUrlFactory.createUrlToOrders()).build()));
     }

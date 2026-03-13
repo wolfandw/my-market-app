@@ -7,7 +7,6 @@ import io.github.wolfandw.mymarket.dto.ItemDto;
 import io.github.wolfandw.mymarket.dto.OrderDto;
 import io.github.wolfandw.mymarket.dto.UserInfoDto;
 import io.github.wolfandw.mymarket.itest.AbstractIntegrationTest;
-import io.github.wolfandw.mymarket.model.User;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.authorization.AuthorizationDeniedException;

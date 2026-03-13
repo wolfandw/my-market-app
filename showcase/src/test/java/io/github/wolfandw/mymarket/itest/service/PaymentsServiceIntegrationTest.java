@@ -5,7 +5,6 @@ import io.github.wolfandw.mymarket.IsRoleGuest;
 import io.github.wolfandw.mymarket.IsRoleUser;
 import io.github.wolfandw.mymarket.dto.UserInfoDto;
 import io.github.wolfandw.mymarket.itest.AbstractIntegrationTest;
-import io.github.wolfandw.mymarket.test.service.AbstractServiceTest;
 import io.github.wolfandw.payment.client.domain.BalanceDto;
 import io.github.wolfandw.payment.client.domain.PaymentDto;
 import io.github.wolfandw.payment.client.domain.ReceiptDto;
