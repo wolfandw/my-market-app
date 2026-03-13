@@ -7,14 +7,13 @@ import io.github.wolfandw.mymarket.dto.OrderDto;
 import io.github.wolfandw.mymarket.model.Order;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.webflux.test.autoconfigure.WebFluxTest;
-import org.springframework.security.test.context.support.WithAnonymousUser;
-import org.springframework.security.test.context.support.WithMockUser;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 /**

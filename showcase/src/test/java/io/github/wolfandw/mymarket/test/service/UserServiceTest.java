@@ -3,9 +3,9 @@ package io.github.wolfandw.mymarket.test.service;
 import io.github.wolfandw.mymarket.IsRoleAdmin;
 import io.github.wolfandw.mymarket.IsRoleGuest;
 import io.github.wolfandw.mymarket.IsRoleUser;
+import io.github.wolfandw.mymarket.model.User;
 import io.github.wolfandw.mymarket.service.impl.UserServiceImpl;
 import org.junit.jupiter.api.Test;
-import io.github.wolfandw.mymarket.model.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -14,7 +14,7 @@ import static io.github.wolfandw.mymarket.service.impl.UserServiceImpl.ROLE_ROLE
 import static io.github.wolfandw.mymarket.service.impl.UserServiceImpl.ROLE_ROLE_USER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 /**
  * Модульный тест сервиса пользователей.

@@ -4,6 +4,7 @@ import io.github.wolfandw.mymarket.controller.RedirectUrlFactory;
 import io.github.wolfandw.mymarket.itest.AbstractIntegrationTest;
 import io.github.wolfandw.payment.client.domain.BalanceDto;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.test.context.support.WithMockUser;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
@@ -25,7 +26,8 @@ public class CartControllerIntegrationTest extends AbstractIntegrationTest {
     private static final String ACTION_PLUS = "PLUS";
 
     @Test
-    void getCartTest() throws Exception {
+    @WithMockUser(username = "admin", password = "$2a$12$m5dnhoX3cf2zjEph.H/42e7lEqbd/Dmdiqg5R/kyWUTELuVdHHfIW", roles = {"ADMIN"})
+    void getCartGuestTest() {
         BalanceDto balanceDto = new BalanceDto();
         balanceDto.setId(DEFAULT_CART_ID);
         balanceDto.setAccept(true);
@@ -47,7 +49,29 @@ public class CartControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void getCartLowBalanceTest() throws Exception {
+    void getCartUserTest() {
+        BalanceDto balanceDto = new BalanceDto();
+        balanceDto.setId(DEFAULT_CART_ID);
+        balanceDto.setAccept(true);
+        balanceDto.setBalance(BigDecimal.valueOf(8000L));
+        when(paymentsApi.getBalance(any(Long.class))).thenReturn(Mono.just(balanceDto));
+
+        webTestClient.get().uri("/cart/items")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(String.class)
+                .consumeWith(res -> {
+                    String body = res.getResponseBody();
+                    assertNotNull(body);
+                    assertTrue(body.contains("Итого:"));
+                    assertTrue(body.contains("Баланс: 8000 руб."));
+                    assertTrue(body.contains("Купить"));
+                    assertTrue(body.contains(TEMPLATE_CART));
+                });
+    }
+
+    @Test
+    void getCartLowBalanceTest() {
         BalanceDto balanceDto = new BalanceDto();
         balanceDto.setId(DEFAULT_CART_ID);
         balanceDto.setAccept(true);
@@ -69,7 +93,7 @@ public class CartControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void getCartServiceErrorTest() throws Exception {
+    void getCartServiceErrorTest() {
         when(paymentsApi.getBalance(any(Long.class))).thenReturn(Mono.error(new IllegalArgumentException()));
 
         webTestClient.get().uri("/cart/items")
@@ -87,7 +111,7 @@ public class CartControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void changeChartItemCountTest() throws Exception {
+    void changeChartItemCountTest() {
         webTestClient.post().uri(uriBuilder -> uriBuilder
                         .path("/cart/items")
                         .queryParam(PARAMETER_ID, Long.toString(1L))
@@ -97,7 +121,7 @@ public class CartControllerIntegrationTest extends AbstractIntegrationTest {
                 .expectStatus().is3xxRedirection()
                 .expectHeader().valueEquals(
                         "Location",
-                        RedirectUrlFactory.createUrlToCart(DEFAULT_CART_ID)
+                        RedirectUrlFactory.createUrlToUserCart()
                 );
     }
 }

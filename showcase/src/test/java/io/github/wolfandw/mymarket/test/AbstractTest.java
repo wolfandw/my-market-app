@@ -28,13 +28,7 @@ import static io.github.wolfandw.mymarket.service.impl.UserServiceImpl.ROLE_USER
 /**
  * Абстрактный модульный тест.
  */
-public abstract class AbstractTest {
-    /**
-     * Идентификатор пользователя по-умолчанию.
-     */
-    public static final String PASSWORD_ADMIN = "$2a$12$m5dnhoX3cf2zjEph.H/42e7lEqbd/Dmdiqg5R/kyWUTELuVdHHfIW";
-    public static final String PASSWORD_USER = "$2a$12$gSx1V/Q95xi8OjdfgrSx1.8bkYBjI75lKoY0SJZmMZbd0R6aY12Ky";
-
+public abstract class AbstractTest extends AbstractSecurityTest{
     /**
      * Тестовые данные товаров.
      */
@@ -59,38 +53,14 @@ public abstract class AbstractTest {
      */
     public static Map<Long, Map<Long, OrderItem>> ORDER_ITEMS = new TreeMap<>();
 
-    /**
-     * Тестовые данные пользователей.
-     */
-    public static Map<Long, User> USERS = new TreeMap<>();
-
-    public static final Long ID_ADMIN = 1L;
-    public static final Long ID_USER = 2L;
-    public static final Long ID_GUEST = -1L;
-
-    public static final String USERNAME_ADMIN = "admin";
-    public static final String USERNAME_USER = "user";
-    public static final String USERNAME_GUEST = "guest";
-
     private static final int BUFFER_SIZE = 4096;
-
-    /**
-     * Идентификатор пользователя по-умолчанию.
-     */
-    protected static final Long DEFAULT_USER_ID = 1L;
 
     /**
      * Инициализация перед каждым тестом.
      */
     @BeforeEach
     protected void setUp() {
-        USERS.clear();
-
-        User admin = createAdmin();
-        USERS.put(admin.getId(), admin);
-
-        User user = createUser();
-        USERS.put(user.getId(), user);
+        super.setUp();
 
         ITEMS.clear();
         ITEMS.put(1L, new Item(1L, "Item 07 SearchTag", "item 07 description", "1.png", new BigDecimal("7.01")));
@@ -112,8 +82,8 @@ public abstract class AbstractTest {
 
         // admin cart
         Cart adminCart = new Cart();
-        adminCart.setId(admin.getId());
-        adminCart.setUserId(admin.getId());
+        adminCart.setId(getAdmin().getId());
+        adminCart.setUserId(getAdmin().getId());
         adminCart.setTotal(BigDecimal.valueOf(7815));
         CARTS.put(adminCart.getId(), adminCart);
         List<CartItem> adminCartItems = new ArrayList<>();
@@ -133,8 +103,8 @@ public abstract class AbstractTest {
 
         // user cart
         Cart userCart = new Cart();
-        userCart.setId(user.getId());
-        userCart.setUserId(user.getId());
+        userCart.setId(getUser().getId());
+        userCart.setUserId(getUser().getId());
         userCart.setTotal(BigDecimal.valueOf(7815));
         CARTS.put(userCart.getId(), userCart);
         List<CartItem> userCartItems = new ArrayList<>();
@@ -157,8 +127,8 @@ public abstract class AbstractTest {
 
         // admin order
         Order adminOrder = new Order();
-        adminOrder.setId(admin.getId());
-        adminOrder.setUserId(admin.getId());
+        adminOrder.setId(getAdmin().getId());
+        adminOrder.setUserId(getAdmin().getId());
         adminOrder.setTotalSum(BigDecimal.valueOf(8129));
         ORDERS.put(adminOrder.getId(), adminOrder);
         List<OrderItem> adminOrderItems = new ArrayList<>();
@@ -178,8 +148,8 @@ public abstract class AbstractTest {
 
         // user order
         Order userOrder = new Order();
-        userOrder.setId(user.getId());
-        userOrder.setUserId(user.getId());
+        userOrder.setId(getUser().getId());
+        userOrder.setUserId(getUser().getId());
         userOrder.setTotalSum(BigDecimal.valueOf(8129));
         ORDERS.put(userOrder.getId(), userOrder);
         List<OrderItem> userOrderItems = new ArrayList<>();
@@ -231,77 +201,5 @@ public abstract class AbstractTest {
                 return DataBufferUtils.write(this.content(), dest);
             }
         };
-    }
-
-    protected User createAdmin() {
-        User admin = new User();
-        admin.setId(ID_ADMIN);
-        admin.setUsername(USERNAME_ADMIN);
-        admin.setPassword(PASSWORD_ADMIN);
-        admin.setRoles(ROLE_USER + "," + ROLE_ADMIN);
-        return admin;
-    }
-
-    protected User createUser() {
-        User user = new User();
-        user.setId(ID_USER);
-        user.setUsername(USERNAME_USER);
-        user.setPassword(PASSWORD_USER);
-        user.setRoles(ROLE_USER);
-        return user;
-    }
-
-    protected User getAdmin() {
-        return USERS.get(ID_ADMIN);
-    }
-
-    protected User getUser() {
-        return USERS.get(ID_USER);
-    }
-
-    protected Mono<User> getAdminMono() {
-        return Mono.just(getAdmin());
-    }
-
-    protected Mono<User> getUserMono() {
-        return  Mono.just(getUser());
-    }
-
-    protected Mono<User> getGuestMono() {
-        return  Mono.empty();
-    }
-
-    protected UserInfoDto getUserInfo() {
-        User user = getUser();
-        return new UserInfoDto(user.getId(), user.getUsername(), true, false);
-    }
-
-    protected Mono<UserInfoDto> getUserInfoMono() {
-        return Mono.just(getUserInfo());
-    }
-
-    protected UserInfoDto getAdminInfo() {
-        User admin = getAdmin();
-        return new UserInfoDto(admin.getId(), admin.getUsername(), true, true);
-    }
-
-    protected Mono<UserInfoDto> getAdminInfoMono() {
-        return Mono.just(getAdminInfo());
-    }
-
-    protected UserInfoDto getGuestInfo() {
-        return new UserInfoDto(ID_GUEST, USERNAME_GUEST, false, false);
-    }
-
-    protected Mono<UserInfoDto> getGuestInfoMono() {
-        return Mono.just(getGuestInfo());
-    }
-
-    protected org.springframework.security.core.userdetails.User getUserUserDetails() {
-        return  UserServiceImpl.fillUserDetails(getUser());
-    }
-
-    protected org.springframework.security.core.userdetails.User getAdminUserDetails() {
-        return   UserServiceImpl.fillUserDetails(getAdmin());
     }
 }

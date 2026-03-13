@@ -11,7 +11,6 @@ import io.github.wolfandw.payment.client.domain.BalanceDto;
 import io.github.wolfandw.payment.client.domain.ReceiptDto;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.webflux.test.autoconfigure.WebFluxTest;
-import org.springframework.security.test.context.support.WithMockUser;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
@@ -49,18 +48,16 @@ public class ApplicationControllerTest extends AbstractControllerTest {
     @IsRoleUser
     void buyUserTest() throws Exception {
         when(userService.getCurrentUserInfo()).thenReturn(getUserInfoMono());
-        Long orderId = 2L;
-
-        Cart cart = CARTS.get(DEFAULT_USER_ID);
+        Cart cart = CARTS.get(getUser().getId());
 
         Order order = new Order();
-        order.setId(orderId);
-        order.setUserId(DEFAULT_USER_ID);
-        List<OrderItem> orderItems = CART_ITEMS.get(DEFAULT_USER_ID).values().stream().map(cartItem ->
+        order.setId(getUser().getId());
+        order.setUserId(getUser().getId());
+        List<OrderItem> orderItems = CART_ITEMS.get(cart.getId()).values().stream().map(cartItem ->
                 new OrderItem(order.getId(), cartItem.getItemId(), cartItem.getCount())).toList();
         order.setTotalSum(cart.getTotal());
 
-        OrderDto orderDto = new OrderDto(orderId, mapOrderItems(orderItems), cart.getTotal().longValue());
+        OrderDto orderDto = new OrderDto(order.getId(), mapOrderItems(orderItems), cart.getTotal().longValue());
         when(buyService.buy()).thenReturn(Mono.just(orderDto));
 
         webTestClient.mutateWith(csrf())

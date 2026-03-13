@@ -5,9 +5,11 @@ import io.github.wolfandw.mymarket.itest.AbstractIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.multipart.FilePart;
+import org.springframework.security.test.context.support.WithMockUser;
 import reactor.core.publisher.Mono;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.csrf;
 import static org.springframework.web.reactive.function.BodyInserters.fromFormData;
 import static org.springframework.web.reactive.function.BodyInserters.fromMultipartAsyncData;
 
@@ -32,6 +34,17 @@ public class ItemControllerIntegrationTest extends AbstractIntegrationTest {
     private static final String ACTION_PLUS = "PLUS";
 
     @Test
+    @WithMockUser(roles = "ANONYMOUS")
+    void getItemsGuestTest() {
+        getItemsTest();
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    void getItemsUserTest() {
+        getItemsTest();
+    }
+
     void getItemsTest() {
         webTestClient.get().uri(uriBuilder -> uriBuilder
                         .path("/items")
@@ -52,6 +65,16 @@ public class ItemControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @WithMockUser(roles = "ANONYMOUS")
+    void getItemGuestTest() {
+        getItemTest();
+    }
+    @Test
+    @WithMockUser(roles = "USER")
+    void getItemUserTest() {
+        getItemTest();
+    }
+
     void getItemTest() {
         webTestClient.get().uri(uriBuilder -> uriBuilder
                         .path("/items/2")
@@ -69,14 +92,43 @@ public class ItemControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void changeItemCountOnItemsTest() {
+    @WithMockUser(roles = "ANONYMOUS")
+    void changeItemCountOnItemsGuestTest() {
         long itemId = 1L;
         String searchParamValue = "SearchTag";
         String sortParamValue = "NO";
         Integer pageNumberParamValue = 1;
         Integer pageSizeParamValue = 5;
 
-        webTestClient.post().uri(uriBuilder -> uriBuilder
+        webTestClient.mutateWith(csrf())
+                .post().uri(uriBuilder -> uriBuilder
+                        .path("/items")
+                        .queryParam(PARAMETER_ID, Long.toString(itemId))
+                        .queryParam(PARAMETER_ACTION, ACTION_PLUS)
+                        .queryParam(PARAMETER_SEARCH, searchParamValue)
+                        .queryParam(PARAMETER_SORT, sortParamValue)
+                        .queryParam(PARAMETER_PAGE_NUMBER, pageNumberParamValue.toString())
+                        .queryParam(PARAMETER_PAGE_SIZE, pageSizeParamValue.toString())
+                        .build())
+                .exchange()
+                .expectStatus().is3xxRedirection()
+                .expectHeader().valueEquals(
+                        "Location",
+                        RedirectUrlFactory.createUrlToItems(searchParamValue, sortParamValue, pageNumberParamValue, pageSizeParamValue)
+                );
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    void changeItemCountOnItemsUserTest() {
+        long itemId = 1L;
+        String searchParamValue = "SearchTag";
+        String sortParamValue = "NO";
+        Integer pageNumberParamValue = 1;
+        Integer pageSizeParamValue = 5;
+
+        webTestClient.mutateWith(csrf())
+                .post().uri(uriBuilder -> uriBuilder
                         .path("/items")
                         .queryParam(PARAMETER_ID, Long.toString(itemId))
                         .queryParam(PARAMETER_ACTION, ACTION_PLUS)

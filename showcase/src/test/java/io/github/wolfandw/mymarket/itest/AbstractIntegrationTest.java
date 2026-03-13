@@ -10,7 +10,9 @@ import io.github.wolfandw.mymarket.itest.configuration.IntegrationTestConfigurat
 import io.github.wolfandw.mymarket.itest.configuration.TrxStepVerifier;
 import io.github.wolfandw.mymarket.model.Item;
 import io.github.wolfandw.mymarket.repository.ItemRepository;
+import io.github.wolfandw.mymarket.repository.UserRepository;
 import io.github.wolfandw.mymarket.service.*;
+import io.github.wolfandw.mymarket.test.AbstractSecurityTest;
 import io.github.wolfandw.payment.client.api.PaymentsApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -44,10 +46,7 @@ import java.util.stream.Stream;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureWebTestClient
 @Import({IntegrationTestConfiguration.class, EmbeddedRedisConfiguration.class, PaymentsApiConfiguration.class})
-public abstract class AbstractIntegrationTest {
-    /**
-     * Идентификатор корзины по-умолчанию.
-     */
+public abstract class AbstractIntegrationTest extends AbstractSecurityTest {
     protected static final Long DEFAULT_CART_ID = 1L;
 
     private static final int BUFFER_SIZE = 4096;
@@ -89,6 +88,12 @@ public abstract class AbstractIntegrationTest {
     protected BuyService buyService;
 
     /**
+     * Сервис пользователей.
+     */
+    @Autowired
+    protected UserService userService;
+
+    /**
      * Шаблон кэша товаров.
      */
     @Autowired
@@ -111,6 +116,12 @@ public abstract class AbstractIntegrationTest {
      */
     @Autowired
     protected ItemRepository itemRepository;
+
+    /**
+     * Репозиторий пользователей
+     */
+    @Autowired
+    protected UserRepository userRepository;
 
     /**
      * Компонент кэша списка товаров.

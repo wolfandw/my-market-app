@@ -56,7 +56,7 @@ public class PaymentsServiceImpl implements PaymentsService {
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
     public Mono<BalanceDto> topUpBalance(Long userId, ReceiptDto receiptDto) {
-        return topUpUserBalance(Mono.just(userId), receiptDto);
+        return topUpBalance(Mono.just(userId), receiptDto);
     }
 
     @Override
@@ -80,7 +80,7 @@ public class PaymentsServiceImpl implements PaymentsService {
     @PreAuthorize("hasRole('USER')")
     public Mono<BalanceDto> topUpUserBalance(ReceiptDto receiptDto) {
         Mono<Long> userIdMono = userService.getCurrentUserId();
-        return topUpUserBalance(userIdMono, receiptDto);
+        return topUpBalance(userIdMono, receiptDto);
     }
 
     private Mono<BalanceDto> getBalance(Mono<Long> userIdMono) {
@@ -93,7 +93,7 @@ public class PaymentsServiceImpl implements PaymentsService {
                 onErrorResume(onPaymentsApiError());
     }
 
-    private Mono<BalanceDto> topUpUserBalance(Mono<Long> userIdMono, ReceiptDto receiptDto) {
+    private Mono<BalanceDto> topUpBalance(Mono<Long> userIdMono, ReceiptDto receiptDto) {
         return userIdMono.flatMap(userId ->paymentsApi.topUpBalance(userId, receiptDto)).onErrorResume(onPaymentsApiError());
     }
 

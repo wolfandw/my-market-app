@@ -10,7 +10,6 @@ import io.github.wolfandw.mymarket.model.CartItem;
 import io.github.wolfandw.payment.client.domain.BalanceDto;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.webflux.test.autoconfigure.WebFluxTest;
-import org.springframework.security.test.context.support.WithMockUser;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -39,11 +38,11 @@ public class CartControllerTest extends AbstractControllerTest{
     @Test
     @IsRoleUser
     public void getCartUserTest() {
-        Cart cart = CARTS.get(DEFAULT_USER_ID);
-        List<ItemDto> cartItems = mapCartItems(CART_ITEMS.get(DEFAULT_USER_ID).values().stream().toList());
+        Cart cart = CARTS.get(getUser().getId());
+        List<ItemDto> cartItems = mapCartItems(CART_ITEMS.get(cart.getId()).values().stream().toList());
         CartDto cartDto = new CartDto(cart.getId(), cart.getUserId(), cart.getTotal().longValue());
         BalanceDto balanceDto = new BalanceDto();
-        balanceDto.setId(DEFAULT_USER_ID);
+        balanceDto.setId(getUser().getId());
         balanceDto.setAccept(true);
         balanceDto.setBalance(BigDecimal.valueOf(8000L));
         when(cartService.getUserCart()).thenReturn(Mono.just(cartDto));
@@ -74,11 +73,11 @@ public class CartControllerTest extends AbstractControllerTest{
     @Test
     @IsRoleUser
     void getCartLowBalanceTest() {
-        Cart cart = CARTS.get(DEFAULT_USER_ID);
-        List<ItemDto> cartItems = mapCartItems(CART_ITEMS.get(DEFAULT_USER_ID).values().stream().toList());
+        Cart cart = CARTS.get(getUser().getId());
+        List<ItemDto> cartItems = mapCartItems(CART_ITEMS.get(cart.getId()).values().stream().toList());
         CartDto cartDto = new CartDto(cart.getId(), cart.getUserId(), cart.getTotal().longValue());
         BalanceDto balanceDto = new BalanceDto();
-        balanceDto.setId(DEFAULT_USER_ID);
+        balanceDto.setId(getUser().getId());
         balanceDto.setAccept(true);
         balanceDto.setBalance(BigDecimal.valueOf(7000L));
         when(cartService.getUserCart()).thenReturn(Mono.just(cartDto));
@@ -105,8 +104,8 @@ public class CartControllerTest extends AbstractControllerTest{
     @Test
     @IsRoleUser
     void getCartPaymentsServiceErrorTest() {
-        Cart cart = CARTS.get(DEFAULT_USER_ID);
-        List<ItemDto> cartItems = mapCartItems(CART_ITEMS.get(DEFAULT_USER_ID).values().stream().toList());
+        Cart cart = CARTS.get(getUser().getId());
+        List<ItemDto> cartItems = mapCartItems(CART_ITEMS.get(cart.getId()).values().stream().toList());
         CartDto cartDto = new CartDto(cart.getId(), cart.getUserId(), cart.getTotal().longValue());
         when(cartService.getUserCart()).thenReturn(Mono.just(cartDto));
         when(cartService.getUserCartItems()).thenReturn(Flux.fromIterable(cartItems));

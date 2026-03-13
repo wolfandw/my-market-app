@@ -2,22 +2,15 @@ package io.github.wolfandw.mymarket.test.controller;
 
 import io.github.wolfandw.mymarket.dto.ItemDto;
 import io.github.wolfandw.mymarket.dto.OrderDto;
-import io.github.wolfandw.mymarket.dto.UserInfoDto;
 import io.github.wolfandw.mymarket.model.Item;
 import io.github.wolfandw.mymarket.model.Order;
 import io.github.wolfandw.mymarket.model.OrderItem;
-import io.github.wolfandw.mymarket.model.User;
-import io.github.wolfandw.mymarket.repository.UserRepository;
 import io.github.wolfandw.mymarket.service.*;
 import io.github.wolfandw.mymarket.service.mapper.ItemToDtoMapper;
 import io.github.wolfandw.mymarket.test.AbstractTest;
-import io.github.wolfandw.payment.client.auth.Authentication;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers;
-import org.springframework.test.context.bean.override.mockito.MockReset;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
-import reactor.core.publisher.Mono;
 
 import java.util.List;
 

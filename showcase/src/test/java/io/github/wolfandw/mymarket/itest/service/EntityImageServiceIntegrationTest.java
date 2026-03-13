@@ -1,13 +1,18 @@
 package io.github.wolfandw.mymarket.itest.service;
 
+import io.github.wolfandw.mymarket.IsRoleAdmin;
+import io.github.wolfandw.mymarket.IsRoleUser;
 import io.github.wolfandw.mymarket.dto.EntityImageDto;
 import io.github.wolfandw.mymarket.itest.AbstractIntegrationTest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.multipart.FilePart;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -61,7 +66,8 @@ public class EntityImageServiceIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void setEntityImageTest() {
+    @IsRoleAdmin
+    void setEntityImageAdminTest() {
         Long entityId = 5L;
         String imageName = "14.jpg";
 
@@ -76,5 +82,16 @@ public class EntityImageServiceIntegrationTest extends AbstractIntegrationTest {
                     assertEquals(MediaType.IMAGE_JPEG, actualEntityImage.getMediaType(), "Тип данных картинки должен быть равен исходному");
                     assertEquals(entityId, actualEntityImage.getEntityId(), "Идентификатор сущности картинки должен быть равен исходному");
                 }).verifyComplete();
+    }
+
+    @Test
+    @IsRoleUser
+    void setEntityImageUserTest() {
+        StepVerifier.create(entityImageService.setEntityImage(5L, Mono.empty())).verifyError(AuthorizationDeniedException.class);
+    }
+
+    @Test
+    void setEntityImageTest() {
+        StepVerifier.create(entityImageService.setEntityImage(5L, Mono.empty())).verifyError(AuthorizationDeniedException.class);
     }
 }
