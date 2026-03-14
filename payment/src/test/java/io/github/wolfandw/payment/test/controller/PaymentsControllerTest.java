@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webflux.test.autoconfigure.WebFluxTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockReset;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -19,6 +20,7 @@ import java.math.BigDecimal;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.csrf;
 
 /**
  * Модульные тесты контроллера платежей.
@@ -32,6 +34,15 @@ public class PaymentsControllerTest {
     private WebTestClient webTestClient;
 
     @Test
+    void getBalanceIsUnauthorizedTest() {
+        webTestClient.get()
+                .uri("/api/payments/1/balance")
+                .exchange()
+                .expectStatus().isUnauthorized();
+    }
+
+    @Test
+    @WithMockUser(roles = "PAYMENTS_SERVICE_CLIENT")
     void getBalanceTest() {
         Long id = 1L;
         BalanceDto mockBalanceDto = new BalanceDto();
@@ -54,6 +65,22 @@ public class PaymentsControllerTest {
     }
 
     @Test
+    void makePaymentIsUnauthorizedTest() {
+        Long id = 1L;
+        PaymentDto mockPaymentDto = new PaymentDto();
+        mockPaymentDto.setId(id);
+        mockPaymentDto.setPayment(BigDecimal.TEN);
+
+        webTestClient.post()
+                .uri("/api/payments/1/payment")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(mockPaymentDto)
+                .exchange()
+                .expectStatus().isForbidden();
+    }
+
+    @Test
+    @WithMockUser(roles = "PAYMENTS_SERVICE_CLIENT")
     void makePaymentTest() {
         Long id = 1L;
         BalanceDto mockBalanceDto = new BalanceDto();
@@ -66,7 +93,8 @@ public class PaymentsControllerTest {
         mockPaymentDto.setId(id);
         mockPaymentDto.setPayment(BigDecimal.TEN);
 
-        webTestClient.post()
+        webTestClient.mutateWith(csrf())
+                .post()
                 .uri("/api/payments/1/payment")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(mockPaymentDto)
@@ -81,6 +109,22 @@ public class PaymentsControllerTest {
     }
 
     @Test
+    void topUpBalanceIsUnauthorizedTest() {
+        Long id = 1L;
+        ReceiptDto mockReceiptDto = new ReceiptDto();
+        mockReceiptDto.setId(id);
+        mockReceiptDto.setReceipt(BigDecimal.TEN);
+
+        webTestClient.post()
+                .uri("/api/payments/1/receipt")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(mockReceiptDto)
+                .exchange()
+                .expectStatus().isForbidden();
+    }
+
+    @Test
+    @WithMockUser(roles = "PAYMENTS_SERVICE_CLIENT")
     void topUpBalance() {
         Long id = 1L;
         BalanceDto mockBalanceDto = new BalanceDto();
@@ -93,7 +137,8 @@ public class PaymentsControllerTest {
         mockReceiptDto.setId(id);
         mockReceiptDto.setReceipt(BigDecimal.TEN);
 
-        webTestClient.post()
+        webTestClient.mutateWith(csrf())
+                .post()
                 .uri("/api/payments/1/receipt")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(mockReceiptDto)

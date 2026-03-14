@@ -8,10 +8,9 @@ import reactor.core.publisher.Mono;
  */
 public interface BuyService {
     /**
-     * Купить товары в корзине.
+     * Купить товары в корзине пользователя.
      *
-     * @param cartId идентификатор корзины.
      * @return заказ.
      */
-    Mono<OrderDto> buy(Long cartId);
+    Mono<OrderDto> buy();
 }

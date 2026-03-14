@@ -48,6 +48,12 @@ public abstract class AbstractRepositoryIntegrationTest {
     @Autowired
     protected OrderItemRepository orderItemRepository;
 
+    /**
+     * Репозиторий пользователей.
+     */
+    @Autowired
+    protected UserRepository userRepository;
+
     @Autowired
     protected TrxStepVerifier trxStepVerifier;
 }

@@ -5,7 +5,7 @@
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
     <changeSet id="010_fill_data.xml" author="wolfandw" context="dev">
-    <!--<changeSet id="010_fill_data.xml" author="wolfandw">-->
+<!--    <changeSet id="010_fill_data.xml" author="wolfandw">-->
         <sqlFile path="sql/010_fill_data.sql" relativeToChangelogFile="true"/>
         <rollback>
             <sqlFile path="sql/010_rollback_data.sql" relativeToChangelogFile="true"/>

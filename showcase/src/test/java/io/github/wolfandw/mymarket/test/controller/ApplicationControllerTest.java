@@ -1,5 +1,6 @@
 package io.github.wolfandw.mymarket.test.controller;
 
+import io.github.wolfandw.mymarket.IsRoleUser;
 import io.github.wolfandw.mymarket.controller.ApplicationController;
 import io.github.wolfandw.mymarket.controller.RedirectUrlFactory;
 import io.github.wolfandw.mymarket.dto.OrderDto;
@@ -17,6 +18,7 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.csrf;
 import static org.springframework.web.reactive.function.BodyInserters.fromFormData;
 
 /**
@@ -25,7 +27,9 @@ import static org.springframework.web.reactive.function.BodyInserters.fromFormDa
 @WebFluxTest(ApplicationController.class)
 public class ApplicationControllerTest extends AbstractControllerTest {
     @Test
-    void redirectToItemsTest() throws Exception {
+    @IsRoleUser
+    public void redirectToItemsUserTest() {
+        when(userService.getCurrentUserInfo()).thenReturn(getGuestInfoMono());
         webTestClient.get().uri("/")
                 .exchange()
                 .expectStatus().is3xxRedirection()
@@ -36,20 +40,28 @@ public class ApplicationControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    void buyTest() throws Exception {
-        Long orderId = 2L;
+    public void redirectToItemsTest() {
+        checkFound("/");
+    }
 
-        Cart cart = CARTS.get(DEFAULT_CART_ID);
+    @Test
+    @IsRoleUser
+    void buyUserTest() {
+        when(userService.getCurrentUserInfo()).thenReturn(getUserInfoMono());
+        Cart cart = CARTS.get(getUser().getId());
 
-        Order order = new Order(orderId);
-        List<OrderItem> orderItems = CART_ITEMS.get(DEFAULT_CART_ID).values().stream().map(cartItem ->
+        Order order = new Order();
+        order.setId(getUser().getId());
+        order.setUserId(getUser().getId());
+        List<OrderItem> orderItems = CART_ITEMS.get(cart.getId()).values().stream().map(cartItem ->
                 new OrderItem(order.getId(), cartItem.getItemId(), cartItem.getCount())).toList();
         order.setTotalSum(cart.getTotal());
 
-        OrderDto orderDto = new OrderDto(orderId, mapOrderItems(orderItems), cart.getTotal().longValue());
-        when(buyService.buy(DEFAULT_CART_ID)).thenReturn(Mono.just(orderDto));
+        OrderDto orderDto = new OrderDto(order.getId(), mapOrderItems(orderItems), cart.getTotal().longValue());
+        when(buyService.buy()).thenReturn(Mono.just(orderDto));
 
-        webTestClient.post().uri("/buy")
+        webTestClient.mutateWith(csrf())
+                .post().uri("/buy")
                 .exchange()
                 .expectStatus().is3xxRedirection()
                 .expectHeader().valueMatches(
@@ -59,10 +71,18 @@ public class ApplicationControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    void buyLowBalanceOrServiceErrorTest() throws Exception {
-        when(buyService.buy(DEFAULT_CART_ID)).thenReturn(Mono.empty());
+    public void buyTest() {
+        checkFound("/buy");
+    }
 
-        webTestClient.post().uri("/buy")
+    @Test
+    @IsRoleUser
+    void buyLowBalanceOrServiceErrorTest() {
+        when(userService.getCurrentUserInfo()).thenReturn(getUserInfoMono());
+        when(buyService.buy()).thenReturn(Mono.empty());
+
+        webTestClient.mutateWith(csrf())
+                .post().uri("/buy")
                 .exchange()
                 .expectStatus().is3xxRedirection()
                 .expectHeader().valueMatches(
@@ -72,16 +92,19 @@ public class ApplicationControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    void topUpBalanceTest() throws Exception {
+    @IsRoleUser
+    void topUpBalanceUserTest() {
+        when(userService.getCurrentUserInfo()).thenReturn(getUserInfoMono());
         Long id = 1L;
         BalanceDto mockBalanceDto = new BalanceDto();
         mockBalanceDto.setId(id);
         mockBalanceDto.setAccept(true);
         mockBalanceDto.setBalance(BigDecimal.TEN);
 
-        when(paymentsService.topUpBalance(any(Long.class), any(ReceiptDto.class))).thenReturn(Mono.just(mockBalanceDto));
+        when(paymentsService.topUpUserBalance(any(ReceiptDto.class))).thenReturn(Mono.just(mockBalanceDto));
 
-        webTestClient.post().uri("/topUpBalance")
+        webTestClient.mutateWith(csrf())
+                .post().uri("/topUpBalance")
                 .body(fromFormData("id", "1").
                         with("receipt", "1000.01"))
                 .exchange()
@@ -93,10 +116,18 @@ public class ApplicationControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    void topUpBalanceLowBalanceOrServiceErrorTest() throws Exception {
-        when(paymentsService.topUpBalance(any(Long.class), any(ReceiptDto.class))).thenReturn(Mono.empty());
+    public void topUpBalanceTest() {
+        checkFound("/topUpBalance");
+    }
 
-        webTestClient.post().uri("/topUpBalance")
+    @Test
+    @IsRoleUser
+    void topUpBalanceLowBalanceOrServiceErrorTest() {
+        when(userService.getCurrentUserInfo()).thenReturn(getUserInfoMono());
+        when(paymentsService.topUpUserBalance(any(ReceiptDto.class))).thenReturn(Mono.empty());
+
+        webTestClient.mutateWith(csrf())
+                .post().uri("/topUpBalance")
                 .body(fromFormData("id", "1").
                         with("receipt", "1000.01"))
                 .exchange()

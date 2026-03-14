@@ -12,18 +12,18 @@ public interface CartService {
     /**
      * Возвращает DTO-представление корзины.
      *
-     * @param id идентификатор корзины
+     * @param cartId идентификатор корзины
      * @return DTO-представление корзины.
      */
-    Flux<ItemDto> getCartItems(Long id);
+    Flux<ItemDto> getCartItems(Long cartId);
 
     /**
      * Возвращает DTO-представление корзины.
      *
-     * @param id идентификатор корзины
+     * @param cartId идентификатор корзины
      * @return DTO-представление корзины.
      */
-    Mono<CartDto> getCart(Long id);
+    Mono<CartDto> getCart(Long cartId);
 
     /**
      * Изменяет количество товара в корзине со страницы товаров.
@@ -33,4 +33,26 @@ public interface CartService {
      * @param action увеличить (уменьшить) количество товара в корзине
      */
     Mono<Void> changeItemCount(Long cartId, Long itemId, String action);
+
+    /**
+     * Возвращает DTO-представление корзины пользователя.
+     *
+     * @return DTO-представление корзины.
+     */
+    Flux<ItemDto> getUserCartItems();
+
+    /**
+     * Возвращает DTO-представление корзины пользователя.
+     *
+     * @return DTO-представление корзины.
+     */
+    Mono<CartDto> getUserCart();
+
+    /**
+     * Изменяет количество товара в корзине со страницы товаров пользователя.
+     *
+     * @param itemId идентификатор товара
+     * @param action увеличить (уменьшить) количество товара в корзине
+     */
+    Mono<Void> changeUserItemCount(Long itemId, String action);
 }

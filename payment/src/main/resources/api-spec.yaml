@@ -14,6 +14,8 @@ paths:
       tags:
         - Payments
       summary: Получить баланс клиента
+      security:
+        - bearerAuth: []
       operationId: getBalance
 
       parameters:
@@ -37,6 +39,8 @@ paths:
       tags:
         - Payments
       summary: Выполнить платеж клиента
+      security:
+        - bearerAuth: []
       operationId: makePayment
 
       parameters:
@@ -67,6 +71,8 @@ paths:
       tags:
         - Payments
       summary: Пополнить баланс клиента
+      security:
+        - bearerAuth: []
       operationId: topUpBalance
 
       parameters:
@@ -133,3 +139,9 @@ components:
           example: 999.99
       required:
         - id
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

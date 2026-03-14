@@ -16,26 +16,13 @@ public class Order {
     private Long id;
 
     @Column
+    private Long userId;
+
+    @Column
     private BigDecimal totalSum = BigDecimal.ZERO;
 
     @Column
     private LocalDateTime createdAt = LocalDateTime.now();
-
-    /**
-     * Создает заказ с идентификатором.
-     *
-     * @param id идентификатор заказа
-     */
-    public Order(Long id) {
-        this.id = id;
-    }
-
-    /**
-     * Создает новый заказ.
-     */
-    public Order() {
-        // Default
-    }
 
     /**
      * Возвращает идентификатор заказа.
@@ -89,5 +76,23 @@ public class Order {
      */
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    /**
+     * Возвращает идентификатор пользователя.
+     *
+     * @return идентификатор пользователя
+     */
+    public Long getUserId() {
+        return userId;
+    }
+
+    /**
+     * Устанавливает идентификатор пользователя.
+     *
+     * @param userId идентификатор пользователя
+     */
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 }

@@ -8,6 +8,7 @@ import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.http.codec.multipart.FilePart;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -65,6 +66,7 @@ public class FileStorageServiceImpl implements FileStorageService {
     }
 
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
     public Mono<String> writeFile(String fileName, FilePart file) {
         Path pathDir = Paths.get(fileDir);
         if (!Files.exists(pathDir)) {
@@ -79,6 +81,7 @@ public class FileStorageServiceImpl implements FileStorageService {
     }
 
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
     public Mono<Void> deleteFile(String fileName) {
         Path pathDir = Paths.get(fileDir);
         if (Files.exists(pathDir)) {

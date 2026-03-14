@@ -16,12 +16,15 @@
                     <h2>
                         <span class="badge text-bg-success">Витрина магазина</span>
                     </h2>
-                    <a href="/orders" class="btn btn-secondary ms-auto bi bi-file-earmark-text"> Заказы</a>
+                    <a href="/orders" th:if="${userInfo.isUser()}" class="btn btn-secondary ms-auto bi bi-file-earmark-text"> Заказы</a>
                     <a href="/items" class="btn btn-secondary bi bi-arrow-left-square"> Главная</a>
+                    <span class="badge text-bg-success justify-content-end" th:text="${userInfo.username()}"></span>
+                    <a href="/login" th:if="${!userInfo.isUser()}" class="btn btn-primary">Авторизоваться</a>
+                    <a href="/logout" th:if="${userInfo.isUser()}" class="btn btn-danger">Выйти</a>
                 </div>
             </div>
         </div>
-        <div class="row p-2" th:each="item : ${items}">
+        <div class="row p-2" th:if="${userInfo.isUser()}" th:each="item : ${items}">
             <div class="col">
                 <div class="card">
                     <img class="p-2" th:src="@{|/items/${item.id()}/image|}" alt="Нет изображения" width="200" height="200">
@@ -44,27 +47,30 @@
                 </div>
             </div>
         </div>
-        <div class="alert alert-danger alert-dismissible fade show" role="alert" th:if="${balance==null}">
+        <div class="alert alert-danger alert-dismissible fade show" role="alert" th:if="${!userInfo.isUser()}">
+            Для незарегистрированных пользователей функционал ограничен! Корзина не может быть наполнена!
+        </div>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert" th:if="${userInfo.isUser() && balance==null}">
             Сервис платежей недоступен! Заказ не может быть создан!
         </div>
-        <div class="alert alert-danger alert-dismissible fade show" role="alert" th:if="${balance!=null && (balance.getBalance() < cart.total())}">
+        <div class="alert alert-danger alert-dismissible fade show" role="alert" th:if="${userInfo.isUser() && balance!=null && cart != null && (balance.getBalance() < cart.total())}">
             Недостаточно средств на балансе! Заказ не может быть создан!
         </div>
         <div class="row p-2">
             <div class="col">
-                <form action="/buy" method="post" th:if="${items!=null && !items.isEmpty()}">
+                <form th:action="@{/buy}" method="post" th:if="${userInfo.isUser() && items!=null && !items.isEmpty() && cart != null}">
                     <div class="hstack gap-3">
                         <h2 th:text="'Итого: '+${cart.total()}+' руб.'"/>
-                        <button class="btn btn-warning ms-auto" th:disabled="${balance==null || balance.getBalance() < cart.total()}">Купить</button>
+                        <button class="btn btn-warning ms-auto" th:disabled="${balance==null || cart == null || (balance.getBalance() < cart.total())}">Купить</button>
                     </div>
                 </form>
             </div>
         </div>
         <div class="row p-2">
             <div class="col">
-                <form action="/topUpBalance" method="post" th:if="${items!=null && !items.isEmpty()}">
+                <form th:action="@{/topUpBalance}" method="post" th:if="${userInfo.isUser() && items!=null && !items.isEmpty()}">
                     <div class="hstack gap-3">
-                        <input type="hidden" name="id" th:value="${cart.id()}">
+                        <input type="hidden" name="id" th:value="${cart.userId()}">
                         <h2 th:style="'width: 50%;'" th:text="'Баланс: '+${balance.getBalance()}+' руб.'"  th:if="${balance!=null}"/>
                         <input class="form-control me-2 mw-5" type="number" placeholder="На сумму..."
                                aria-label="На сумму" name="receipt" th:value="${receipt}" th:if="${balance!=null}"/>

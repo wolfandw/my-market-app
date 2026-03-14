@@ -8,6 +8,7 @@ import io.github.wolfandw.mymarket.itest.configuration.TrxStepVerifier;
 import io.github.wolfandw.mymarket.model.Cart;
 import io.github.wolfandw.mymarket.model.CartItem;
 import io.github.wolfandw.mymarket.model.Item;
+import io.github.wolfandw.mymarket.model.OrderItem;
 import io.github.wolfandw.mymarket.repository.*;
 import io.github.wolfandw.mymarket.service.*;
 import io.github.wolfandw.mymarket.test.AbstractTest;
@@ -16,8 +17,10 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.bean.override.mockito.MockReset;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -61,6 +64,12 @@ public abstract class AbstractServiceTest extends AbstractTest {
     @MockitoBean(reset = MockReset.BEFORE)
     protected PaymentsApi paymentsApi;
 
+    @MockitoBean(reset = MockReset.BEFORE)
+    protected UserRepository userRepository;
+
+    @MockitoBean(reset = MockReset.BEFORE)
+    protected PasswordEncoder passwordEncoder;
+
     @Autowired
     protected ItemService itemService;
 
@@ -78,6 +87,9 @@ public abstract class AbstractServiceTest extends AbstractTest {
 
     @Autowired
     protected PaymentsService paymentsService;
+
+    @Autowired
+    protected UserService userService;
 
     @Autowired
     protected TrxStepVerifier trxStepVerifier;
@@ -114,6 +126,21 @@ public abstract class AbstractServiceTest extends AbstractTest {
                 return Mono.empty();
             }
         }).when(cartRepository).findById(any(Long.class));
+    }
+
+    protected void mockUserCart() {
+        doAnswer(new Answer<Mono<Cart>>() {
+            @Override
+            public Mono<Cart> answer(InvocationOnMock invocation) throws Throwable {
+                Object[] arguments = invocation.getArguments();
+                if (arguments != null && arguments.length == 1 && arguments[0] != null) {
+                    Long userId = (Long) arguments[0];
+                    Cart cart = CARTS.get(userId);
+                    return cart == null ? Mono.empty() : Mono.just(cart);
+                }
+                return Mono.empty();
+            }
+        }).when(cartRepository).findFirstByUserId(any(Long.class));
     }
 
     /**
@@ -166,5 +193,22 @@ public abstract class AbstractServiceTest extends AbstractTest {
                 return Mono.empty();
             }
         }).when(itemCache).cache(any());
+    }
+
+    /**
+     * Мокает чтение строк заказа по идентификатору заказа.
+     */
+    protected void mockOrderItem() {
+        doAnswer(new Answer<Flux<OrderItem>>() {
+            @Override
+            public Flux<OrderItem> answer(InvocationOnMock invocation) throws Throwable {
+                Object[] arguments = invocation.getArguments();
+                if (arguments != null && arguments.length == 1 && arguments[0] != null) {
+                    Long orderId = (Long) arguments[0];
+                    return Flux.fromStream(ORDER_ITEMS.get(orderId).values().stream());
+                }
+                return Flux.empty();
+            }
+        }).when(orderItemRepository).findAllByOrderId(any(Long.class));
     }
 }

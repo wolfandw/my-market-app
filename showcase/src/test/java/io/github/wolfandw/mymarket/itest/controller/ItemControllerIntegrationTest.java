@@ -1,5 +1,7 @@
 package io.github.wolfandw.mymarket.itest.controller;
 
+import io.github.wolfandw.mymarket.IsRoleAdmin;
+import io.github.wolfandw.mymarket.IsRoleUser;
 import io.github.wolfandw.mymarket.controller.RedirectUrlFactory;
 import io.github.wolfandw.mymarket.itest.AbstractIntegrationTest;
 import org.junit.jupiter.api.Test;
@@ -8,6 +10,7 @@ import org.springframework.http.codec.multipart.FilePart;
 import reactor.core.publisher.Mono;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.csrf;
 import static org.springframework.web.reactive.function.BodyInserters.fromFormData;
 import static org.springframework.web.reactive.function.BodyInserters.fromMultipartAsyncData;
 
@@ -32,7 +35,13 @@ public class ItemControllerIntegrationTest extends AbstractIntegrationTest {
     private static final String ACTION_PLUS = "PLUS";
 
     @Test
-    void getItemsTest() {
+    @IsRoleUser
+    public void getItemsUserTest() {
+        getItemsTest();
+    }
+
+    @Test
+    public void getItemsTest() {
         webTestClient.get().uri(uriBuilder -> uriBuilder
                         .path("/items")
                         .queryParam(PARAMETER_SEARCH, "")
@@ -52,7 +61,13 @@ public class ItemControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void getItemTest() {
+    @IsRoleUser
+    public void getItemUserTest() {
+        getItemTest();
+    }
+
+    @Test
+    public void getItemTest() {
         webTestClient.get().uri(uriBuilder -> uriBuilder
                         .path("/items/2")
                         .build())
@@ -69,14 +84,16 @@ public class ItemControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void changeItemCountOnItemsTest() {
+    @IsRoleUser
+    public void changeItemCountOnItemsUserTest() {
         long itemId = 1L;
         String searchParamValue = "SearchTag";
         String sortParamValue = "NO";
         Integer pageNumberParamValue = 1;
         Integer pageSizeParamValue = 5;
 
-        webTestClient.post().uri(uriBuilder -> uriBuilder
+        webTestClient.mutateWith(csrf())
+                .post().uri(uriBuilder -> uriBuilder
                         .path("/items")
                         .queryParam(PARAMETER_ID, Long.toString(itemId))
                         .queryParam(PARAMETER_ACTION, ACTION_PLUS)
@@ -94,8 +111,23 @@ public class ItemControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void changeItemCountOnItemTest() {
-        webTestClient.post().uri(uriBuilder -> uriBuilder
+    public void changeItemCountOnItemTest() {
+        webTestClient.mutateWith(csrf()).post().uri(uriBuilder -> uriBuilder
+                        .path("/items/1")
+                        .queryParam(PARAMETER_ACTION, ACTION_PLUS)
+                        .build())
+                .exchange()
+                .expectStatus().is3xxRedirection()
+                .expectHeader().valueEquals(
+                        "Location",
+                        "/login"
+                );
+    }
+
+    @Test
+    @IsRoleUser
+    public void changeItemCountOnItemUserTest() {
+        webTestClient.mutateWith(csrf()).post().uri(uriBuilder -> uriBuilder
                         .path("/items/1")
                         .queryParam(PARAMETER_ACTION, ACTION_PLUS)
                         .build())
@@ -108,21 +140,20 @@ public class ItemControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void addNewItemTest() {
-        webTestClient.get().uri("/items/new")
+    public void addNewItemTest() {
+        webTestClient.get().uri("/items/add/new")
                 .exchange()
-                .expectStatus().isOk()
-                .expectBody(String.class)
-                .consumeWith(res -> {
-                    String body = res.getResponseBody();
-                    assertNotNull(body);
-                    assertTrue(body.contains("Новый товар"));
-                });
+                .expectStatus().isFound()
+                .expectHeader().valueMatches(
+                        "Location",
+                        "/login"
+                );
     }
 
     @Test
-    void saveNewItemTest() {
-        webTestClient.post().uri("/items/new")
+    @IsRoleAdmin
+    public void saveNewItemAdminTest() {
+        webTestClient.mutateWith(csrf()).post().uri("/items/add/new")
                 .contentType(MediaType.TEXT_HTML)
                 .body(fromFormData(PARAMETER_TITLE, "Item").
                         with(PARAMETER_DESCRIPTION, "Item description").
@@ -136,7 +167,22 @@ public class ItemControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void getItemImageTest() {
+    public void saveNewItemTest() {
+        webTestClient.mutateWith(csrf()).post().uri("/items/add/new")
+                .contentType(MediaType.TEXT_HTML)
+                .body(fromFormData(PARAMETER_TITLE, "Item").
+                        with(PARAMETER_DESCRIPTION, "Item description").
+                        with(PARAMETER_PRICE, "999"))
+                .exchange()
+                .expectStatus().is3xxRedirection()
+                .expectHeader().valueMatches(
+                        "Location",
+                        "/login"
+                );
+    }
+
+    @Test
+    public void getItemImageTest() {
         setupImages();
         webTestClient.get().uri(uriBuilder -> uriBuilder
                         .path("/items/1/image")
@@ -154,18 +200,37 @@ public class ItemControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void setItemImageTest() {
+    @IsRoleAdmin
+    public void setItemImageAdminTest() {
         String imageName = "14.jpg";
 
         setupImages();
         Mono<FilePart> expectedFilePartMono = getFilePart(imageName);
-        webTestClient.post().uri(uriBuilder -> uriBuilder
+        webTestClient.mutateWith(csrf()).post().uri(uriBuilder -> uriBuilder
                         .path("/items/1/image")
                         .build())
                 .contentType(MediaType.MULTIPART_FORM_DATA)
                 .body(fromMultipartAsyncData(PARAMETER_IMAGE_FILE, expectedFilePartMono, FilePart.class))
                 .exchange()
                 .expectStatus().isOk();
+        cleanUpImages();
+    }
+
+    @Test
+    public void setItemImageTest() {
+        String imageName = "14.jpg";
+        Mono<FilePart> expectedFilePartMono = getFilePart(imageName);
+        webTestClient.mutateWith(csrf()).post().uri(uriBuilder -> uriBuilder
+                        .path("/items/1/image")
+                        .build())
+                .contentType(MediaType.MULTIPART_FORM_DATA)
+                .body(fromMultipartAsyncData(PARAMETER_IMAGE_FILE, expectedFilePartMono, FilePart.class))
+                .exchange()
+                .expectStatus().isFound()
+                .expectHeader().valueMatches(
+                        "Location",
+                        "/login"
+                );
         cleanUpImages();
     }
 }

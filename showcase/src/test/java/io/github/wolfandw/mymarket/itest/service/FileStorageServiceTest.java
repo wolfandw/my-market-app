@@ -1,5 +1,7 @@
 package io.github.wolfandw.mymarket.itest.service;
 
+import io.github.wolfandw.mymarket.IsRoleAdmin;
+import io.github.wolfandw.mymarket.IsRoleUser;
 import io.github.wolfandw.mymarket.itest.AbstractIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,6 +14,7 @@ import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.codec.multipart.FilePart;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -35,7 +38,7 @@ public class FileStorageServiceTest extends  AbstractIntegrationTest {
     private Path filePath;
 
     @BeforeEach
-    void setUp() {
+    protected void setUp() {
         pathDir = Paths.get(fileDir);
         filePath = pathDir.resolve(FILE_NAME);
     }
@@ -83,7 +86,8 @@ public class FileStorageServiceTest extends  AbstractIntegrationTest {
     }
 
     @Test
-    void writeFileTest() {
+    @IsRoleAdmin
+    void writeFileAdminTest() {
         try (MockedStatic<Paths> mockPaths = Mockito.mockStatic(Paths.class)) {
             mockPaths.when(() -> Paths.get(fileDir)).thenReturn(pathDir);
         }
@@ -105,7 +109,21 @@ public class FileStorageServiceTest extends  AbstractIntegrationTest {
     }
 
     @Test
-    void deleteFileTest() {
+    @IsRoleUser
+    void writeFileUserTest() {
+        FilePart mockMultipartFile = Mockito.mock(FilePart.class);
+        StepVerifier.create(fileStorageService.writeFile(FILE_NAME, mockMultipartFile)).verifyError(AuthorizationDeniedException.class);
+    }
+
+    @Test
+    void writeFileTest() {
+        FilePart mockMultipartFile = Mockito.mock(FilePart.class);
+        StepVerifier.create(fileStorageService.writeFile(FILE_NAME, mockMultipartFile)).verifyError(AuthorizationDeniedException.class);
+    }
+
+    @Test
+    @IsRoleAdmin
+    void deleteFileAdminTest() {
         try (MockedStatic<Paths> mockPaths = Mockito.mockStatic(Paths.class)) {
             mockPaths.when(() -> Paths.get(fileDir)).thenReturn(pathDir);
         }
@@ -121,5 +139,16 @@ public class FileStorageServiceTest extends  AbstractIntegrationTest {
 
             StepVerifier.create(fileStorageService.deleteFile(FILE_NAME)).verifyComplete();
         }
+    }
+
+    @Test
+    @IsRoleUser
+    void deleteFileUserTest() {
+        StepVerifier.create(fileStorageService.deleteFile(FILE_NAME)).verifyError(AuthorizationDeniedException.class);
+    }
+
+    @Test
+    void deleteFileTest() {
+        StepVerifier.create(fileStorageService.deleteFile(FILE_NAME)).verifyError(AuthorizationDeniedException.class);
     }
 }

@@ -32,4 +32,28 @@ public interface OrderService {
      * @return DTO-представление списка заказов.
      */
     Flux<ItemDto> getOrderItems(Long orderId);
+
+    /**
+     * Возвращает DTO-представление списка заказов пользователя.
+     *
+     * @return DTO-представление списка заказов пользователя.
+     */
+    Flux<OrderDto> getUserOrders();
+
+    /**
+     * Возвращает DTO-представление заказа пользователя.
+     *
+     * @param orderId       идентификатор заказа
+     * @param newOrder новый заказ
+     * @return DTO-представление заказа.
+     */
+    Mono<OrderDto> getUserOrder(Long orderId, boolean newOrder);
+
+    /**
+     * Возвращает DTO-представление списка товаров заказа пользователя.
+     *
+     * @param orderId       идентификатор заказа
+     * @return DTO-представление списка заказов.
+     */
+    Flux<ItemDto> getUserOrderItems(Long orderId);
 }

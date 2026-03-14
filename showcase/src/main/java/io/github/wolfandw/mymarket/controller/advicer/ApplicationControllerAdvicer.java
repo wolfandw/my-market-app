@@ -2,6 +2,7 @@ package io.github.wolfandw.mymarket.controller.advicer;
 
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.dao.DataAccessException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.reactive.result.view.Rendering;
@@ -33,19 +34,14 @@ public class ApplicationControllerAdvicer {
     }
 
     /**
-     * Обрабатывает исключение DataAccessException.
+     * Обрабатывает исключение AuthorizationDeniedException.
      *
-     * @param e исключение типа DataAccessException
+     * @param e исключение типа AuthorizationDeniedException
      * @return имя шаблона ошибки
      */
-    @ExceptionHandler(DataAccessException.class)
-    public Mono<Rendering> handleDatabaseError(DataAccessException e) {
-        return Mono.just(
-                Rendering.view(TEMPLATE_ERROR)
-                        .modelAttribute(ATTRIBUTE_ERROR, e.getMessage())
-                        .modelAttribute(ATTRIBUTE_STATUS, HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
-                        .build()
-        );
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public Mono<Rendering> handleAuthorizationDeniedException(DataAccessException e) {
+        return Mono.just(Rendering.redirectTo("/login").build());
     }
 
     /**

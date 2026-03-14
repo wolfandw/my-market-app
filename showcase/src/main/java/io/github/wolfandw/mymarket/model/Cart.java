@@ -1,8 +1,6 @@
 package io.github.wolfandw.mymarket.model;
 
 import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.Transient;
-import org.springframework.data.domain.Persistable;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
@@ -12,30 +10,30 @@ import java.math.BigDecimal;
  * Класс модели корзины.
  */
 @Table("CARTS")
-public class Cart implements Persistable<Long> {
+public class Cart {
     @Id
     private Long id;
 
     @Column
+    private Long userId;
+
+    @Column
     private BigDecimal total = BigDecimal.ZERO;
 
-    @Transient
-    private boolean isNew = false;
     /**
      * Создает корзину.
      */
     public Cart() {
-        // By default
+        // Default
     }
 
     /**
-     * Создает корзину с идентификатором.
+     * Создает корзину пользователя.
      *
-     * @param id идентификатор корзины
+     * @param userId идентификатор пользователя
      */
-    public Cart(Long id) {
-        this.id = id;
-        this.isNew = true;
+    public Cart(Long userId) {
+        this.userId = userId;
     }
 
     /**
@@ -45,21 +43,6 @@ public class Cart implements Persistable<Long> {
      */
     public Long getId() {
         return id;
-    }
-
-    /**
-     * Обход особенности Spring Data.
-     *
-     * @see <a href="https://github.com/spring-projects/spring-data-r2dbc/issues/49?ysclid=mlk19qb7kw351871225">Spring Projects issue</a>
-     * @return true если сохраняется новый объект с указанным явно id
-     */
-    @Override
-    public boolean isNew() {
-        if (isNew) {
-            isNew = false;
-            return true;
-        }
-        return id == null;
     }
 
     /**
@@ -87,5 +70,23 @@ public class Cart implements Persistable<Long> {
      */
     public void setTotal(BigDecimal total) {
         this.total = total;
+    }
+
+    /**
+     * Возвращает идентификатор пользователя.
+     *
+     * @return идентификатор пользователя
+     */
+    public Long getUserId() {
+        return userId;
+    }
+
+    /**
+     * Устанавливает идентификатор пользователя.
+     *
+     * @param userId идентификатор пользователя
+     */
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 }
