@@ -10,7 +10,9 @@ import io.github.wolfandw.mymarket.itest.configuration.IntegrationTestConfigurat
 import io.github.wolfandw.mymarket.itest.configuration.TrxStepVerifier;
 import io.github.wolfandw.mymarket.model.Item;
 import io.github.wolfandw.mymarket.repository.ItemRepository;
+import io.github.wolfandw.mymarket.repository.UserRepository;
 import io.github.wolfandw.mymarket.service.*;
+import io.github.wolfandw.mymarket.test.AbstractSecurityTest;
 import io.github.wolfandw.payment.client.api.PaymentsApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,18 +40,15 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.stream.Stream;
 
+import static org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.csrf;
+
 /**
  * Абстрактный интеграционный тест.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureWebTestClient
 @Import({IntegrationTestConfiguration.class, EmbeddedRedisConfiguration.class, PaymentsApiConfiguration.class})
-public abstract class AbstractIntegrationTest {
-    /**
-     * Идентификатор корзины по-умолчанию.
-     */
-    protected static final Long DEFAULT_CART_ID = 1L;
-
+public abstract class AbstractIntegrationTest extends AbstractSecurityTest {
     private static final int BUFFER_SIZE = 4096;
 
     /**
@@ -89,6 +88,12 @@ public abstract class AbstractIntegrationTest {
     protected BuyService buyService;
 
     /**
+     * Сервис пользователей.
+     */
+    @Autowired
+    protected UserService userService;
+
+    /**
      * Шаблон кэша товаров.
      */
     @Autowired
@@ -111,6 +116,12 @@ public abstract class AbstractIntegrationTest {
      */
     @Autowired
     protected ItemRepository itemRepository;
+
+    /**
+     * Репозиторий пользователей
+     */
+    @Autowired
+    protected UserRepository userRepository;
 
     /**
      * Компонент кэша списка товаров.
@@ -244,5 +255,22 @@ public abstract class AbstractIntegrationTest {
                 return DataBufferUtils.write(this.content(), dest);
             }
         });
+    }
+
+    protected void checkFound(String uri) {
+        webTestClient.get().uri(uri)
+                .exchange()
+                .expectStatus().isFound()
+                .expectHeader().valueEquals(
+                        "Location",
+                        "/login");
+
+        webTestClient.mutateWith(csrf())
+                .post().uri(uri)
+                .exchange()
+                .expectStatus().isFound()
+                .expectHeader().valueEquals(
+                        "Location",
+                        "/login");
     }
 }

@@ -2,6 +2,7 @@ package io.github.wolfandw.payment.service.impl;
 
 import io.github.wolfandw.payment.server.domain.BalanceDto;
 import io.github.wolfandw.payment.service.PaymentsService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -18,6 +19,7 @@ public class PaymentsServiceImpl implements PaymentsService {
     private final Object lock = new Object();
 
     @Override
+    @PreAuthorize("hasRole('PAYMENTS_SERVICE_CLIENT')")
     public synchronized Mono<BalanceDto> getBalance(Long id) {
         BalanceDto balanceDto = new BalanceDto();
         balanceDto.setBalance(balances.getOrDefault(id, BigDecimal.ZERO));
@@ -27,6 +29,7 @@ public class PaymentsServiceImpl implements PaymentsService {
     }
 
     @Override
+    @PreAuthorize("hasRole('PAYMENTS_SERVICE_CLIENT')")
     public Mono<BalanceDto> makePayment(Long id, BigDecimal payment) {
         synchronized (lock) {
             BigDecimal balance = balances.getOrDefault(id, BigDecimal.ZERO);
@@ -45,6 +48,7 @@ public class PaymentsServiceImpl implements PaymentsService {
     }
 
     @Override
+    @PreAuthorize("hasRole('PAYMENTS_SERVICE_CLIENT')")
     public synchronized Mono<BalanceDto> topUpBalance(Long id, BigDecimal receipt) {
         synchronized (lock) {
             BigDecimal balance = balances.getOrDefault(id, BigDecimal.ZERO);

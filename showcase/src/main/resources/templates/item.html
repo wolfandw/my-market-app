@@ -22,9 +22,12 @@
                 <h2>
                     <span class="badge text-bg-success">Витрина магазина</span>
                 </h2>
-                <a href="/orders" class="btn btn-secondary ms-auto bi bi-file-earmark-text"> Заказы</a>
-                <a href="/cart/items" class="btn btn-secondary bi bi-cart4"> Корзина</a>
+                <a href="/orders" th:if="${userInfo.isUser()}" class="btn btn-secondary ms-auto bi bi-file-earmark-text"> Заказы</a>
+                <a href="/cart/items" th:if="${userInfo.isUser()}" class="btn btn-secondary bi bi-cart4"> Корзина</a>
                 <a href="/items" class="btn btn-secondary bi bi-arrow-left-square"> Главная</a>
+                <span class="badge text-bg-success justify-content-end" th:text="${userInfo.username()}"></span>
+                <a href="/login" th:if="${!userInfo.isUser()}" class="btn btn-primary">Авторизоваться</a>
+                <a href="/logout" th:if="${userInfo.isUser()}" class="btn btn-danger">Выйти</a>
             </div>
         </div>
     </div>
@@ -33,7 +36,7 @@
             <div class="card">
                 <img class="p-2" th:src="@{|/items/${item.id()}/image|}" alt="Нет изображения" width="200" height="200">
                 <div class="card-body">
-                    <form th:action="@{|/items/${item.id()}/image|}" method="post" enctype="multipart/form-data">
+                    <form name="image" th:if="${userInfo.isUser()}" th:action="@{|/items/${item.id()}/image|}" method="post" enctype="multipart/form-data">
                         <div class="hstack gap-3">
                             <input class="form-control me-2 mw-100" type="file" accept=".jpg, .jpeg, .png" placeholder="Изображение..."
                                    aria-label="Изображение" name="imageFile" th:value="${imageFile}"/>
@@ -46,7 +49,10 @@
                               th:text="${item.price()}+' руб.'"></span>
                     </h5>
                     <p class="card-text" th:text="${item.description()}"></p>
-                    <form th:action="@{${'/items/'+item.id()}}" method="post">
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert" th:if="${!userInfo.isUser()}">
+                        Для незарегистрированных пользователей функционал ограничен! Корзина не может быть наполнена!
+                    </div>
+                    <form name="action" th:if="${userInfo.isUser()}" th:action="@{${'/items/'+item.id()}}" method="post">
                         <div class="hstack gap-3">
                             <button type="submit" class="btn btn-outline-secondary" name="action" value="MINUS">-
                             </button>

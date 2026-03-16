@@ -14,6 +14,8 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.util.List;
 
+import static org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.csrf;
+
 /**
  * Абстрактный модельный тест контроллеров.
  */
@@ -45,6 +47,9 @@ public class AbstractControllerTest extends AbstractTest {
     @MockitoBean
     protected PaymentsService paymentsService;
 
+    @MockitoBean
+    protected UserService userService;
+
     /**
      * Маппит модельный товар на его DTO-представление.
      *
@@ -65,8 +70,25 @@ public class AbstractControllerTest extends AbstractTest {
         return new OrderDto(order.getId(), mapOrderItems(ORDER_ITEMS.get(order.getId()).values().stream().toList()), order.getTotalSum().longValue());
     }
 
-    List<ItemDto> mapOrderItems(List<OrderItem> orderItems) {
+    protected List<ItemDto> mapOrderItems(List<OrderItem> orderItems) {
         return orderItems.stream().map(orderItem -> mapItem(ITEMS.get(orderItem.getItemId()),
                 orderItem.getCount())).toList();
+    }
+
+    protected void checkFound(String uri) {
+        webTestClient.get().uri(uri)
+                .exchange()
+                .expectStatus().isFound()
+                .expectHeader().valueEquals(
+                        "Location",
+                        "/login");
+
+        webTestClient.mutateWith(csrf())
+                .post().uri(uri)
+                .exchange()
+                .expectStatus().isFound()
+                .expectHeader().valueEquals(
+                        "Location",
+                        "/login");
     }
 }

@@ -167,22 +167,20 @@ public class RedirectUrlFactory {
     }
 
     /**
-     * Создает адрес перехода на страницу корзины.
+     * Создает адрес перехода на страницу корзины пользователя.
      *
-     * @param cartId идентификатор корзины
-     * @return адрес перехода на страницу корзины
+     * @return адрес перехода на страницу корзины пользователя
      */
-    public static @NonNull String createUrlToCart(Long cartId) {
+    public static @NonNull String createUrlToUserCart() {
         return '/' + TEMPLATE_CART;
     }
 
     /**
-     * Создает редирект на адрес перехода на страницу корзины.
+     * Создает редирект на адрес перехода на страницу корзины пользователя.
      *
-     * @param cartId идентификатор корзины
-     * @return редирект на адрес перехода на страницу корзины
+     * @return редирект на адрес перехода на страницу корзины пользователя
      */
-    public static @NonNull String createRedirectUrlToCart(Long cartId) {
-        return REDIRECT + createUrlToCart(cartId);
+    public static @NonNull String createRedirectUrlToUserCart() {
+        return REDIRECT + createUrlToUserCart();
     }
 }

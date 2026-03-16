@@ -4,9 +4,11 @@ import io.github.wolfandw.mymarket.dto.*;
 import io.github.wolfandw.mymarket.service.CartService;
 import io.github.wolfandw.mymarket.service.EntityImageService;
 import io.github.wolfandw.mymarket.service.ItemService;
+import io.github.wolfandw.mymarket.service.UserService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.multipart.FilePart;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.result.view.Rendering;
@@ -21,8 +23,6 @@ import java.math.BigDecimal;
 @Controller
 @RequestMapping("/items")
 public class ItemController {
-    private static final Long DEFAULT_CART_ID = 1L;
-
     private static final String TEMPLATE_ITEMS = "items";
     private static final String TEMPLATE_ITEM = "item";
     private static final String TEMPLATE_ITEM_NEW = "item_new";
@@ -33,6 +33,7 @@ public class ItemController {
     private static final String ATTRIBUTE_PAGING = "paging";
     private static final String ATTRIBUTE_ITEM = "item";
     private static final String ATTRIBUTE_NEW_ITEM = "newItem";
+    private static final String ATTRIBUTE_USER_INFO = "userInfo";
 
     private static final String PARAMETER_NEW_ITEM = "newItem";
     private static final String PARAMETER_IMAGE_FILE = "imageFile";
@@ -40,6 +41,7 @@ public class ItemController {
     private final ItemService itemService;
     private final CartService cartService;
     private final EntityImageService entityImageService;
+    private final UserService userService;
 
     /**
      * Создает экземпляр контроллера товаров.
@@ -47,11 +49,14 @@ public class ItemController {
      * @param itemService        сервис товаров
      * @param cartService        сервис корзин
      * @param entityImageService сервис картинок товаров.
+     * @param userService         сервис пользователей
      */
-    public ItemController(ItemService itemService, CartService cartService, EntityImageService entityImageService) {
+    public ItemController(ItemService itemService, CartService cartService, EntityImageService entityImageService,
+                          UserService userService) {
         this.itemService = itemService;
         this.cartService = cartService;
         this.entityImageService = entityImageService;
+        this.userService = userService;
     }
 
     /**
@@ -62,7 +67,7 @@ public class ItemController {
      */
     @GetMapping
     public Mono<Rendering> getItems(@ModelAttribute ItemsPageFormRequest request) {
-        Flux<ItemDto> itemsDtoPage = itemService.getItems(DEFAULT_CART_ID, request.getSearch(),
+        Flux<ItemDto> itemsDtoPage = itemService.getItems(request.getSearch(),
                 request.getSort(),
                 request.getPageNumber(),
                 request.getPageSize());
@@ -71,12 +76,15 @@ public class ItemController {
                 request.getPageNumber(),
                 request.getPageSize());
 
+        Mono<UserInfoDto> userInfoMono = userService.getCurrentUserInfo();
+
         return Mono.just(
                 Rendering.view(TEMPLATE_ITEMS)
                         .modelAttribute(ATTRIBUTE_ITEMS, itemsDtoPage)
                         .modelAttribute(ATTRIBUTE_SEARCH, request.getSearch())
                         .modelAttribute(ATTRIBUTE_SORT, request.getSort())
                         .modelAttribute(ATTRIBUTE_PAGING, pagingMono)
+                        .modelAttribute(ATTRIBUTE_USER_INFO, userInfoMono)
                         .build()
         );
     }
@@ -90,11 +98,13 @@ public class ItemController {
     @GetMapping("/{id}")
     public Mono<Rendering> getItem(@PathVariable Long id,
                                    @RequestParam(value = PARAMETER_NEW_ITEM, required = false, defaultValue = "false") boolean newItem) {
-        Mono<ItemDto> itemDtoMono = itemService.getItem(DEFAULT_CART_ID, id);
+        Mono<ItemDto> itemDtoMono = itemService.getItem(id);
+        Mono<UserInfoDto> userInfoMono = userService.getCurrentUserInfo();
         return itemDtoMono.map(itemDto ->
                 Rendering.view(TEMPLATE_ITEM)
                         .modelAttribute(ATTRIBUTE_ITEM, itemDtoMono)
                         .modelAttribute(ATTRIBUTE_NEW_ITEM, newItem)
+                        .modelAttribute(ATTRIBUTE_USER_INFO, userInfoMono)
                         .build()
         ).defaultIfEmpty(Rendering.redirectTo(RedirectUrlFactory.createUrlToItems()).build());
     }
@@ -105,13 +115,14 @@ public class ItemController {
      * @param request запрос на изменение количества с параметрами страницы товаров
      * @return редирект на страницу товаров с первоначальными значениями параметров
      */
+    @PreAuthorize("hasRole('USER')")
     @PostMapping
     public Mono<String> changeItemCount(@ModelAttribute ItemsPageChangeCountFormRequest request) {
         String searchParamValue = request.getSearch();
         String sortParamValue = request.getSort();
         Integer pageNumberParamValue = request.getPageNumber();
         Integer pageSizeParamValue = request.getPageSize();
-        return cartService.changeItemCount(DEFAULT_CART_ID, request.getId(), request.getAction()).
+        return cartService.changeUserItemCount(request.getId(), request.getAction()).
                 thenReturn(RedirectUrlFactory.createRedirectUrlToItems(searchParamValue,
                         sortParamValue,
                         pageNumberParamValue,
@@ -124,10 +135,11 @@ public class ItemController {
      * @param request запрос на изменение количества товара
      * @return шаблон товара
      */
+    @PreAuthorize("hasRole('USER')")
     @PostMapping("/{id}")
     public Mono<String> changeItemCount(
             @ModelAttribute ItemPageChangeCountFormRequest request) {
-        return cartService.changeItemCount(DEFAULT_CART_ID, request.getId(), request.getAction()).
+        return cartService.changeUserItemCount(request.getId(), request.getAction()).
                 thenReturn(RedirectUrlFactory.createRedirectUrlToItem(request.getId()));
     }
 
@@ -136,9 +148,11 @@ public class ItemController {
      *
      * @return страница создания товара
      */
-    @GetMapping("/new")
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/add/new")
     public Mono<Rendering> addNewItem() {
-        return Mono.just(Rendering.view(TEMPLATE_ITEM_NEW).build());
+        Mono<UserInfoDto> userInfoMono = userService.getCurrentUserInfo();
+        return Mono.just(Rendering.view(TEMPLATE_ITEM_NEW).modelAttribute(ATTRIBUTE_USER_INFO, userInfoMono).build());
     }
 
     /**
@@ -147,7 +161,8 @@ public class ItemController {
      * @param request свойства нового товара
      * @return страница созданного товара.
      */
-    @PostMapping("/new")
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/add/new")
     public Mono<Rendering> saveNewItem(@ModelAttribute ItemNewFormRequest request) {
         Mono<ItemDto> newItemDtoMono = itemService.createItem(request.getTitle(),
                 request.getDescription(), BigDecimal.valueOf(request.getPrice()));
@@ -174,6 +189,7 @@ public class ItemController {
      * @param imageFile файл изображения
      * @return редирект на страницу товара
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping(path = "/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Mono<Rendering> setItemImage(@PathVariable Long id,
                                         @RequestPart(PARAMETER_IMAGE_FILE) Mono<FilePart> imageFile) {

@@ -7,6 +7,7 @@ import io.github.wolfandw.payment.server.domain.ReceiptDto;
 import io.github.wolfandw.payment.service.PaymentsService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -22,6 +23,7 @@ public class PaymentsController implements PaymentsApi {
         this.paymentsService = paymentsService;
     }
     @Override
+    @PreAuthorize("hasRole('PAYMENTS_SERVICE_CLIENT')")
     public Mono<ResponseEntity<BalanceDto>> getBalance(Long id, ServerWebExchange exchange) {
         return paymentsService
                 .getBalance(id)
@@ -29,6 +31,7 @@ public class PaymentsController implements PaymentsApi {
     }
 
     @Override
+    @PreAuthorize("hasRole('PAYMENTS_SERVICE_CLIENT')")
     public Mono<ResponseEntity<BalanceDto>> makePayment(Long id, Mono<PaymentDto> paymentRequest, ServerWebExchange exchange) {
         return paymentRequest.flatMap(request -> paymentsService
                 .makePayment(id, request.getPayment())
@@ -37,6 +40,7 @@ public class PaymentsController implements PaymentsApi {
     }
 
     @Override
+    @PreAuthorize("hasRole('PAYMENTS_SERVICE_CLIENT')")
     public Mono<ResponseEntity<BalanceDto>> topUpBalance(Long id, Mono<ReceiptDto> receiptRequest, ServerWebExchange exchange) {
         return  receiptRequest.flatMap(request -> paymentsService
                 .topUpBalance(id, request.getReceipt())

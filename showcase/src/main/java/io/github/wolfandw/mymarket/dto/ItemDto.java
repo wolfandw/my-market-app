@@ -112,4 +112,12 @@ public class ItemDto {
     public int getCount() {
         return count;
     }
+
+    /**
+     * Устанавливает количество товара в корзине.
+     *
+     * @param count количество товара
+     */
+    public void setCount(Integer count) {
+    }
 }

@@ -1,5 +1,6 @@
 package io.github.wolfandw.mymarket.test.controller;
 
+import io.github.wolfandw.mymarket.IsRoleUser;
 import io.github.wolfandw.mymarket.controller.OrderController;
 import io.github.wolfandw.mymarket.dto.ItemDto;
 import io.github.wolfandw.mymarket.dto.OrderDto;
@@ -24,9 +25,11 @@ public class OrderControllerTest extends AbstractControllerTest {
     private static final String TEMPLATE_ORDER = "order";
 
     @Test
-    void getOrdersTest() {
+    @IsRoleUser
+    public void getOrdersUserTest() {
         List<OrderDto> orders = ORDERS.values().stream().map(this::mapOrder).toList();
-        when(orderService.getOrders()).thenReturn(Flux.fromIterable(orders));
+        when(orderService.getUserOrders()).thenReturn(Flux.fromIterable(orders));
+        when(userService.getCurrentUserInfo()).thenReturn(getUserInfoMono());
         webTestClient.get().uri("/orders")
                 .exchange()
                 .expectStatus().isOk()
@@ -41,12 +44,19 @@ public class OrderControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    void getOrderTest() {
+    public void getOrdersTest() {
+        checkFound("/orders");
+    }
+
+    @Test
+    @IsRoleUser
+    public void getOrderUserTest() {
         Long orderId = 1L;
         Order order = ORDERS.get(orderId);
         List<ItemDto> orderItems = mapOrderItems(ORDER_ITEMS.get(orderId).values().stream().toList());
-        when( orderService.getOrder(orderId, false)).thenReturn(Mono.just(mapOrder(order)));
-        when( orderService.getOrderItems(orderId)).thenReturn(Flux.fromIterable(orderItems));
+        when( orderService.getUserOrder(orderId, false)).thenReturn(Mono.just(mapOrder(order)));
+        when( orderService.getUserOrderItems(orderId)).thenReturn(Flux.fromIterable(orderItems));
+        when(userService.getCurrentUserInfo()).thenReturn(getGuestInfoMono());
         webTestClient.get().uri("/orders/1")
                 .exchange()
                 .expectStatus().isOk()
@@ -54,9 +64,12 @@ public class OrderControllerTest extends AbstractControllerTest {
                 .consumeWith(res -> {
                     String body = res.getResponseBody();
                     assertNotNull(body);
-                    assertTrue(body.contains("Item 08"));
-                    assertTrue(body.contains("8129"));
-                    assertTrue(body.contains(TEMPLATE_ORDER));
+                    assertTrue(body.contains("Для незарегистрированных пользователей функционал ограничен! Заказ не может быть просмотрен!"));
                 });
+    }
+
+    @Test
+    public void getOrderGuestTest() {
+        checkFound("/orders/1");
     }
 }

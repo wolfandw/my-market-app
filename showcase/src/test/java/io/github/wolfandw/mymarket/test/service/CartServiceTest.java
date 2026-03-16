@@ -1,12 +1,19 @@
 package io.github.wolfandw.mymarket.test.service;
 
+import io.github.wolfandw.mymarket.IsRoleAdmin;
+import io.github.wolfandw.mymarket.IsRoleGuest;
+import io.github.wolfandw.mymarket.IsRoleUser;
+import io.github.wolfandw.mymarket.dto.CartDto;
+import io.github.wolfandw.mymarket.dto.ItemDto;
 import io.github.wolfandw.mymarket.model.Cart;
 import io.github.wolfandw.mymarket.model.CartItem;
+import io.github.wolfandw.mymarket.model.User;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -26,13 +33,42 @@ public class CartServiceTest extends AbstractServiceTest {
     private static final String ACTION_PLUS = "PLUS";
 
     @Test
-    void getCartTest() {
-        Long cartId = DEFAULT_CART_ID;
+    @IsRoleUser
+    void getCartUserTest() {
+        StepVerifier.create(cartService.getCart(getUser().getId())).verifyError(AuthorizationDeniedException.class);
+    }
 
-        Cart cart = CARTS.get(cartId);
-        when(cartRepository.findById(cartId)).thenReturn(Mono.just(cart));
+    @Test
+    @IsRoleAdmin
+    public void getCartAdminTest() {
+        getCartTest(getAdmin(), getAdminMono(), cartService.getCart(getAdmin().getId()));
+    }
 
-        StepVerifier.create(cartService.getCart(DEFAULT_CART_ID)).
+    @Test
+    @IsRoleGuest
+    public void getCartGuestTest() {
+        StepVerifier.create(cartService.getCart(ID_GUEST)).verifyError(AuthorizationDeniedException.class);
+    }
+
+    @Test
+    @IsRoleUser
+    void getUserCartUserTest() {
+        getCartTest(getUser(), getUserMono(), cartService.getUserCart());
+    }
+
+    @Test
+    @IsRoleGuest
+    public void getUserCartGuestTest() {
+        StepVerifier.create(cartService.getUserCart()).verifyError(AuthorizationDeniedException.class);
+    }
+
+    private void getCartTest(User testUser, Mono<User> testUserMono, Mono<CartDto> testCart) {
+        Cart cart = CARTS.get(testUser.getId());
+        when(cartRepository.findFirstByUserId(testUser.getId())).thenReturn(Mono.just(cart));
+        when(cartRepository.findById(testUser.getId())).thenReturn(Mono.just(cart));
+        when(userRepository.findByUsername(any(String.class))).thenReturn(testUserMono);
+
+        StepVerifier.create(testCart).
                 consumeNextWith(actualCart -> {
                     assertThat(actualCart.total()).isEqualTo(7815L);
                 }).verifyComplete();
@@ -40,12 +76,46 @@ public class CartServiceTest extends AbstractServiceTest {
 
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
-    void getCartItemsTest(boolean emptyCache) {
-        Long cartId = DEFAULT_CART_ID;
+    @IsRoleUser
+    public void getCartItemsUserTest(boolean emptyCache) {
+        StepVerifier.create(cartService.getCartItems(ID_GUEST).collectList()).verifyError(AuthorizationDeniedException.class);
+    }
 
-        Cart cart = CARTS.get(cartId);
-        List<CartItem> cartItems = CART_ITEMS.get(DEFAULT_CART_ID).values().stream().toList();
-        when(cartItemRepository.findAllByCartId(cartId)).thenReturn(Flux.fromIterable(cartItems));
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    @IsRoleAdmin
+    public void getCartItemsAdminTest(boolean emptyCache) {
+        getCartItemsTest(emptyCache, getAdmin(), getAdminMono(), cartService.getCartItems(getAdmin().getId()));
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    @IsRoleGuest
+    public void getCartItemsGuestTest(boolean emptyCache) {
+        StepVerifier.create(cartService.getCartItems(ID_GUEST).collectList()).verifyError(AuthorizationDeniedException.class);
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    @IsRoleUser
+    public void getUserCartItemsUserTest(boolean emptyCache) {
+        getCartItemsTest(emptyCache, getUser(), getUserMono(), cartService.getUserCartItems());
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    @IsRoleGuest
+    public void getUserCartItemsGuestTest(boolean emptyCache) {
+        StepVerifier.create(cartService.getUserCartItems().collectList()).verifyError(AuthorizationDeniedException.class);
+    }
+
+    private void getCartItemsTest(boolean emptyCache, User testUser, Mono<User> testUserMono, Flux<ItemDto> testCartItems) {
+        Cart cart = CARTS.get(testUser.getId());
+        List<CartItem> cartItems = CART_ITEMS.get(cart.getId()).values().stream().toList();
+        when(cartItemRepository.findAllByCartId(cart.getId())).thenReturn(Flux.fromIterable(cartItems));
+        when(cartRepository.findById(cart.getId())).thenReturn(Mono.just(cart));
+        when(userRepository.findByUsername(any(String.class))).thenReturn(testUserMono);
+        when(cartRepository.findFirstByUserId(testUser.getId())).thenReturn(Mono.just(cart));
 
         mockItem();
         if (emptyCache) {
@@ -56,7 +126,7 @@ public class CartServiceTest extends AbstractServiceTest {
         }
         mockCacheItemFromCache();
 
-        StepVerifier.create(cartService.getCartItems(DEFAULT_CART_ID).collectList()).
+        StepVerifier.create(testCartItems.collectList()).
                 assertNext(actualCartItems -> {
                     assertThat(actualCartItems).isNotEmpty();
                     assertThat(actualCartItems.size()).isEqualTo(12);
@@ -69,13 +139,55 @@ public class CartServiceTest extends AbstractServiceTest {
 
     @ParameterizedTest
     @MethodSource("provideChangeItemCountArgs")
-    void changeItemCount(String action, long countBefore, long countAfter, boolean emptyCache) {
-        Long cartId = DEFAULT_CART_ID;
+    @IsRoleUser
+    void changeItemCountUserTest(String action, long countBefore, long countAfter, boolean emptyCache) {
         Long entityId = 2L;
+        trxStepVerifier.create(cartService.changeItemCount(getUser().getId(),entityId, action).
+                then(itemService.getItem(entityId))).verifyError(AuthorizationDeniedException.class);
+    }
 
-        when(cartRepository.save(any(Cart.class))).thenReturn(Mono.just(CARTS.get(DEFAULT_CART_ID)));
-        CartItem savedCartItem = CART_ITEMS.get(DEFAULT_CART_ID).get(entityId);
+    @ParameterizedTest
+    @MethodSource("provideChangeItemCountArgs")
+    @IsRoleAdmin
+    void changeItemCountAdminTest(String action, long countBefore, long countAfter, boolean emptyCache) {
+        Long entityId = 2L;
+        changeItemCountTest(action, entityId, countBefore, countAfter, emptyCache, getAdmin(),  getAdminMono(), cartService.changeItemCount(getAdmin().getId(), entityId, action));
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideChangeItemCountArgs")
+    @IsRoleGuest
+    void changeItemCountGuestTest(String action, long countBefore, long countAfter, boolean emptyCache) {
+        Long entityId = 2L;
+        trxStepVerifier.create(cartService.changeItemCount(ID_GUEST, entityId, action).
+                then(itemService.getItem(entityId))).verifyError(AuthorizationDeniedException.class);
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideChangeItemCountArgs")
+    @IsRoleUser
+    void changeUserItemCountUserTest(String action, long countBefore, long countAfter, boolean emptyCache) {
+        Long entityId = 2L;
+        changeItemCountTest(action, entityId, countBefore, countAfter, emptyCache, getUser(),  getUserMono(), cartService.changeUserItemCount(entityId, action));
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideChangeItemCountArgs")
+    @IsRoleGuest
+    void changeUserItemCountGuestTest(String action, long countBefore, long countAfter, boolean emptyCache) {
+        Long entityId = 2L;
+        trxStepVerifier.create(cartService.changeUserItemCount(entityId, action).
+                then(itemService.getItem(entityId))).verifyError(AuthorizationDeniedException.class);
+    }
+
+    private void changeItemCountTest(String action, Long entityId, long countBefore, long countAfter, boolean emptyCache, User testUser,  Mono<User> testUserMono, Mono<Void> testAction) {
+        Cart cart = CARTS.get(testUser.getId());
+        when(cartRepository.save(any(Cart.class))).thenReturn(Mono.just(cart));
+        CartItem savedCartItem = CART_ITEMS.get(cart.getId()).get(entityId);
         when(cartItemRepository.save(any(CartItem.class))).thenReturn(Mono.just(savedCartItem));
+        when(cartRepository.findFirstByUserId(testUser.getId())).thenReturn(Mono.just(cart));
+        when(userRepository.findByUsername(any(String.class))).thenReturn(testUserMono);
+        when(cartRepository.findFirstByUserId(testUser.getId())).thenReturn(Mono.just(cart));
 
         mockCart();
         mockItem();
@@ -88,18 +200,15 @@ public class CartServiceTest extends AbstractServiceTest {
         }
         mockCacheItemFromCache();
 
-        StepVerifier.create(itemService.getItem(cartId, entityId)).
+        StepVerifier.create(itemService.getItem(entityId)).
                 consumeNextWith(entity -> {
                     assertThat(entity.count()).isEqualTo(countBefore);
                 }).verifyComplete();
 
-        trxStepVerifier.create(cartService.changeItemCount(cartId, entityId, action).then(itemService.getItem(cartId, entityId))).
+        trxStepVerifier.create(testAction.then(itemService.getItem(entityId))).
                 consumeNextWith(entity -> {
                     assertThat(entity.count()).isEqualTo(countAfter);
                 }).verifyComplete();
-
-        verify(cartItemRepository).save(any(CartItem.class));
-        verify(itemCache, times(emptyCache ? 2 : 0)).cache(any());
     }
 
     private static Stream<Arguments> provideChangeItemCountArgs() {

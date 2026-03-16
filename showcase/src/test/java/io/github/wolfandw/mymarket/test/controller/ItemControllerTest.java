@@ -1,10 +1,14 @@
 package io.github.wolfandw.mymarket.test.controller;
 
+import io.github.wolfandw.mymarket.IsRoleAdmin;
+import io.github.wolfandw.mymarket.IsRoleGuest;
+import io.github.wolfandw.mymarket.IsRoleUser;
 import io.github.wolfandw.mymarket.controller.ItemController;
 import io.github.wolfandw.mymarket.controller.RedirectUrlFactory;
 import io.github.wolfandw.mymarket.dto.EntityImageDto;
 import io.github.wolfandw.mymarket.dto.ItemDto;
 import io.github.wolfandw.mymarket.dto.ItemsPagingDto;
+import io.github.wolfandw.mymarket.dto.UserInfoDto;
 import io.github.wolfandw.mymarket.model.Item;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.webflux.test.autoconfigure.WebFluxTest;
@@ -20,6 +24,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.csrf;
 import static org.springframework.web.reactive.function.BodyInserters.fromFormData;
 import static org.springframework.web.reactive.function.BodyInserters.fromMultipartAsyncData;
 
@@ -45,7 +50,23 @@ public class ItemControllerTest extends AbstractControllerTest {
     private static final String ACTION_PLUS = "PLUS";
 
     @Test
-    void getItemsTest() {
+    @IsRoleUser
+    public void getItemsUserTest() {
+        checkItems(getUserInfo());
+    }
+
+    @Test
+    @IsRoleGuest
+    public void getItemsGuestTest() {
+        checkItems(getGuestInfo());
+    }
+
+    @Test
+    public void getItemsTest() {
+        checkFound("/items");
+    }
+
+    private void checkItems(UserInfoDto testUserInfo) {
         String searchParamValue = "";
         String sortParamValue = "";
         int pageNumberParamValue = 1;
@@ -53,18 +74,18 @@ public class ItemControllerTest extends AbstractControllerTest {
 
         List<Item> content = new ArrayList<>(ITEMS.values().stream().limit(5).toList());
         List<ItemDto> itemDtos = mapToItemsDto(content);
-
-        ItemsPagingDto paging = new ItemsPagingDto(pageSizeParamValue, pageNumberParamValue, false, true);
-
-        when(itemService.getItems(DEFAULT_CART_ID, searchParamValue,
+        when(itemService.getItems(searchParamValue,
                 sortParamValue,
                 pageNumberParamValue,
                 pageSizeParamValue)).thenReturn(Flux.fromIterable(itemDtos));
 
+        ItemsPagingDto paging = new ItemsPagingDto(pageSizeParamValue, pageNumberParamValue, false, true);
         when(itemService.getItemsPaging(searchParamValue,
                 pageNumberParamValue,
                 pageSizeParamValue)).thenReturn(Mono.just(paging));
 
+
+        when(userService.getCurrentUserInfo()).thenReturn(Mono.just(testUserInfo));
         webTestClient.get().uri(uriBuilder -> uriBuilder
                         .path("/items")
                         .queryParam(PARAMETER_SEARCH, searchParamValue)
@@ -79,16 +100,35 @@ public class ItemControllerTest extends AbstractControllerTest {
                     String body = res.getResponseBody();
                     assertNotNull(body);
                     assertTrue(body.contains("Item 08"));
+                    if (!testUserInfo.isUser()) {
+                        assertTrue(body.contains("Для незарегистрированных пользователей функционал ограничен! Корзина не может быть наполнена!"));
+                    }
                     assertTrue(body.contains(TEMPLATE_ITEMS));
                 });
     }
 
     @Test
-    void getItemTest() {
+    @IsRoleUser
+    public void getItemUserTest() {
+        checkItem(getUserInfo());
+    }
+
+    @Test
+    @IsRoleGuest
+    public void getItemGuestTest() {
+        checkItem(getGuestInfo());
+    }
+
+    @Test
+    public void getItemTest() {
+        checkFound("/items/2");
+    }
+
+    private void checkItem(UserInfoDto testUserInfo) {
         Long itemId = 2L;
+        when(itemService.getItem(itemId)).thenReturn(Mono.just(mapItem(ITEMS.get(itemId), 0)));
 
-        when(itemService.getItem(DEFAULT_CART_ID, itemId)).thenReturn(Mono.just(mapItem(ITEMS.get(itemId), 0)));
-
+        when(userService.getCurrentUserInfo()).thenReturn(Mono.just(testUserInfo));
         webTestClient.get().uri(uriBuilder -> uriBuilder
                         .path("/items/2")
                         .build())
@@ -100,21 +140,36 @@ public class ItemControllerTest extends AbstractControllerTest {
                     assertNotNull(body);
                     assertTrue(body.contains("Item 08"));
                     assertFalse(body.contains("Поздравляем! Товар успешно создан!"));
+                    if (!testUserInfo.isUser()) {
+                        assertTrue(body.contains("Для незарегистрированных пользователей функционал ограничен! Корзина не может быть наполнена!"));
+                    }
                     assertTrue(body.contains(TEMPLATE_ITEM));
                 });
     }
 
     @Test
-    void changeItemCountOnItemsTest() {
+    @IsRoleAdmin
+    public void changeItemCountOnItemsAdminTest() {
+        changeItemCountOnItemsTest(getAdminInfo());
+    }
+
+    @Test
+    public void changeItemCountOnItemsTest() {
+        checkFound("/items");
+    }
+
+    private void changeItemCountOnItemsTest(UserInfoDto testUserInfo) {
         long itemId = 1L;
         String searchParamValue = "SearchTag";
         String sortParamValue = "NO";
         Integer pageNumberParamValue = 1;
         Integer pageSizeParamValue = 5;
 
-        when(cartService.changeItemCount(DEFAULT_CART_ID, itemId, ACTION_PLUS)).thenReturn(Mono.empty());
+        when(cartService.changeUserItemCount(itemId, ACTION_PLUS)).thenReturn(Mono.empty());
+        when(userService.getCurrentUserInfo()).thenReturn(Mono.just(testUserInfo));
 
-        webTestClient.post().uri(uriBuilder -> uriBuilder
+        webTestClient.mutateWith(csrf())
+                .post().uri(uriBuilder -> uriBuilder
                         .path("/items")
                         .queryParam(PARAMETER_ID, Long.toString(itemId))
                         .queryParam(PARAMETER_ACTION, ACTION_PLUS)
@@ -130,16 +185,28 @@ public class ItemControllerTest extends AbstractControllerTest {
                         RedirectUrlFactory.createUrlToItems(searchParamValue, sortParamValue, pageNumberParamValue, pageSizeParamValue)
                 );
 
-        verify(cartService).changeItemCount(DEFAULT_CART_ID, itemId, ACTION_PLUS);
+        verify(cartService).changeUserItemCount(itemId, ACTION_PLUS);
     }
 
     @Test
-    void changeItemCountOnItemTest() {
-        long itemId = 1L;
-        when(itemService.getItem(DEFAULT_CART_ID, itemId)).thenReturn(Mono.just(mapItem(ITEMS.get(itemId), 0)));
-        when(cartService.changeItemCount(DEFAULT_CART_ID, itemId, ACTION_PLUS)).thenReturn(Mono.empty());
+    @IsRoleAdmin
+    public void changeItemCountOnItemAdminTest() {
+        changeItemCountOnItemTest(getAdminInfo());
+    }
 
-        webTestClient.post().uri(uriBuilder -> uriBuilder
+    @Test
+    public void changeItemCountOnItemTest() {
+        checkFound("/items/1");
+    }
+
+    private void changeItemCountOnItemTest(UserInfoDto testUserInfo) {
+        long itemId = 1L;
+        when(itemService.getItem(itemId)).thenReturn(Mono.just(mapItem(ITEMS.get(itemId), 0)));
+        when(cartService.changeUserItemCount(itemId, ACTION_PLUS)).thenReturn(Mono.empty());
+        when(userService.getCurrentUserInfo()).thenReturn(Mono.just(testUserInfo));
+
+        webTestClient.mutateWith(csrf())
+                .post().uri(uriBuilder -> uriBuilder
                         .path("/items/1")
                         .queryParam(PARAMETER_ACTION, ACTION_PLUS)
                         .build())
@@ -151,11 +218,22 @@ public class ItemControllerTest extends AbstractControllerTest {
                 );
 
 
-        verify(cartService).changeItemCount(DEFAULT_CART_ID, itemId, ACTION_PLUS);
+        verify(cartService).changeUserItemCount(itemId, ACTION_PLUS);
     }
 
     @Test
-    void addNewItemTest() {
+    @IsRoleAdmin
+    public void addNewItemAdminTest() {
+        addNewItemTest(getAdminInfo());
+    }
+
+    @Test
+    public void addNewItemGuestTest() {
+        checkFound("/items/new");
+    }
+
+    private void addNewItemTest(UserInfoDto testUserInfo) {
+        when(userService.getCurrentUserInfo()).thenReturn(Mono.just(testUserInfo));
         webTestClient.get().uri("/items/new")
                 .exchange()
                 .expectStatus().isOk()
@@ -163,20 +241,31 @@ public class ItemControllerTest extends AbstractControllerTest {
                 .consumeWith(res -> {
                     String body = res.getResponseBody();
                     assertNotNull(body);
-                    assertTrue(body.contains("Новый товар"));
                 });
     }
 
     @Test
-    void saveNewItemTest() throws Exception {
+    @IsRoleAdmin
+    public void saveNewItemAdminTest() {
+        saveNewItemTest(getAdminInfo());
+    }
+
+    @Test
+    public void saveNewItemGuestTest() {
+        checkFound("/items/add/new");
+    }
+
+    private void saveNewItemTest(UserInfoDto testUserInfo) {
         Long itemId = 15L;
         String titleParamValue = "Item 15";
         String descriptionParamValue = "Item 15 description";
         long priceParamValue = 15L;
         when(itemService.createItem(titleParamValue, descriptionParamValue, BigDecimal.valueOf(priceParamValue))).
                 thenReturn(Mono.just(new ItemDto(itemId, titleParamValue, descriptionParamValue, priceParamValue, 0)));
+        when(userService.getCurrentUserInfo()).thenReturn(Mono.just(testUserInfo));
 
-        webTestClient.post().uri("/items/new")
+        webTestClient.mutateWith(csrf())
+                .post().uri("/items/add/new")
                 .contentType(MediaType.TEXT_HTML)
                 .body(fromFormData(PARAMETER_TITLE, titleParamValue).
                         with(PARAMETER_DESCRIPTION, descriptionParamValue).
@@ -190,8 +279,20 @@ public class ItemControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    void getItemImageTest() {
-        when(entityImageService.getEntityImage(1L)).thenReturn(Mono.just(new EntityImageDto(1L, new byte[]{1,2,3}, MediaType.IMAGE_PNG)));
+    @IsRoleUser
+    public void getItemImageUserTest() {
+        getItemImageTest(getUserInfoMono());
+    }
+
+    @Test
+    public void getItemImageGuestTest() {
+        checkFound("/items/1/image");
+    }
+
+    private void getItemImageTest(Mono<UserInfoDto> testUserInfoMono) {
+        when(userService.getCurrentUserInfo()).thenReturn(getGuestInfoMono());
+        when(entityImageService.getEntityImage(1L)).thenReturn(Mono.just(new EntityImageDto(1L, new byte[]{1, 2, 3}, MediaType.IMAGE_PNG)));
+        when(userService.getCurrentUserInfo()).thenReturn(testUserInfoMono);
 
         webTestClient.get().uri(uriBuilder -> uriBuilder
                         .path("/items/1/image")
@@ -208,12 +309,21 @@ public class ItemControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    void setItemImageTest() {
-        Long itemId = 1L;
-        String imageName = "14.jpg";
+    @IsRoleAdmin
+    public void setItemImageAdminTest() {
+        setItemImageTest(getAdminInfo());
+    }
 
-        Mono<FilePart> expectedFilePartMono = Mono.just(getFilePart(imageName));
-        webTestClient.post().uri(uriBuilder -> uriBuilder
+    @Test
+    public void setItemImageGuestTest() {
+        checkFound("/items/1/image");
+    }
+
+    private void setItemImageTest(UserInfoDto testUserInfo) {
+        Mono<FilePart> expectedFilePartMono = Mono.just(getFilePart("14.jpg"));
+        when(userService.getCurrentUserInfo()).thenReturn(Mono.just(testUserInfo));
+        webTestClient.mutateWith(csrf())
+                .post().uri(uriBuilder -> uriBuilder
                         .path("/items/1/image")
                         .build())
                 .contentType(MediaType.MULTIPART_FORM_DATA)

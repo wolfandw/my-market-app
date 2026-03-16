@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.security.test.context.support.WithMockUser;
 import reactor.test.StepVerifier;
 
 import java.math.BigDecimal;
@@ -24,6 +26,14 @@ public class PaymentsServiceTest {
 
     @Test
     @Order(1)
+    void topUpBalanceIsUnauthorizedTest() {
+        Long id = 1L;
+        StepVerifier.create(paymentsService.topUpBalance(id, BigDecimal.TEN)).verifyError(AuthorizationDeniedException.class);
+    }
+
+    @Test
+    @Order(2)
+    @WithMockUser(roles = "PAYMENTS_SERVICE_CLIENT")
     void topUpBalanceTest() {
         Long id = 1L;
         StepVerifier.create(paymentsService.topUpBalance(id, BigDecimal.TEN)).
@@ -35,7 +45,8 @@ public class PaymentsServiceTest {
     }
 
     @Test
-    @Order(2)
+    @Order(3)
+    @WithMockUser(roles = "PAYMENTS_SERVICE_CLIENT")
     void topUpBalanceNullTest() {
         Long id = 1L;
         StepVerifier.create(paymentsService.topUpBalance(id, null)).
@@ -47,7 +58,8 @@ public class PaymentsServiceTest {
     }
 
     @Test
-    @Order(3)
+    @Order(4)
+    @WithMockUser(roles = "PAYMENTS_SERVICE_CLIENT")
     void topUpBalanceNegativeTest() {
         Long id = 1L;
         StepVerifier.create(paymentsService.topUpBalance(id, BigDecimal.valueOf(-1L))).
@@ -59,7 +71,15 @@ public class PaymentsServiceTest {
     }
 
     @Test
-    @Order(4)
+    @Order(5)
+    void getBalanceIsUnauthorizedTest() {
+        Long id = 1L;
+        StepVerifier.create(paymentsService.getBalance(id)).verifyError(AuthorizationDeniedException.class);
+    }
+
+    @Test
+    @Order(6)
+    @WithMockUser(roles = "PAYMENTS_SERVICE_CLIENT")
     void getBalanceTest() {
         Long id = 1L;
         StepVerifier.create(paymentsService.getBalance(id)).
@@ -71,7 +91,15 @@ public class PaymentsServiceTest {
     }
 
     @Test
-    @Order(5)
+    @Order(7)
+    void makePaymentIsUnauthorizedTest() {
+        Long id = 1L;
+        StepVerifier.create(paymentsService.makePayment(id, BigDecimal.TEN)).verifyError(AuthorizationDeniedException.class);
+    }
+
+    @Test
+    @Order(8)
+    @WithMockUser(roles = "PAYMENTS_SERVICE_CLIENT")
     void makePaymentTest() {
         Long id = 1L;
         StepVerifier.create(paymentsService.makePayment(id, BigDecimal.TEN)).
@@ -83,7 +111,8 @@ public class PaymentsServiceTest {
     }
 
     @Test
-    @Order(6)
+    @Order(9)
+    @WithMockUser(roles = "PAYMENTS_SERVICE_CLIENT")
     void makePaymentLowBalanceTest() {
         Long id = 1L;
         StepVerifier.create(paymentsService.makePayment(id, BigDecimal.TEN)).
@@ -95,7 +124,8 @@ public class PaymentsServiceTest {
     }
 
     @Test
-    @Order(6)
+    @Order(10)
+    @WithMockUser(roles = "PAYMENTS_SERVICE_CLIENT")
     void makePaymentNullTest() {
         Long id = 1L;
         StepVerifier.create(paymentsService.makePayment(id, null)).
@@ -107,7 +137,8 @@ public class PaymentsServiceTest {
                 }).verifyComplete();
     }
     @Test
-    @Order(6)
+    @Order(11)
+    @WithMockUser(roles = "PAYMENTS_SERVICE_CLIENT")
     void makePaymentNegativeTest() {
         Long id = 1L;
         StepVerifier.create(paymentsService.makePayment(id, BigDecimal.valueOf(-1L))).

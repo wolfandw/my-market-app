@@ -9,6 +9,7 @@ import io.github.wolfandw.mymarket.service.EntityImageService;
 import io.github.wolfandw.mymarket.service.FileStorageService;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.multipart.FilePart;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
@@ -66,6 +67,7 @@ public class EntityImageServiceImpl implements EntityImageService {
 
     @Override
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public Mono<Void> setEntityImage(Long entityId, Mono<FilePart> imageFileMono) {
         return imageFileMono.flatMap(imageFile -> {
                     String originName = imageFile.filename();
