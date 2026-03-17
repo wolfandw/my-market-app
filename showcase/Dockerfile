@@ -1,6 +1,6 @@
-FROM amazoncorretto:21-alpine-jdk
+FROM amazoncorretto:21-alpine-jdk AS build
 WORKDIR /app
-COPY target/*.jar app.jar
+COPY showcase/target/*.jar app.jar
 ENV REDIS_HOST=redis
 ENV REDIS_PORT=6379
 ENV PAYMENT_HOST=payment
