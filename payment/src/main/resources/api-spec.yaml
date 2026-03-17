@@ -5,6 +5,8 @@ info:
   version: 1.0.0
 
 servers:
+  - url: http://payment:8081
+    description: Docker сервис платежей
   - url: http://localhost:8081
     description: Локальный сервис платежей
 
